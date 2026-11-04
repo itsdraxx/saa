@@ -5,6 +5,14 @@ import { Play, Pause } from "lucide-react";
 import { formatTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
+// Precomputed integer waveform bar heights to guarantee deterministic SSR/hydration
+const WAVEFORM_HEIGHTS = [
+  35, 52, 68, 79, 82, 75, 61, 45, 32, 26,
+  29, 38, 52, 66, 76, 78, 71, 58, 43, 31,
+  26, 28, 37, 50, 64, 74, 76, 70, 57, 42,
+  30, 25, 27, 36, 49, 63, 73, 75, 69, 56,
+];
+
 interface AudioPlayerProps {
   src: string;
   title?: string;
@@ -109,18 +117,16 @@ export default function AudioPlayer({ src, title, className }: AudioPlayerProps)
           >
             {/* Waveform bars (CSS visual) */}
             <div className="absolute inset-0 flex items-center justify-around px-1">
-              {Array.from({ length: 40 }).map((_, i) => {
-                const height = 20 + Math.sin(i * 0.8) * 30 + Math.cos(i * 1.3) * 20;
+              {WAVEFORM_HEIGHTS.map((height, i) => {
+                const isPlayed = (i / WAVEFORM_HEIGHTS.length) * 100 <= progress;
                 return (
                   <div
                     key={i}
                     className={cn(
                       "w-[2px] rounded-full transition-colors duration-150",
-                      (i / 40) * 100 <= progress
-                        ? "bg-gold"
-                        : "bg-warm-beige"
+                      isPlayed ? "bg-gold" : "bg-warm-beige"
                     )}
-                    style={{ height: `${Math.max(15, Math.min(90, height))}%` }}
+                    style={{ height: `${height}%` }}
                   />
                 );
               })}
