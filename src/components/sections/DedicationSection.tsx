@@ -6,10 +6,10 @@ import AnimatedCounter from "@/components/ui/AnimatedCounter";
 
 export default function DedicationSection() {
   return (
-    <section id="dedication" className="relative w-full overflow-hidden bg-gradient-to-b from-champagne/30 via-champagne/60 to-ivory py-32 px-4 text-center sm:px-6 lg:px-8">
-      {/* Subtle Background Glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-30">
-        <div className="h-[600px] w-[600px] rounded-full bg-gold/30 blur-3xl" />
+    <section id="dedication" className="relative w-full overflow-hidden bg-gradient-to-b from-champagne/40 via-peach-100/60 to-ivory py-32 px-4 text-center sm:px-6 lg:px-8">
+      {/* Subtle Peach Glow */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
+        <div className="h-[600px] w-[600px] rounded-full bg-peach-300/40 blur-3xl" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-3xl">
@@ -23,13 +23,13 @@ export default function DedicationSection() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-gold/40 bg-warm-white text-burgundy shadow-lg"
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-warm-beige bg-warm-white text-burgundy shadow-lg"
         >
           <Heart className="h-10 w-10 fill-burgundy text-burgundy" />
         </motion.div>
 
         {/* Milestone Counter Pill */}
-        <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-gold/40 bg-warm-white/90 px-6 py-2 shadow-sm backdrop-blur-xs">
+        <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-warm-beige bg-warm-white/95 px-6 py-2 shadow-sm backdrop-blur-xs">
           <Sparkles className="h-4 w-4 text-gold" />
           <span className="font-heading text-xl font-bold text-burgundy">
             <AnimatedCounter target={25} suffix=" Years" />
@@ -81,7 +81,7 @@ export default function DedicationSection() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-12 rounded-3xl border border-gold/30 bg-warm-white/80 p-8 shadow-md backdrop-blur-xs"
+          className="mt-12 rounded-3xl border border-warm-beige bg-gradient-to-br from-warm-white via-peach-50/60 to-warm-white p-8 shadow-md backdrop-blur-xs"
         >
           <p className="font-heading text-3xl italic font-medium text-gold sm:text-4xl">
             Happy 25th Silver Anniversary
@@ -100,4 +100,3 @@ export default function DedicationSection() {
     </section>
   );
 }
-

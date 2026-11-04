@@ -6,11 +6,13 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-[95vh] w-full flex-col items-center justify-center overflow-hidden bg-ivory px-4 py-20 text-center sm:px-6 lg:px-8">
-      {/* Decorative Background Elements */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
-        <div className="h-[500px] w-[500px] rounded-full bg-champagne/60 blur-3xl sm:h-[700px] sm:w-[700px]" />
+    <section className="relative flex min-h-[95vh] w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-ivory via-peach-50/60 to-ivory px-4 py-20 text-center sm:px-6 lg:px-8">
+      {/* Decorative Peach Glowing Orbs */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-60">
+        <div className="h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-peach-300/30 via-champagne/70 to-peach-100/40 blur-3xl sm:h-[750px] sm:w-[750px]" />
       </div>
+      <div className="pointer-events-none absolute top-10 right-10 h-72 w-72 rounded-full bg-peach-200/40 blur-2xl" />
+      <div className="pointer-events-none absolute bottom-10 left-10 h-72 w-72 rounded-full bg-champagne/60 blur-2xl" />
 
       {/* Floating Sparkles & Hearts */}
       {[...Array(6)].map((_, i) => (
@@ -18,7 +20,7 @@ export default function HeroSection() {
           key={i}
           initial={{ opacity: 0, y: 20 }}
           animate={{
-            opacity: [0.3, 0.7, 0.3],
+            opacity: [0.35, 0.8, 0.35],
             y: [-10, 10, -10],
           }}
           transition={{
@@ -31,7 +33,7 @@ export default function HeroSection() {
             top: `${15 + (i * 14)}%`,
             left: `${10 + (i * 15)}%`,
           }}
-          className="pointer-events-none absolute hidden text-gold/60 sm:block"
+          className="pointer-events-none absolute hidden text-gold sm:block"
         >
           {i % 2 === 0 ? (
             <Sparkles className="h-5 w-5" />
@@ -48,10 +50,10 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-warm-white/80 px-4 py-1.5 shadow-xs backdrop-blur-xs"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white/90 px-4 py-1.5 shadow-xs backdrop-blur-xs"
         >
           <Sparkles className="h-4 w-4 text-gold" />
-          <span className="font-body text-xs font-semibold tracking-widest text-soft-brown uppercase">
+          <span className="font-body text-xs font-semibold tracking-widest text-burgundy uppercase">
             Silver Jubilee • 25 Years of Togetherness
           </span>
           <Sparkles className="h-4 w-4 text-gold" />
@@ -74,11 +76,11 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-3 flex items-center justify-center gap-3 text-gold"
         >
-          <div className="h-[1px] w-12 bg-gold/50" />
+          <div className="h-[1px] w-14 bg-gold/50" />
           <span className="font-heading text-xl tracking-widest font-medium sm:text-2xl">
             1999 — 2024
           </span>
-          <div className="h-[1px] w-12 bg-gold/50" />
+          <div className="h-[1px] w-14 bg-gold/50" />
         </motion.div>
 
         {/* Subtitle */}
@@ -98,10 +100,10 @@ export default function HeroSection() {
           transition={{ duration: 1, delay: 0.8 }}
           className="mx-auto mt-10 max-w-md sm:max-w-lg"
         >
-          <div className="group relative rounded-3xl border-8 border-warm-white bg-champagne/50 p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
-            <div className="relative flex aspect-4/3 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-warm-beige/60 bg-gradient-to-b from-champagne/80 to-warm-white p-8 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warm-white/90 text-gold shadow-md">
-                <Heart className="h-8 w-8 fill-gold/30 text-gold" />
+          <div className="group relative rounded-3xl border-8 border-warm-white bg-gradient-to-br from-champagne via-peach-100 to-champagne p-2 shadow-xl transition-transform duration-500 hover:scale-[1.01]">
+            <div className="relative flex aspect-4/3 w-full flex-col items-center justify-center overflow-hidden rounded-2xl border border-warm-beige bg-gradient-to-b from-warm-white via-peach-50 to-champagne/40 p-8 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warm-white text-gold shadow-md">
+                <Heart className="h-8 w-8 fill-peach-300 text-burgundy" />
               </div>
               <h3 className="font-heading text-2xl font-semibold text-charcoal sm:text-3xl">
                 Mom & Dad
@@ -109,7 +111,7 @@ export default function HeroSection() {
               <p className="mt-2 text-xs font-medium tracking-wider text-soft-brown uppercase">
                 Add your favorite anniversary portrait here
               </p>
-              <div className="mt-4 flex items-center gap-2 rounded-full border border-gold/30 bg-warm-white/70 px-3 py-1 text-xs text-burgundy">
+              <div className="mt-4 flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white/90 px-3.5 py-1 text-xs text-burgundy shadow-2xs">
                 <span>Silver Anniversary</span>
                 <span>•</span>
                 <span>November 1999 — 2024</span>
@@ -133,7 +135,7 @@ export default function HeroSection() {
           </Link>
           <Link
             href="#glass-jar"
-            className="rounded-full border border-burgundy/30 bg-warm-white px-7 py-3 text-sm font-medium text-burgundy shadow-xs transition-all duration-300 hover:bg-champagne/40 active:scale-95"
+            className="rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-burgundy shadow-xs transition-all duration-300 hover:bg-champagne active:scale-95"
           >
             Open The Glass Jar
           </Link>
@@ -158,4 +160,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

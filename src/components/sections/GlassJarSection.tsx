@@ -79,7 +79,7 @@ export default function GlassJarSection() {
                 animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: -20 }}
                 transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
-                className="relative rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-warm-white via-amber-50/40 to-warm-white p-8 shadow-xl"
+                className="relative rounded-3xl border-2 border-warm-beige bg-gradient-to-br from-warm-white via-peach-100/60 to-warm-white p-8 shadow-xl"
               >
                 {/* Paper texture badge */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-gold/50 bg-warm-white px-3 py-0.5 text-[11px] font-semibold text-gold shadow-xs">

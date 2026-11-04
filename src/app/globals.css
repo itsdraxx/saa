@@ -1,15 +1,28 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-ivory: #FAF7F2;
-  --color-champagne: #F0E6D3;
-  --color-warm-beige: #E8DCC8;
-  --color-soft-brown: #8B7355;
-  --color-burgundy: #722F37;
-  --color-deep-burgundy: #5C1A22;
-  --color-charcoal: #2C2C2C;
-  --color-warm-white: #FEFCF9;
-  --color-gold: #C9A96E;
+  /* ============================================
+     Romantic Peach & Rose Gold Anniversary Palette
+     ============================================ */
+  --color-ivory: #FFF5EE;          /* Seashell Peach Cream (Primary Canvas) */
+  --color-champagne: #FDE8DD;      /* Soft Peach Blossom (Secondary Panels) */
+  --color-warm-beige: #F5D0C0;     /* Peach Petal (Borders & Dividers) */
+  --color-soft-brown: #96675B;     /* Warm Rosy Cedar (Secondary Body Text) */
+  --color-burgundy: #C45743;       /* Radiant Peach Coral (Primary Brand / Accents) */
+  --color-deep-burgundy: #9E3D2C;  /* Sunset Terracotta (Hover States) */
+  --color-charcoal: #382420;       /* Deep Warm Cocoa (Primary Headings & Text) */
+  --color-warm-white: #FFFDFC;     /* Pure Peach Pearl (Card Backgrounds) */
+  --color-gold: #DE8865;           /* Peach Rose Gold (Milestone & Sparkle Highlights) */
+
+  /* Extra Peach Shades */
+  --color-peach-50: #FFF9F5;
+  --color-peach-100: #FEEFE6;
+  --color-peach-200: #FDDCCB;
+  --color-peach-300: #FBBFA6;
+  --color-peach-400: #F79A73;
+  --color-peach-500: #F07446;
+  --color-peach-600: #D95627;
+  --color-peach-700: #B33E16;
 
   --font-heading: "Cormorant Garamond", "Georgia", serif;
   --font-body: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
