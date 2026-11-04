@@ -86,3 +86,4 @@ export default function GlassJar({ isShaking, onTap }: GlassJarProps) {
     </div>
   );
 }
+
