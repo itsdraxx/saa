@@ -136,7 +136,7 @@ export default function Lightbox({
                 onError={() => setImgError(true)}
               />
             ) : (
-              <div className="flex aspect-16/10 w-[600px] max-w-[85vw] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-champagne via-[#E8DCC8] to-champagne/90 p-8 text-center text-charcoal">
+              <div className="flex aspect-16/10 w-[600px] max-w-[85vw] flex-col items-center justify-center rounded-xl bg-gradient-to-br from-champagne via-[#DED2C3] to-champagne/90 p-8 text-center text-charcoal">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-white/80 text-gold shadow-md">
                   <Camera className="h-8 w-8" />
                 </div>

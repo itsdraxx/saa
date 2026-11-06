@@ -42,8 +42,8 @@ export default function GlassJar({ isShaking, onTap }: GlassJarProps) {
         className="group relative h-72 w-52 cursor-pointer select-none"
       >
         {/* Cork Lid */}
-        <div className="absolute top-0 left-1/2 z-20 h-6 w-28 -translate-x-1/2 rounded-t-md border-b border-[#7A583A] bg-gradient-to-r from-[#A77D54] via-[#D3A97C] to-[#A77D54] shadow-sm">
-          <div className="mx-auto mt-1 h-1 w-16 rounded-full bg-[#8E633B]/40" />
+        <div className="absolute top-0 left-1/2 z-20 h-6 w-28 -translate-x-1/2 rounded-t-md border-b border-[#6B5237] bg-gradient-to-r from-[#8B6B43] via-[#C4964A] to-[#8B6B43] shadow-sm">
+          <div className="mx-auto mt-1 h-1 w-16 rounded-full bg-[#7A5C3A]/40" />
         </div>
 
         {/* Jar Neck */}
@@ -56,7 +56,7 @@ export default function GlassJar({ isShaking, onTap }: GlassJarProps) {
         </div>
 
         {/* Glass Jar Body */}
-        <div className="absolute top-9 inset-x-0 bottom-0 overflow-hidden rounded-b-[48px] rounded-t-[20px] border-2 border-warm-white/80 bg-gradient-to-br from-warm-white/40 via-champagne/20 to-warm-white/30 shadow-[0_20px_50px_rgba(201,169,110,0.2)] backdrop-blur-md transition-shadow duration-300 group-hover:shadow-[0_25px_60px_rgba(114,47,55,0.25)]">
+        <div className="absolute top-9 inset-x-0 bottom-0 overflow-hidden rounded-b-[48px] rounded-t-[20px] border-2 border-warm-white/80 bg-gradient-to-br from-warm-white/40 via-champagne/20 to-warm-white/30 shadow-[0_20px_50px_rgba(196,150,74,0.2)] backdrop-blur-md transition-shadow duration-300 group-hover:shadow-[0_25px_60px_rgba(122,46,59,0.25)]">
           {/* Glass Highlight Reflections */}
           <div className="absolute top-4 left-3 bottom-8 w-3 rounded-full bg-gradient-to-b from-warm-white/70 via-warm-white/30 to-transparent" />
           <div className="absolute top-4 right-3 bottom-12 w-1.5 rounded-full bg-gradient-to-b from-warm-white/50 to-transparent" />

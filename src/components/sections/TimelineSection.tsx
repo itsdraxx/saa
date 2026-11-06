@@ -9,7 +9,7 @@ export default function TimelineSection() {
   return (
     <section id="story" className="relative w-full bg-ivory py-24 px-4 sm:px-6 lg:px-8">
       {/* Background Ambience */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#E8DCC8_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#DED2C3_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
 
       <div className="mx-auto max-w-5xl">
         <SectionHeading

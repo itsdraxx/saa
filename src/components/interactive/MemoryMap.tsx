@@ -23,8 +23,8 @@ export default function MemoryMap() {
         L.divIcon({
           className: "custom-map-marker",
           html: `<div style="
-            background: #FAF7F2;
-            border: 2px solid #C9A96E;
+            background: #FDF8F3;
+            border: 2px solid #C4964A;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             width: 36px;
             height: 36px;
@@ -89,7 +89,7 @@ export default function MemoryMap() {
                 <div className="p-1 text-center font-sans">
                   <span className="text-xl">{loc.icon}</span>
                   <h4 className="mt-1 font-bold text-burgundy">{loc.name}</h4>
-                  <p className="text-xs text-stone-600">Year {loc.year}</p>
+                  <p className="text-xs text-soft-brown">Year {loc.year}</p>
                 </div>
               </Popup>
             </Marker>
