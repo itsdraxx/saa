@@ -22,7 +22,7 @@ export default function TriviaPreview() {
 
   return (
     <section id="trivia" className="w-full bg-champagne/30 py-24 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl text-center">
+      <div className="mx-auto max-w-5xl text-center">
         <SectionHeading
           title="Family Trivia"
           subtitle="Think you know the anniversary couple best? Take a guess at this memory, then challenge yourself with the full quiz!"

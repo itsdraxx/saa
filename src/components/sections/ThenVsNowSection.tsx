@@ -9,7 +9,7 @@ import { Sparkles, Calendar } from "lucide-react";
 export default function ThenVsNowSection() {
   return (
     <section id="then-now" className="w-full bg-champagne/25 py-24 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Then & Now"
           subtitle="Twenty-five years have changed the hairstyles, the houses, and the number of smiles around the table — but the love has only deepened."
@@ -23,7 +23,7 @@ export default function ThenVsNowSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
-              className="overflow-hidden rounded-3xl border border-warm-beige bg-warm-white p-6 shadow-sm sm:p-8"
+              className="overflow-hidden rounded-2xl sm:rounded-3xl border border-warm-beige bg-warm-white p-4 sm:p-8 shadow-sm"
             >
               {/* Header */}
               <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-warm-beige/60 pb-4">
@@ -44,7 +44,7 @@ export default function ThenVsNowSection() {
               </div>
 
               {/* Slider */}
-              <div className="mx-auto max-w-2xl">
+              <div className="mx-auto max-w-4xl">
                 <ImageSlider
                   thenImage={pair.thenImage}
                   nowImage={pair.nowImage}

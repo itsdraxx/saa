@@ -6,13 +6,35 @@ import type { MapLocation } from "@/lib/types";
 import { MapPin, Calendar, Heart } from "lucide-react";
 
 // Dynamic Leaflet import handling to guarantee clean client-only execution
+interface LeafletBundle {
+  MapContainer: React.ComponentType<{
+    center: [number, number];
+    zoom: number;
+    scrollWheelZoom: boolean;
+    className: string;
+    children: React.ReactNode;
+  }>;
+  TileLayer: React.ComponentType<{
+    attribution: string;
+    url: string;
+  }>;
+  Marker: React.ComponentType<{
+    position: [number, number];
+    icon: unknown;
+    eventHandlers: { click: () => void };
+    children: React.ReactNode;
+  }>;
+  Popup: React.ComponentType<{
+    children: React.ReactNode;
+  }>;
+  createCustomIcon: (emoji: string) => unknown;
+}
+
 export default function MemoryMap() {
-  const [isMounted, setIsMounted] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
-  const [LeafletComponents, setLeafletComponents] = useState<any>(null);
+  const [leafletBundle, setLeafletBundle] = useState<LeafletBundle | null>(null);
 
   useEffect(() => {
-    setIsMounted(true);
     // Dynamically import Leaflet and react-leaflet on client
     Promise.all([
       import("react-leaflet"),
@@ -23,8 +45,8 @@ export default function MemoryMap() {
         L.divIcon({
           className: "custom-map-marker",
           html: `<div style="
-            background: #FDF8F3;
-            border: 2px solid #C4964A;
+            background: #FAF7F2;
+            border: 2px solid #C9A96E;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             width: 36px;
             height: 36px;
@@ -40,17 +62,17 @@ export default function MemoryMap() {
           popupAnchor: [0, -20],
         });
 
-      setLeafletComponents({
-        MapContainer: reactLeaflet.MapContainer,
-        TileLayer: reactLeaflet.TileLayer,
-        Marker: reactLeaflet.Marker,
-        Popup: reactLeaflet.Popup,
+      setLeafletBundle({
+        MapContainer: reactLeaflet.MapContainer as unknown as LeafletBundle["MapContainer"],
+        TileLayer: reactLeaflet.TileLayer as unknown as LeafletBundle["TileLayer"],
+        Marker: reactLeaflet.Marker as unknown as LeafletBundle["Marker"],
+        Popup: reactLeaflet.Popup as unknown as LeafletBundle["Popup"],
         createCustomIcon,
       });
     });
   }, []);
 
-  if (!isMounted || !LeafletComponents) {
+  if (!leafletBundle) {
     return (
       <div className="flex aspect-16/9 w-full flex-col items-center justify-center rounded-3xl border border-warm-beige bg-champagne/20 text-soft-brown">
         <MapPin className="mb-2 h-8 w-8 animate-bounce text-gold" />
@@ -59,7 +81,7 @@ export default function MemoryMap() {
     );
   }
 
-  const { MapContainer, TileLayer, Marker, Popup, createCustomIcon } = LeafletComponents;
+  const { MapContainer, TileLayer, Marker, Popup, createCustomIcon } = leafletBundle;
 
   return (
     <div className="space-y-8">
@@ -89,7 +111,7 @@ export default function MemoryMap() {
                 <div className="p-1 text-center font-sans">
                   <span className="text-xl">{loc.icon}</span>
                   <h4 className="mt-1 font-bold text-burgundy">{loc.name}</h4>
-                  <p className="text-xs text-soft-brown">Year {loc.year}</p>
+                  <p className="text-xs text-stone-600">Year {loc.year}</p>
                 </div>
               </Popup>
             </Marker>

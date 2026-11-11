@@ -1,44 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Heart, Sparkles } from "lucide-react";
+import { Heart, Sparkles, Mail } from "lucide-react";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import ConfettiCelebration from "@/components/ui/ConfettiCelebration";
 
 export default function DedicationSection() {
-  return (
-    <section id="dedication" className="relative w-full overflow-hidden bg-gradient-to-b from-champagne/40 via-peach-100/60 to-ivory py-32 px-4 text-center sm:px-6 lg:px-8">
-      {/* Subtle Peach Glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
-        <div className="h-[600px] w-[600px] rounded-full bg-peach-300/40 blur-3xl" />
-      </div>
+  const [isUnsealed, setIsUnsealed] = useState(false);
 
-      <div className="relative z-10 mx-auto max-w-3xl">
-        {/* Pulsing Heart Icon */}
+  return (
+    <section id="dedication" className="relative w-full overflow-hidden bg-gradient-to-b from-champagne/40 via-peach-100/50 to-ivory py-32 px-4 text-center sm:px-6 lg:px-8">
+      {/* Radiant Peach Ambient Orbs */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-50">
+        <div className="h-[650px] w-[650px] rounded-full bg-peach-300/35 blur-3xl" />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-ivory to-transparent" />
+
+      <div className="relative z-10 mx-auto max-w-6xl">
+        {/* Pulsing Heart Icon with Golden Halo */}
         <motion.div
           animate={{
-            scale: [1, 1.15, 1],
+            scale: [1, 1.12, 1],
           }}
           transition={{
-            duration: 2,
+            duration: 2.2,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-warm-beige bg-warm-white text-burgundy shadow-lg"
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-warm-beige bg-warm-white text-burgundy shadow-[0_10px_30px_rgba(196,87,67,0.25)]"
         >
           <Heart className="h-10 w-10 fill-burgundy text-burgundy" />
         </motion.div>
 
         {/* Milestone Counter Pill */}
-        <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-warm-beige bg-warm-white/95 px-6 py-2 shadow-sm backdrop-blur-xs">
-          <Sparkles className="h-4 w-4 text-gold" />
+        <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-warm-beige/80 bg-warm-white/95 px-6 py-2 shadow-sm backdrop-blur-md">
+          <Sparkles className="h-4 w-4 text-gold animate-pulse" />
           <span className="font-heading text-xl font-bold text-burgundy">
             <AnimatedCounter target={25} suffix=" Years" />
           </span>
           <span className="text-soft-brown">•</span>
           <span className="text-xs font-semibold tracking-wider text-soft-brown uppercase">
-            9,131 Days of Love
+            9,131 Days of Unconditional Love
           </span>
-          <Sparkles className="h-4 w-4 text-gold" />
+          <Sparkles className="h-4 w-4 text-gold animate-pulse" />
         </div>
 
         {/* Dedication Heading */}
@@ -47,55 +52,102 @@ export default function DedicationSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-8 font-heading text-4xl font-semibold tracking-tight text-burgundy sm:text-6xl"
+          className="mt-6 sm:mt-8 font-heading text-3xl sm:text-5xl md:text-6xl font-medium tracking-tight text-burgundy"
         >
-          To Mom & Dad
+          To Bujji & Satya
         </motion.h2>
 
-        <div className="mx-auto mt-4 h-[2px] w-20 bg-gold" />
+        <p className="font-cursive mt-1.5 sm:mt-2 text-2xl sm:text-3xl md:text-4xl text-gold">
+          The heartbeat of our family
+        </p>
 
-        {/* Heartfelt Dedication Message */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-8 font-heading text-xl font-normal leading-relaxed text-charcoal/90 sm:text-2xl sm:leading-loose"
-        >
-          Twenty-five years ago, you chose each other. Every day since, through quiet mornings, bustling evenings, shared struggles, and endless celebrations, you continued to choose love, patience, and togetherness.
-        </motion.p>
+        {/* Interactive Wax Sealed Letter Experience */}
+        <div className="mt-8 sm:mt-14">
+          {!isUnsealed ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="mx-auto max-w-lg cursor-pointer rounded-2xl sm:rounded-3xl border-2 border-warm-beige bg-warm-white/95 p-6 sm:p-8 shadow-xl backdrop-blur-md transition-all duration-300 hover:shadow-2xl"
+              onClick={() => setIsUnsealed(true)}
+            >
+              <div className="flex flex-col items-center">
+                <div className="mb-3 sm:mb-4 flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-peach-100 text-burgundy">
+                  <Mail className="h-6 w-6 sm:h-7 sm:w-7" />
+                </div>
+                <h3 className="font-heading text-xl sm:text-2xl font-semibold text-charcoal">
+                  A Sealed Letter From Our Hearts
+                </h3>
+                <p className="mt-1.5 sm:mt-2 text-xs font-medium text-soft-brown">
+                  Click the royal wax seal below to unseal our family&apos;s tribute to you.
+                </p>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-6 font-body text-base leading-relaxed text-soft-brown sm:text-lg"
-        >
-          This website is our family&apos;s small tribute to the extraordinary life you have built hand-in-hand. Thank you for giving us a home filled with warmth, laughter, and an unshakable foundation. You have shown us what true love looks like.
-        </motion.p>
+                {/* 3D Wax Seal Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsUnsealed(true);
+                  }}
+                  className="wax-seal mt-5 sm:mt-6 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full text-warm-white cursor-pointer"
+                  title="Click to break seal"
+                >
+                  <span className="font-serif text-base sm:text-lg font-bold tracking-wider">XXV</span>
+                </button>
+                <span className="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] font-semibold tracking-widest text-burgundy uppercase">
+                  Tap to Unseal Letter
+                </span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+              className="parchment-sheet relative mx-auto max-w-3xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 md:p-14 text-center shadow-2xl"
+            >
+              {/* Top Seal Badge */}
+              <div className="absolute -top-4 sm:-top-5 left-1/2 -translate-x-1/2 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full wax-seal text-warm-white text-[11px] sm:text-xs font-bold shadow-lg">
+                XXV
+              </div>
 
-        {/* Signature */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-12 rounded-3xl border border-warm-beige bg-gradient-to-br from-warm-white via-peach-50/60 to-warm-white p-8 shadow-md backdrop-blur-xs"
-        >
-          <p className="font-heading text-3xl italic font-medium text-gold sm:text-4xl">
-            Happy 25th Silver Anniversary
-          </p>
-          <p className="mt-3 font-body text-xs font-semibold tracking-widest text-soft-brown uppercase">
-            With all our love, forever and always,
-          </p>
-          <p className="mt-1 font-heading text-2xl font-bold text-burgundy">
-            Your Family ❤️
-          </p>
-          <p className="mt-2 text-xs text-soft-brown/70">
-            1999 — 2024 • A Silver Jubilee Celebration
-          </p>
-        </motion.div>
+              {/* Corner Ornaments */}
+              <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-xs sm:text-sm text-gold font-serif">✦</span>
+              <span className="absolute top-3 right-3 sm:top-4 sm:right-4 text-xs sm:text-sm text-gold font-serif">✦</span>
+              <span className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 text-xs sm:text-sm text-gold font-serif">✦</span>
+              <span className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 text-xs sm:text-sm text-gold font-serif">✦</span>
+
+              <p className="font-heading text-lg sm:text-2xl md:text-3xl font-normal leading-relaxed text-charcoal sm:leading-loose">
+                &ldquo;On 23 November 2001, you took your vows under the mandap, surrounded by the sweet scent of jasmine and the blessings of everyone who loved you. Every day since, through quiet dawns, bustling evenings, shared sacrifices, and joyous feasts, you continued to choose love, patience, and each other.&rdquo;
+              </p>
+
+              <p className="mt-4 sm:mt-6 font-body text-xs sm:text-base md:text-lg leading-relaxed text-soft-brown">
+                This website is our family&apos;s humble tribute to the beautiful world you created from that single day in 2001. Thank you for giving us a home overflowing with warmth, laughter, wisdom, and an unbreakable foundation. You have shown us what true, enduring love looks like.
+              </p>
+
+              {/* Signature Block */}
+              <div className="mt-8 sm:mt-10 border-t border-warm-beige/80 pt-6 sm:pt-8">
+                <p className="font-cursive text-2xl sm:text-4xl md:text-5xl text-burgundy">
+                  Happy 25th Silver Anniversary, Bujji & Satya
+                </p>
+                <p className="mt-2 sm:mt-3 font-body text-[10px] sm:text-xs font-bold tracking-widest text-soft-brown uppercase">
+                  With all our love, forever and always,
+                </p>
+                <p className="font-heading mt-1 text-2xl sm:text-3xl font-bold text-charcoal">
+                  Your Family ❤️
+                </p>
+                <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-soft-brown">
+                  Bujji Weds Satya • 25 Years of Love
+                </p>
+              </div>
+
+              {/* Finale Celebration Button */}
+              <div className="mt-8 sm:mt-10 flex justify-center">
+                <ConfettiCelebration />
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </section>
   );

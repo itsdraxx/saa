@@ -10,7 +10,7 @@ import { User, Volume2, Video, Heart, Quote } from "lucide-react";
 export default function MessagesSection() {
   return (
     <section id="messages" className="w-full bg-ivory py-24 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Voice & Video Messages"
           subtitle="Heartfelt wishes, quiet prayers, and loving memories recorded by those who cherish you the most."

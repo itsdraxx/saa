@@ -14,7 +14,7 @@ export default function GalleryPreview() {
 
   return (
     <section id="gallery" className="w-full bg-champagne/30 py-24 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Memory Gallery"
           subtitle="A glimpse into 25 years of stolen moments, festive celebrations, quiet smiles, and extraordinary travels."

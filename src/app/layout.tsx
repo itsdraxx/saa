@@ -1,12 +1,14 @@
+/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata } from "next";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
+import AmbientSerenade from "@/components/ui/AmbientSerenade";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "25 Years of Us — Silver Wedding Anniversary (1999 — 2024)",
+  title: "Bujji Weds Satya — 25 Years of Love ❤️ | Married 23 Nov 2001",
   description:
-    "A digital love story, family memory album, and interactive celebration of 25 extraordinary years together.",
+    "Celebrating twenty-five extraordinary years of love, family, and togetherness for Bujji & Satya since 23 November 2001.",
   icons: {
     icon: "/favicon.ico",
   },
@@ -27,7 +29,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap"
           rel="stylesheet"
         />
         <link
@@ -41,6 +43,7 @@ export default function RootLayout({
         <Navigation />
         <main className="flex-1">{children}</main>
         <Footer />
+        <AmbientSerenade />
       </body>
     </html>
   );

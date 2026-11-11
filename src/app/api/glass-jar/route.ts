@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       message: "Note added to the Glass Jar",
       note: newNote,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON payload" },
       { status: 400 }

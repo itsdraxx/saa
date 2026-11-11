@@ -2,7 +2,7 @@ import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import MemoryMap from "@/components/interactive/MemoryMap";
 import { mapLocations } from "@/data/map-locations";
-import { ArrowLeft, MapPin, Calendar, Heart } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 
 export const metadata = {
   title: "The Memory Map — 25 Years of Us",

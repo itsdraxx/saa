@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         createdAt: new Date().toISOString(),
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Invalid JSON payload" },
       { status: 400 }

@@ -1,86 +1,165 @@
 "use client";
 
-import { motion } from "motion/react";
-import { timelineEntries } from "@/data/timeline";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { Calendar, Heart, MapPin, Sparkles } from "lucide-react";
+import InstagramPostCard from "@/components/interactive/InstagramPostCard";
+import { instagramPosts } from "@/data/instagramPosts";
+import { Sparkles, Heart, Camera, Compass, Users, Flame } from "lucide-react";
+
+type FilterCategory = "all" | "wedding" | "family" | "travel" | "celebration";
 
 export default function TimelineSection() {
-  return (
-    <section id="story" className="relative w-full bg-ivory py-24 px-4 sm:px-6 lg:px-8">
-      {/* Background Ambience */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#DED2C3_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
 
-      <div className="mx-auto max-w-5xl">
+  const filteredPosts =
+    activeCategory === "all"
+      ? instagramPosts
+      : instagramPosts.filter((post) => post.category === activeCategory);
+
+  // Story highlights at the top
+  const storyHighlights = [
+    { id: "post-2001", label: "Mandap 2001", emoji: "💍", category: "wedding" },
+    { id: "post-2002", label: "Baby Rahul", emoji: "👶", category: "family" },
+    { id: "post-2008", label: "Dream Home", emoji: "🏡", category: "milestone" },
+    { id: "post-2010", label: "Goa Beach", emoji: "🏖️", category: "travel" },
+    { id: "post-2017", label: "Shimla Snow", emoji: "❄️", category: "travel" },
+    { id: "post-2024", label: "Silver Jubilee", emoji: "🥂", category: "celebration" },
+  ];
+
+  const handleStoryClick = (postId: string) => {
+    setActiveCategory("all");
+    setTimeout(() => {
+      const element = document.getElementById(postId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
+
+  return (
+    <section id="story" className="relative w-full overflow-hidden bg-ivory py-16 sm:py-24 px-3 sm:px-6 lg:px-8">
+      {/* Background Soft Ambience */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#F5D0C0_1px,transparent_1px)] [background-size:24px_24px] sm:[background-size:28px_28px] opacity-40" />
+
+      <div className="mx-auto max-w-7xl">
+        {/* Section Heading */}
         <SectionHeading
+          eyebrow="Chronicle of Love"
           title="Our 25-Year Journey"
-          subtitle="From the day two lives became one, every milestone has been a chapter in a beautiful love story."
+          subtitle="Explore our family's photo feed — swipe through memories, double-tap to send love ❤️, and leave your blessings in the comments!"
         />
 
-        {/* Timeline Container */}
-        <div className="relative mt-20">
-          {/* Center Vertical Line */}
-          <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gradient-to-b from-gold via-warm-beige to-gold/30 md:left-1/2 md:-translate-x-1/2" />
+        {/* =========================================================
+            INSTAGRAM STORY HIGHLIGHTS BAR
+            ========================================================= */}
+        <div className="mt-8 sm:mt-12 flex justify-start sm:justify-center overflow-x-auto no-scrollbar py-2 px-1 gap-4 sm:gap-6">
+          {storyHighlights.map((story) => (
+            <button
+              key={story.id}
+              onClick={() => handleStoryClick(story.id)}
+              className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer focus:outline-hidden"
+            >
+              {/* Story Gradient Ring */}
+              <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] shadow-sm transition-transform duration-300 group-hover:scale-110 group-active:scale-95">
+                <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-warm-white border-2 border-warm-white text-xl sm:text-2xl shadow-inner">
+                  <span>{story.emoji}</span>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold text-charcoal group-hover:text-burgundy transition-colors tracking-tight">
+                {story.label}
+              </span>
+            </button>
+          ))}
+        </div>
 
-          {/* Timeline Cards */}
-          <div className="space-y-12">
-            {timelineEntries.map((entry, index) => {
-              const isEven = index % 2 === 0;
+        {/* =========================================================
+            CATEGORY FILTER TABS
+            ========================================================= */}
+        <div className="mt-8 flex justify-center flex-wrap gap-1.5 sm:gap-2">
+          {[
+            { id: "all", label: "All Posts", icon: Sparkles, count: instagramPosts.length },
+            {
+              id: "wedding",
+              label: "Wedding & Vows",
+              icon: Heart,
+              count: instagramPosts.filter((p) => p.category === "wedding").length,
+            },
+            {
+              id: "family",
+              label: "Family Moments",
+              icon: Users,
+              count: instagramPosts.filter((p) => p.category === "family").length,
+            },
+            {
+              id: "travel",
+              label: "Travels",
+              icon: Compass,
+              count: instagramPosts.filter((p) => p.category === "travel").length,
+            },
+            {
+              id: "celebration",
+              label: "Celebrations",
+              icon: Flame,
+              count: instagramPosts.filter((p) => p.category === "celebration").length,
+            },
+          ].map((tab) => {
+            const isActive = activeCategory === tab.id;
+            const Icon = tab.icon;
 
-              return (
-                <div
-                  key={entry.year + "-" + index}
-                  className={`relative flex flex-col md:flex-row items-center ${
-                    isEven ? "md:flex-row-reverse" : ""
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveCategory(tab.id as FilterCategory)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-burgundy text-warm-white shadow-md scale-105"
+                    : "bg-warm-white/90 text-soft-brown border border-warm-beige hover:border-gold/60 hover:text-burgundy"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    isActive ? "bg-white/25 text-white" : "bg-champagne text-soft-brown/70"
                   }`}
                 >
-                  {/* Timeline Badge in Center */}
-                  <div className="absolute left-4 z-10 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full border-4 border-ivory bg-gold text-warm-white shadow-md md:left-1/2">
-                    <Heart className="h-4 w-4 fill-warm-white" />
-                  </div>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-                  {/* Content Card */}
-                  <div className="ml-12 w-full md:ml-0 md:w-[45%]">
-                    <motion.div
-                      initial={{ opacity: 0, x: isEven ? 30 : -30, y: 20 }}
-                      whileInView={{ opacity: 1, x: 0, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
-                      className="group relative overflow-hidden rounded-2xl border border-warm-beige bg-warm-white p-6 shadow-sm transition-all duration-300 hover:border-gold/50 hover:shadow-md"
-                    >
-                      {/* Top Bar: Year & Category */}
-                      <div className="flex items-center justify-between border-b border-warm-beige/60 pb-3">
-                        <span className="font-heading text-2xl font-bold tracking-tight text-burgundy">
-                          {entry.year}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-champagne/60 px-3 py-0.5 text-xs font-medium text-soft-brown capitalize">
-                          <Sparkles className="h-3 w-3 text-gold" />
-                          {entry.category}
-                        </span>
-                      </div>
+        {/* =========================================================
+            INSTAGRAM FEED: 2-COLUMN DESKTOP / 1-COLUMN MOBILE
+            ========================================================= */}
+        <div className="mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 max-w-6xl mx-auto">
+          <AnimatePresence mode="popLayout">
+            {filteredPosts.map((post) => (
+              <motion.div
+                key={post.id}
+                layout
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4 }}
+                className="w-full flex justify-center"
+              >
+                <InstagramPostCard post={post} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
 
-                      {/* Title & Description */}
-                      <h3 className="mt-4 font-heading text-xl font-semibold text-charcoal group-hover:text-burgundy transition-colors">
-                        {entry.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-soft-brown">
-                        {entry.description}
-                      </p>
-
-                      {/* Photo Placeholder Frame */}
-                      <div className="mt-4 flex aspect-16/9 w-full flex-col items-center justify-center rounded-xl border border-dashed border-warm-beige bg-champagne/20 text-center text-xs text-soft-brown">
-                        <Calendar className="mb-1 h-5 w-5 text-gold/80" />
-                        <span>Milestone photo • {entry.year}</span>
-                      </div>
-                    </motion.div>
-                  </div>
-                </div>
-              );
-            })}
+        {/* Bottom Feed Notice */}
+        <div className="mt-14 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-champagne/60 border border-warm-beige px-5 py-2 text-xs font-semibold text-soft-brown">
+            <Camera className="h-4 w-4 text-burgundy" />
+            <span>You&apos;ve caught up with all 25 years of memories! ❤️</span>
           </div>
         </div>
       </div>
     </section>
   );
 }
-

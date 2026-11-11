@@ -2,7 +2,7 @@ import type { TimelineEntry } from "@/lib/types";
 
 export const timelineEntries: TimelineEntry[] = [
   {
-    year: 1997,
+    year: 1999,
     title: "The Day We Met",
     description:
       "A chance encounter at a mutual friend's gathering in Hyderabad changed everything. Two strangers, one conversation, and a connection that would last a lifetime.",
@@ -10,10 +10,10 @@ export const timelineEntries: TimelineEntry[] = [
     category: "milestone",
   },
   {
-    year: 1999,
+    year: 2001,
     title: "Our Wedding Day",
     description:
-      "Surrounded by family and friends, we exchanged vows and began our forever. The mandap was adorned with marigolds, and the air was filled with love, laughter, and the fragrance of jasmine.",
+      "On 23 November 2001, surrounded by family and blessings, Bujji and Satya exchanged sacred vows under the mandap. The air was filled with love, laughter, and the fragrance of jasmine.",
     image: "/images/timeline/wedding-day.jpg",
     category: "wedding",
   },

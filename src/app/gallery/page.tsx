@@ -7,7 +7,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Lightbox from "@/components/ui/Lightbox";
 import { galleryItems } from "@/data/gallery";
 import type { GalleryCategory } from "@/lib/types";
-import { ArrowLeft, Camera, Sparkles, Filter } from "lucide-react";
+import { ArrowLeft, Camera } from "lucide-react";
 
 const CATEGORIES: { label: string; value: "all" | GalleryCategory }[] = [
   { label: "All Memories", value: "all" },

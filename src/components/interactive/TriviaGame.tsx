@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { triviaQuestions } from "@/data/trivia";
-import { Trophy, CheckCircle2, XCircle, ArrowRight, RotateCcw, Heart, Home } from "lucide-react";
+import { Trophy, CheckCircle2, XCircle, ArrowRight, RotateCcw, Home } from "lucide-react";
 
 export default function TriviaGame() {
   const [gameState, setGameState] = useState<"intro" | "playing" | "results">("intro");

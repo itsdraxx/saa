@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Camera, Sparkles, Heart } from "lucide-react";
+import { Sparkles, Heart } from "lucide-react";
 
 interface ImageSliderProps {
   thenImage: string;
@@ -132,7 +132,7 @@ export default function ImageSlider({
 
       {/* Then Image / Card (Clipped) */}
       <div
-        className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-champagne via-[#DED2C3] to-champagne/90 p-8 text-center"
+        className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-champagne via-[#EBDDC8] to-champagne/90 p-8 text-center"
         style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         {!thenError ? (

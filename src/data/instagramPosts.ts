@@ -1,0 +1,608 @@
+export interface InstagramComment {
+  id: string;
+  username: string;
+  text: string;
+  timestamp: string;
+  avatarText?: string;
+  avatarBg?: string;
+  isCurrentUser?: boolean;
+}
+
+export interface InstagramMedia {
+  src: string;
+  alt: string;
+  caption?: string;
+  tag?: string;
+  themeGradient?: string;
+  iconName?: "camera" | "heart" | "plane" | "home" | "sparkles" | "ring";
+}
+
+export interface InstagramPost {
+  id: string;
+  year: number;
+  dateStr: string;
+  title: string;
+  location: string;
+  images: InstagramMedia[];
+  likesCount: number;
+  caption: string;
+  category: "wedding" | "family" | "milestone" | "travel" | "celebration";
+  hashtags: string[];
+  comments: InstagramComment[];
+}
+
+export const instagramPosts: InstagramPost[] = [
+  // 1. The Day We Met (1999) - Single Post
+  {
+    id: "post-1999",
+    year: 1999,
+    dateStr: "14 February 1999",
+    title: "The Day We Met",
+    location: "Banjara Hills, Hyderabad",
+    images: [
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "The fateful day Bujji and Satya first crossed paths",
+        caption: "A chance meeting that changed our destinies forever",
+        tag: "First Glance",
+        themeGradient: "from-amber-200 via-rose-100 to-amber-100",
+        iconName: "heart",
+      },
+    ],
+    likesCount: 184,
+    caption:
+      "A chance encounter at a friend's gathering in Hyderabad changed everything. Two strangers, nervous smiles, one endless conversation, and a spark that set 25 years into motion.",
+    category: "milestone",
+    hashtags: ["#FirstMeeting", "#Fate", "#WhereItAllBegan", "#BujjiAndSatya"],
+    comments: [
+      {
+        id: "c1",
+        username: "rahul_k",
+        text: "The legendary story Dad tells at every single family dinner! 😂❤️",
+        timestamp: "2d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+      {
+        id: "c2",
+        username: "priya_m",
+        text: "Destined from day one! Look at how meant to be you both are ✨",
+        timestamp: "1d",
+        avatarText: "PM",
+        avatarBg: "bg-pink-600",
+      },
+    ],
+  },
+
+  // 2. Our Wedding Day (2001) - MULTI-IMAGE CAROUSEL (3 images)
+  {
+    id: "post-2001",
+    year: 2001,
+    dateStr: "23 November 2001",
+    title: "Our Wedding Day • Sacred Mandap",
+    location: "Tirumala Tirupati Mandap, Andhra Pradesh",
+    images: [
+      {
+        src: "/images/art/golden_mandap_bg.png",
+        alt: "The Grand Golden Wedding Mandap decorated with marigolds and jasmine",
+        caption: "The sacred mandap where eternal vows were sealed",
+        tag: "The Mandap",
+        themeGradient: "from-amber-300 via-rose-400 to-amber-200",
+        iconName: "ring",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya seated in traditional wedding attire welcoming guests",
+        caption: "Bujji & Satya welcoming loved ones with sacred folded hands 🙏",
+        tag: "Bujji Weds Satya",
+        themeGradient: "from-rose-200 via-amber-100 to-rose-300",
+        iconName: "heart",
+      },
+      {
+        src: "/images/art/mandap_backdrop_2.png",
+        alt: "Wedding Jaimala garland exchange ceremony under the bells",
+        caption: "Jaimala exchange surrounded by Vedic chants and rose petal showers",
+        tag: "Jaimala Ceremony",
+        themeGradient: "from-amber-200 via-rose-300 to-amber-100",
+        iconName: "sparkles",
+      },
+    ],
+    likesCount: 512,
+    caption:
+      "On 23 November 2001, surrounded by family, sacred Vedic mantras, and the divine fragrance of jasmine, Bujji and Satya became one. 25 years later, every promise made under this mandap stands stronger than ever.",
+    category: "wedding",
+    hashtags: [
+      "#BujjiWedsSatya",
+      "#23Nov2001",
+      "#SilverJubilee",
+      "#SouthIndianWedding",
+      "#SacredVows",
+    ],
+    comments: [
+      {
+        id: "c3",
+        username: "ananya_k",
+        text: "23-11-2001 — The day our whole family was born! Mom you looked like an absolute queen in that crimson silk saree 🥹🌸",
+        timestamp: "3d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+      {
+        id: "c4",
+        username: "satya_brother",
+        text: "What a day! We danced through the night until the sun rose. Best wedding ever 🕺🎉",
+        timestamp: "2d",
+        avatarText: "SB",
+        avatarBg: "bg-emerald-600",
+      },
+      {
+        id: "c5",
+        username: "chinnu_v",
+        text: "True definition of soulmates made for each other! Happy 25th Bujji Aunty & Satya Uncle! ❤️",
+        timestamp: "1d",
+        avatarText: "CV",
+        avatarBg: "bg-purple-600",
+      },
+    ],
+  },
+
+  // 3. Our First Home (2000) - Single Post
+  {
+    id: "post-2000",
+    year: 2000,
+    dateStr: "10 August 2000",
+    title: "Our First Cozy Apartment",
+    location: "Begumpet, Hyderabad",
+    images: [
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "A cozy first home flat filled with wedding memories",
+        caption: "Our very first 2BHK flat — painting walls and sipping sweet chai",
+        tag: "First Nest",
+        themeGradient: "from-amber-100 via-orange-100 to-amber-200",
+        iconName: "home",
+      },
+    ],
+    likesCount: 226,
+    caption:
+      "Our very first little flat that became our whole world. We painted the walls together, argued for two hours over curtain colours, and filled every corner with the scent of fresh cardamom chai.",
+    category: "milestone",
+    hashtags: ["#FirstHome", "#ChaiAndMemories", "#BuildingALife", "#YoungLove"],
+    comments: [
+      {
+        id: "c6",
+        username: "bujji_sister",
+        text: "I still remember those yellow floral curtains you both debated over haha! So precious ❤️",
+        timestamp: "4d",
+        avatarText: "BS",
+        avatarBg: "bg-amber-600",
+      },
+    ],
+  },
+
+  // 4. Welcome, Little One (2002) - Single Post
+  {
+    id: "post-2002",
+    year: 2002,
+    dateStr: "18 August 2002",
+    title: "Welcome, Little One • First Child",
+    location: "Rainbow Children's Hospital, Hyderabad",
+    images: [
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya stepping into parenthood with immense love",
+        caption: "The day our hearts learned to beat outside our bodies",
+        tag: "Bundle of Joy",
+        themeGradient: "from-rose-100 via-pink-100 to-peach-100",
+        iconName: "heart",
+      },
+    ],
+    likesCount: 395,
+    caption:
+      "Our first child arrived, turning our universe upside down in the most beautiful way. Sleepless nights became our sweetest memories, and our family of two blossomed into three.",
+    category: "family",
+    hashtags: ["#FirstChild", "#ParentsAtLast", "#Parenthood", "#OurWorld"],
+    comments: [
+      {
+        id: "c7",
+        username: "rahul_k",
+        text: "Wait is that about me?! Look at those chubby baby cheeks haha! 👶🍼",
+        timestamp: "3d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+      {
+        id: "c8",
+        username: "ananya_k",
+        text: "Aww Rahul was so cute before he started annoying me 😂 Just kidding, love you brother!",
+        timestamp: "2d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+    ],
+  },
+
+  // 5. Growing Family (2005) - Single Post
+  {
+    id: "post-2005",
+    year: 2005,
+    dateStr: "5 May 2005",
+    title: "Growing Family • Two Little Treasures",
+    location: "Hyderabad, India",
+    images: [
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "The family grows complete with laughter and giggles",
+        caption: "Double the laughter, double the joy, double the love",
+        tag: "Family Complete",
+        themeGradient: "from-peach-100 via-amber-100 to-rose-100",
+        iconName: "sparkles",
+      },
+    ],
+    likesCount: 348,
+    caption:
+      "Our second bundle of joy completed our circle of love. The house grew louder, messier, and infinitely more joyful. Every room echoed with tiny footsteps, laughter, and bedtime stories.",
+    category: "family",
+    hashtags: ["#FamilyOfFour", "#DoubleTrouble", "#JoyUnfiltered", "#Blessed"],
+    comments: [
+      {
+        id: "c9",
+        username: "ananya_k",
+        text: "And that's my official grand entrance into the world! 🙋‍♀️✨",
+        timestamp: "2d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+      {
+        id: "c10",
+        username: "satya_cousin",
+        text: "Two of the sweetest kids, raised with so much devotion and grace! 🙏",
+        timestamp: "1d",
+        avatarText: "SC",
+        avatarBg: "bg-teal-600",
+      },
+    ],
+  },
+
+  // 6. Dream Home (2008) - Single Post
+  {
+    id: "post-2008",
+    year: 2008,
+    dateStr: "12 October 2008",
+    title: "Our Forever Dream Home",
+    location: "Jubilee Hills, Hyderabad",
+    images: [
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "The dream forever home with garden and spacious balcony",
+        caption: "Housewarming pooja and warm blessings in our forever home",
+        tag: "Forever Home",
+        themeGradient: "from-amber-200 via-yellow-100 to-amber-100",
+        iconName: "home",
+      },
+    ],
+    likesCount: 312,
+    caption:
+      "After years of patient dreaming and working hand-in-hand, we opened the doors to our forever home. A green garden for the children to run, and that famous quiet balcony for our evening cup of chai together.",
+    category: "milestone",
+    hashtags: ["#DreamHome", "#GrihaPravesh", "#SacredBlessings", "#HomeIsWhereTheHeartIs"],
+    comments: [
+      {
+        id: "c11",
+        username: "priya_m",
+        text: "That balcony is where Dad still reads the morning newspaper and Mom tends to her tulsi plant 🌿☕️",
+        timestamp: "3d",
+        avatarText: "PM",
+        avatarBg: "bg-pink-600",
+      },
+    ],
+  },
+
+  // 7. Goa Holiday (2010) - MULTI-IMAGE CAROUSEL (3 images)
+  {
+    id: "post-2010",
+    year: 2010,
+    dateStr: "20 May 2010",
+    title: "Goa Getaway • First Family Beach Holiday",
+    location: "Calangute & Candolim Beach, Goa",
+    images: [
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "Golden hour sunset walks hand-in-hand on the sandy beach",
+        caption: "Golden hour skies and waves kissing our bare feet",
+        tag: "Goa Sunset",
+        themeGradient: "from-amber-300 via-rose-300 to-indigo-200",
+        iconName: "camera",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya laughing together enjoying the cool sea breeze",
+        caption: "Seaside breeze, tender smiles, and 100% unplugged joy",
+        tag: "Pure Joy",
+        themeGradient: "from-cyan-100 via-blue-100 to-amber-100",
+        iconName: "heart",
+      },
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "Kids building sandcastles while parents watch with love",
+        caption: "Building sandcastles that the tide washed away with laughter",
+        tag: "Sandcastles",
+        themeGradient: "from-amber-100 via-sky-200 to-amber-200",
+        iconName: "plane",
+      },
+    ],
+    likesCount: 428,
+    caption:
+      "Our very first family trip to the coast! Warm sand between our toes, sunset strolls along the waves, and the kids touching the sea for the first time. Pure, unadulterated happiness.",
+    category: "travel",
+    hashtags: ["#GoaDiaries", "#BeachVacation", "#SunsetLovers", "#FamilyFirsts"],
+    comments: [
+      {
+        id: "c12",
+        username: "rahul_k",
+        text: "Remember Dad losing his sunglasses 5 minutes into the ocean waves?! We laughed for hours 😂🌊",
+        timestamp: "5d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+      {
+        id: "c13",
+        username: "ananya_k",
+        text: "I collected like 20 seashells and Mom carried them all in her purse! Best trip ever 🐚❤️",
+        timestamp: "3d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+    ],
+  },
+
+  // 8. Silver Streak — 15th Anniversary (2014) - Single Post
+  {
+    id: "post-2014",
+    year: 2014,
+    dateStr: "23 November 2014",
+    title: "15 Years of Togetherness • Crystal Milestone",
+    location: "Secunderabad Club, Hyderabad",
+    images: [
+      {
+        src: "/images/art/golden_mandap_bg.png",
+        alt: "15th Anniversary surprise party planned by the children",
+        caption: "15 years of smiles, secrets, and unconditional love",
+        tag: "15th Anniversary",
+        themeGradient: "from-rose-200 via-amber-200 to-rose-100",
+        iconName: "sparkles",
+      },
+    ],
+    likesCount: 364,
+    caption:
+      "Fifteen years together! The kids planned an unforgettable surprise party. There were happy tears, hilarious speeches, and a homemade chocolate cake that leaned slightly to the left but tasted of pure magic.",
+    category: "celebration",
+    hashtags: ["#15YearsStrong", "#CrystalAnniversary", "#SurpriseParty", "#FamilyLove"],
+    comments: [
+      {
+        id: "c14",
+        username: "rahul_k",
+        text: "We worked on that surprise party for two whole weeks without you guys noticing! Proud moment 😎",
+        timestamp: "4d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+    ],
+  },
+
+  // 9. Shimla Snow Trip (2017) - MULTI-IMAGE CAROUSEL (3 images)
+  {
+    id: "post-2017",
+    year: 2017,
+    dateStr: "15 January 2017",
+    title: "Shimla Winter Wonderland • First Snow",
+    location: "Mall Road & Kufri, Shimla, Himachal Pradesh",
+    images: [
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "Snow-covered pine trees and fresh winter snowfall in Shimla",
+        caption: "Dancing in our very first mountain snowfall together",
+        tag: "First Snowfall",
+        themeGradient: "from-sky-200 via-indigo-100 to-amber-100",
+        iconName: "plane",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya bundled up in woolen mufflers and winter coats",
+        caption: "Warm hearts in cold weather — sharing one hot cocoa",
+        tag: "Mountain Warmth",
+        themeGradient: "from-blue-100 via-indigo-100 to-rose-100",
+        iconName: "heart",
+      },
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "The questionable family snowman with a funny carrot nose",
+        caption: "Our questionable snowman that barely survived an hour!",
+        tag: "Snowman Fun",
+        themeGradient: "from-cyan-200 via-blue-100 to-slate-100",
+        iconName: "sparkles",
+      },
+    ],
+    likesCount: 462,
+    caption:
+      "Packed the car and headed straight for the Himalayas! We witnessed snow for the very first time, built a hilariously wobbly snowman, and drank steaming hot chocolate by the fireplace.",
+    category: "travel",
+    hashtags: ["#ShimlaSnow", "#WinterInHimalayas", "#SnowmanMakers", "#MountainAir"],
+    comments: [
+      {
+        id: "c15",
+        username: "ananya_k",
+        text: "Mom was wearing four sweaters and Dad's gloves and STILL shivering! 🥶🧣 Cutest mom ever!",
+        timestamp: "3d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+      {
+        id: "c16",
+        username: "satya_colleague",
+        text: "Looking sharp as always Satya garu and Bujji garu! Wonderful memories! ❄️",
+        timestamp: "2d",
+        avatarText: "SC",
+        avatarBg: "bg-indigo-600",
+      },
+    ],
+  },
+
+  // 10. 20 Years of Us (2019) - Single Post
+  {
+    id: "post-2019",
+    year: 2019,
+    dateStr: "23 November 2019",
+    title: "20 Years of Us • Renewing Our Vows",
+    location: "Home Sanctuary, Hyderabad",
+    images: [
+      {
+        src: "/images/art/mandap_backdrop_2.png",
+        alt: "A cozy vow renewal at home surrounded by the closest family",
+        caption: "Two decades of loving each other more with each passing dawn",
+        tag: "20 Years Strong",
+        themeGradient: "from-amber-200 via-rose-200 to-amber-100",
+        iconName: "ring",
+      },
+    ],
+    likesCount: 489,
+    caption:
+      "Two decades of growth, partnership, and laughter. We renewed our sacred vows in a cozy ceremony at home with our children by our side. Some loves truly grow richer and sweeter with time.",
+    category: "celebration",
+    hashtags: ["#20YearsOfLove", "#TwoDecades", "#VowRenewal", "#ForeverLove"],
+    comments: [
+      {
+        id: "c17",
+        username: "priya_m",
+        text: "You both still look at each other with the same spark as college sweethearts! 💕",
+        timestamp: "5d",
+        avatarText: "PM",
+        avatarBg: "bg-pink-600",
+      },
+    ],
+  },
+
+  // 11. Empty Nest, Full Hearts (2022) - Single Post
+  {
+    id: "post-2022",
+    year: 2022,
+    dateStr: "1 September 2022",
+    title: "Empty Nest, Full Hearts",
+    location: "Hyderabad, India",
+    images: [
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya enjoying sunset dates and peaceful morning walks",
+        caption: "Rediscovering each other all over again in our quiet home",
+        tag: "Second Honeymoon",
+        themeGradient: "from-rose-100 via-amber-100 to-rose-200",
+        iconName: "heart",
+      },
+    ],
+    likesCount: 415,
+    caption:
+      "The kids stepped out into the world for college, and our home grew quiet. But in that stillness, we rediscovered the rhythms of our early courtship. Long romantic walks, spontaneous coffee dates, and endless talks.",
+    category: "milestone",
+    hashtags: ["#EmptyNest", "#SecondCourtship", "#LifelongPartners", "#Soulmates"],
+    comments: [
+      {
+        id: "c18",
+        username: "rahul_k",
+        text: "Calling you guys every Sunday without fail! You two enjoy your date nights ❤️🥂",
+        timestamp: "2d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+      {
+        id: "c19",
+        username: "ananya_k",
+        text: "Proud of you both! Don't forget to eat dinner on time Mom! 😘",
+        timestamp: "1d",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+    ],
+  },
+
+  // 12. 25 Years — Silver Jubilee (2024 / 2026) - MULTI-IMAGE CAROUSEL (4 images)
+  {
+    id: "post-2024",
+    year: 2024,
+    dateStr: "23 November 2024",
+    title: "25 Years — Silver Wedding Jubilee! 🥂",
+    location: "The Royal Kanjeevaram Mandap, Hyderabad",
+    images: [
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya in radiant wedding attire welcoming all with folded hands",
+        caption: "Bujji Weds Satya — Celebrating 25 Years of Divine Love ❤️",
+        tag: "Silver Jubilee",
+        themeGradient: "from-amber-300 via-rose-300 to-amber-200",
+        iconName: "sparkles",
+      },
+      {
+        src: "/images/art/golden_mandap_bg.png",
+        alt: "The Grand Mandap decorated with golden temple pillars and garlands",
+        caption: "Under the golden mandap once more, blessed by 25 years of memories",
+        tag: "Golden Mandap",
+        themeGradient: "from-amber-400 via-yellow-200 to-rose-300",
+        iconName: "ring",
+      },
+      {
+        src: "/images/art/mandap_backdrop_2.png",
+        alt: "Cutting the grand 25th Silver Jubilee cake surrounded by family",
+        caption: "Cutting the anniversary cake surrounded by 3 generations of family",
+        tag: "Celebration Feast",
+        themeGradient: "from-rose-200 via-amber-200 to-rose-300",
+        iconName: "heart",
+      },
+      {
+        src: "/images/art/wedding-botanical-frame.jpg",
+        alt: "Family portrait with children, elders, and lifelong friends",
+        caption: "To the next 25 years and beyond — together forever!",
+        tag: "Generations of Love",
+        themeGradient: "from-amber-200 via-peach-200 to-amber-100",
+        iconName: "sparkles",
+      },
+    ],
+    likesCount: 789,
+    caption:
+      "A quarter-century of unwavering love, deep laughter, and beautiful sacrifices. From that very first glance in 1999 to this Silver Jubilee, every single heartbeat has been a blessing. Here is to Bujji & Satya — 25 Years of Love, and forever more to come! 🥂👑❤️",
+    category: "celebration",
+    hashtags: [
+      "#BujjiWedsSatya",
+      "#SilverJubilee",
+      "#25YearsOfLove",
+      "#QuarterCentury",
+      "#CoupleGoals",
+      "#TogetherForever",
+    ],
+    comments: [
+      {
+        id: "c20",
+        username: "rahul_k",
+        text: "Happy 25th Silver Wedding Anniversary Mom & Dad! You are our biggest inspiration and our rock. Love you both endlessly! 👑🥂❤️",
+        timestamp: "1d",
+        avatarText: "RK",
+        avatarBg: "bg-blue-600",
+      },
+      {
+        id: "c21",
+        username: "ananya_k",
+        text: "You two showed us what real, unconditional love looks like every single day. Happy 25th anniversary to the king and queen of our hearts! 🌸✨🥹",
+        timestamp: "18h",
+        avatarText: "AK",
+        avatarBg: "bg-rose-600",
+      },
+      {
+        id: "c22",
+        username: "suresh_uncle",
+        text: "Hearty congratulations Bujji and Satya! May Lord Venkateswara shower you with health, happiness, and another 50 golden years together! 🙏🪔",
+        timestamp: "12h",
+        avatarText: "SU",
+        avatarBg: "bg-emerald-600",
+      },
+    ],
+  },
+];
+

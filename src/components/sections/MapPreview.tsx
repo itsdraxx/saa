@@ -1,14 +1,14 @@
 import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { mapLocations } from "@/data/map-locations";
-import { MapPin, ArrowRight, Compass, Navigation } from "lucide-react";
+import { MapPin, ArrowRight, Compass } from "lucide-react";
 
 export default function MapPreview() {
   const previewLocations = mapLocations.slice(0, 4);
 
   return (
     <section id="map" className="w-full bg-ivory py-24 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="The Memory Map"
           subtitle="Love isn't just measured in years, but in the places that hold your laughter, your vows, and your greatest adventures."
