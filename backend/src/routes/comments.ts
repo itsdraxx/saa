@@ -24,7 +24,7 @@ router.get("/", (req, res) => {
   }
 
   const comments = dbAll(
-    "SELECT id, post_id, author_name, text, created_at FROM comments WHERE post_id = ? ORDER BY created_at ASC",
+    "SELECT id, post_id, author_name, text, created_at, visitor_id FROM comments WHERE post_id = ? ORDER BY created_at ASC",
     [post_id]
   );
 
@@ -33,7 +33,7 @@ router.get("/", (req, res) => {
 
 // ─── POST /comments ───────────────────────────────────
 router.post("/", writeLimiter, (req, res) => {
-  const { post_id, author_name, text } = req.body;
+  const { post_id, author_name, text, visitor_id } = req.body;
 
   if (!post_id || typeof post_id !== "string") {
     res.status(400).json({ success: false, error: "post_id is required" });
@@ -51,20 +51,64 @@ router.post("/", writeLimiter, (req, res) => {
   const cleanName = sanitize(author_name).slice(0, 40);
   const cleanText = sanitize(text).slice(0, 500);
   const ipHash = hashIP(req.ip);
+  const cleanVisitorId = visitor_id && typeof visitor_id === "string" ? visitor_id.slice(0, 64) : null;
 
   const { lastId } = dbRun(
-    "INSERT INTO comments (post_id, author_name, text, ip_hash) VALUES (?, ?, ?, ?)",
-    [post_id, cleanName, cleanText, ipHash]
+    "INSERT INTO comments (post_id, author_name, text, ip_hash, visitor_id) VALUES (?, ?, ?, ?, ?)",
+    [post_id, cleanName, cleanText, ipHash, cleanVisitorId]
   );
 
   saveDb();
 
   const comment = dbGet(
-    "SELECT id, post_id, author_name, text, created_at FROM comments WHERE id = ?",
+    "SELECT id, post_id, author_name, text, created_at, visitor_id FROM comments WHERE id = ?",
     [lastId]
   );
 
   res.status(201).json({ success: true, comment });
+});
+
+// ─── DELETE /comments/:id (Delete own comment) ────────
+router.delete("/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { author_name, visitor_id } = req.body;
+
+  if (!id || isNaN(id)) {
+    res.status(400).json({ success: false, error: "Invalid comment ID" });
+    return;
+  }
+
+  const existing = dbGet<{ id: number; author_name: string; visitor_id: string | null }>(
+    "SELECT id, author_name, visitor_id FROM comments WHERE id = ?",
+    [id]
+  );
+
+  if (!existing) {
+    res.status(404).json({ success: false, error: "Comment not found" });
+    return;
+  }
+
+  // Only allow deleting if author_name matches or visitor_id matches
+  const matchesName =
+    author_name &&
+    existing.author_name.toLowerCase().trim() === String(author_name).toLowerCase().trim();
+  const matchesVisitor =
+    visitor_id &&
+    existing.visitor_id &&
+    existing.visitor_id === String(visitor_id);
+
+  if (!matchesName && !matchesVisitor) {
+    res.status(403).json({
+      success: false,
+      error: "You can only delete your own comment",
+    });
+    return;
+  }
+
+  dbRun("DELETE FROM comments WHERE id = ?", [id]);
+  saveDb();
+
+  res.json({ success: true, message: "Comment deleted" });
 });
 
 export default router;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -16,7 +16,9 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
+  Filter,
 } from "lucide-react";
+import { instagramPosts } from "@/data/instagramPosts";
 import {
   verifyAdminKey,
   adminGetStats,
@@ -164,12 +166,30 @@ export default function AdminPage() {
   };
 
   // Filtered lists based on search
+  const [selectedPostFilter, setSelectedPostFilter] = useState<string>("all");
+
   const filteredComments = comments.filter(
     (c) =>
       c.author_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.post_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Group comments post-wise
+  const postGroups = useMemo(() => {
+    const postsToDisplay =
+      selectedPostFilter === "all"
+        ? instagramPosts
+        : instagramPosts.filter((p) => p.id === selectedPostFilter);
+
+    return postsToDisplay.map((post) => {
+      const postComments = filteredComments.filter((c) => c.post_id === post.id);
+      return {
+        post,
+        comments: postComments,
+      };
+    });
+  }, [selectedPostFilter, filteredComments]);
 
   const filteredWishes = wishes.filter(
     (w) =>
@@ -402,58 +422,120 @@ export default function AdminPage() {
 
         {/* Content Panels */}
         <div className="mt-6 rounded-3xl border border-warm-beige bg-warm-white shadow-md overflow-hidden">
-          {/* TAB 1: COMMENTS */}
+          {/* TAB 1: COMMENTS (POST-WISE GROUPED) */}
           {activeTab === "comments" && (
             <div>
-              <div className="px-6 py-4 border-b border-warm-beige/50 bg-champagne/20 flex items-center justify-between">
-                <span className="text-xs font-bold text-charcoal">
-                  All Post Comments ({filteredComments.length})
-                </span>
+              {/* Post Filter Bar */}
+              <div className="px-6 py-4 border-b border-warm-beige/50 bg-champagne/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-burgundy shrink-0" />
+                  <span className="text-xs font-bold text-charcoal">
+                    Select Memory / Post:
+                  </span>
+                  <select
+                    value={selectedPostFilter}
+                    onChange={(e) => setSelectedPostFilter(e.target.value)}
+                    className="rounded-xl border border-warm-beige bg-warm-white px-3 py-1.5 text-xs text-charcoal focus:border-burgundy focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="all">
+                      📁 All 12 Memories ({filteredComments.length} comments)
+                    </option>
+                    {instagramPosts.map((post) => {
+                      const count = comments.filter((c) => c.post_id === post.id).length;
+                      return (
+                        <option key={post.id} value={post.id}>
+                          {post.year} — {post.title} ({count} {count === 1 ? "comment" : "comments"})
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
                 <span className="text-[11px] text-soft-brown">
-                  Click the red trash icon to permanently remove any comment
+                  {filteredComments.length} total comments • Click 🗑️ to delete
                 </span>
               </div>
 
-              {filteredComments.length === 0 ? (
-                <div className="p-12 text-center text-soft-brown text-sm">
-                  No comments found matching your search.
-                </div>
-              ) : (
-                <div className="divide-y divide-warm-beige/40">
-                  {filteredComments.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-4 sm:p-5 flex items-start justify-between gap-4 hover:bg-peach-50/30 transition-colors"
-                    >
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-xs sm:text-sm text-charcoal">
-                            {c.author_name}
-                          </span>
-                          <span className="text-[10px] font-semibold text-burgundy bg-peach-100 px-2 py-0.2 rounded-full">
-                            {c.post_id}
-                          </span>
-                          <span className="text-[10px] text-soft-brown/60">
-                            • {c.created_at}
-                          </span>
+              {/* Post-Wise Cards */}
+              <div className="p-4 sm:p-6 space-y-6">
+                {postGroups.map(({ post, comments: postComments }) => (
+                  <div
+                    key={post.id}
+                    className="rounded-2xl border border-warm-beige/80 bg-peach-50/20 overflow-hidden shadow-2xs"
+                  >
+                    {/* Post Group Header */}
+                    <div className="px-4 sm:px-5 py-3.5 bg-warm-white border-b border-warm-beige/50 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-burgundy text-warm-white font-bold text-xs">
+                          {post.year.toString().slice(-2)}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-heading text-sm sm:text-base font-bold text-charcoal">
+                              {post.title}
+                            </span>
+                            <span className="text-[10px] font-semibold text-soft-brown/70 bg-champagne/60 px-2 py-0.2 rounded-full">
+                              {post.id}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-soft-brown">
+                            {post.location} • {post.dateStr}
+                          </p>
                         </div>
-                        <p className="mt-1 text-xs sm:text-sm text-charcoal/90 leading-relaxed">
-                          {c.text}
-                        </p>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteComment(c.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer shrink-0"
-                        title="Delete comment"
+                      <span
+                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                          postComments.length > 0
+                            ? "bg-peach-100 text-burgundy border border-peach-200"
+                            : "bg-warm-beige/30 text-soft-brown/60"
+                        }`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        {postComments.length} {postComments.length === 1 ? "comment" : "comments"}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    {/* Comments List for this specific Post */}
+                    {postComments.length === 0 ? (
+                      <div className="px-5 py-6 text-center text-soft-brown/60 text-xs italic">
+                        No visitor comments on this memory yet.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-warm-beige/30 bg-warm-white/60">
+                        {postComments.map((c) => (
+                          <div
+                            key={c.id}
+                            className="p-3.5 sm:p-4 flex items-start justify-between gap-3 hover:bg-peach-50/40 transition-colors"
+                          >
+                            <div className="flex-1 text-left">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-xs sm:text-sm text-charcoal">
+                                  {c.author_name}
+                                </span>
+                                <span className="text-[10px] text-soft-brown/60">
+                                  • {c.created_at}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs sm:text-sm text-charcoal/90 leading-relaxed">
+                                {c.text}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(c.id)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer shrink-0 mt-0.5"
+                              title={`Delete comment #${c.id}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

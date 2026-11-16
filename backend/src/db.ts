@@ -43,9 +43,13 @@ export async function initDb(): Promise<void> {
       author_name TEXT NOT NULL,
       text        TEXT NOT NULL,
       created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-      ip_hash     TEXT
+      ip_hash     TEXT,
+      visitor_id  TEXT
     );
   `);
+  try {
+    db.run("ALTER TABLE comments ADD COLUMN visitor_id TEXT;");
+  } catch {}
   db.run("CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);");
   db.run("CREATE INDEX IF NOT EXISTS idx_comments_created_at ON comments(created_at DESC);");
 

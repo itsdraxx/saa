@@ -290,17 +290,27 @@ export default function InstagramCommentsSheet({
                       </div>
 
                       <div className="flex items-center gap-1.5 pt-1">
-                        {hasAdminAccess && onDeleteComment && (
-                          <button
-                            type="button"
-                            onClick={() => onDeleteComment(comment.id)}
-                            className="text-red-400 hover:text-red-600 p-0.5 hover:scale-115 active:scale-95 transition-all cursor-pointer"
-                            title="Admin: Delete Comment"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                        {/* Comment Like Heart */}
+                        {/* Only the author of the comment (or Admin) can delete it */}
+                        {onDeleteComment &&
+                          (hasAdminAccess ||
+                            comment.isCurrentUser ||
+                            (currentUserName &&
+                              comment.username.toLowerCase() ===
+                                currentUserName.toLowerCase().replace(/\s+/g, "_"))) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm("Are you sure you want to delete your comment?")) {
+                                  onDeleteComment(comment.id);
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-600 p-0.5 hover:scale-115 active:scale-95 transition-all cursor-pointer opacity-70 hover:opacity-100"
+                              title={hasAdminAccess ? "Admin: Delete Comment" : "Delete your comment"}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        {/* Comment Like Heart — anyone can like any comment! */}
                         <button
                           onClick={() => handleToggleCommentLike(comment.id)}
                           className="text-soft-brown/60 hover:scale-115 active:scale-95 transition-transform cursor-pointer"

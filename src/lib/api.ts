@@ -46,7 +46,8 @@ export async function fetchComments(
 export async function postComment(
   postId: string,
   authorName: string,
-  text: string
+  text: string,
+  visitorId?: string
 ): Promise<{ success: boolean; comment?: BackendComment; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/comments`, {
@@ -56,6 +57,7 @@ export async function postComment(
         post_id: postId,
         author_name: authorName,
         text,
+        visitor_id: visitorId || getVisitorId(),
       }),
     });
     const data = await res.json();
@@ -64,6 +66,29 @@ export async function postComment(
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to post comment",
+    };
+  }
+}
+
+export async function deleteOwnComment(
+  commentId: number,
+  authorName: string,
+  visitorId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/comments/${commentId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        author_name: authorName,
+        visitor_id: visitorId || getVisitorId(),
+      }),
+    });
+    return await res.json();
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to delete comment",
     };
   }
 }

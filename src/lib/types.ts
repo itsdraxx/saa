@@ -111,6 +111,7 @@ export interface BackendComment {
   author_name: string;
   text: string;
   created_at: string;
+  visitor_id?: string | null;
 }
 
 export interface GuestWish {

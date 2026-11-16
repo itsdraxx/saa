@@ -27,6 +27,7 @@ import {
   toggleLike,
   getVisitorId,
   adminDeleteComment,
+  deleteOwnComment,
 } from "@/lib/api";
 
 interface InstagramPostCardProps {
@@ -61,11 +62,11 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
   const lastTapRef = useRef<number>(0);
 
-  // Hydration-safe client-side sync from localStorage & Backend API
+  // Hydration-safe client-side sync from localStorage & Backend API + Auto-refresh every 2 minutes
   useEffect(() => {
     let isMounted = true;
 
-    const timer = setTimeout(async () => {
+    const syncCommentsAndLikes = async () => {
       try {
         const savedName = localStorage.getItem("saa_user_name");
         if (savedName && isMounted) setUserName(savedName);
@@ -112,18 +113,24 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         // 2. Fetch Shared Likes from Backend
         const backendLikes = await fetchLikes(post.id);
         if (typeof backendLikes === "number" && isMounted) {
-          // If backend has recorded likes, add them to base post likes
           const totalLikes = post.likesCount + backendLikes + (storedLike === "true" && backendLikes === 0 ? 1 : 0);
           setLikesCount(totalLikes);
         }
       } catch (err) {
         console.warn("Sync error:", err);
       }
-    }, 0);
+    };
+
+    // Initial sync
+    const timer = setTimeout(syncCommentsAndLikes, 0);
+
+    // Auto-refresh comments & likes every 2 minutes (120,000 ms)
+    const interval = setInterval(syncCommentsAndLikes, 120_000);
 
     return () => {
       isMounted = false;
       clearTimeout(timer);
+      clearInterval(interval);
     };
   }, [post.id, post.likesCount, post.comments]);
 
@@ -316,6 +323,8 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         const adminKey = localStorage.getItem("saa_admin_key") || "";
         if (adminKey && !isNaN(numericId)) {
           await adminDeleteComment(numericId, adminKey);
+        } else if (!isNaN(numericId)) {
+          await deleteOwnComment(numericId, userName, getVisitorId());
         }
       } catch (err) {
         console.warn("Failed to delete comment on backend:", err);
