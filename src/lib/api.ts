@@ -200,7 +200,7 @@ export async function verifyAdminKey(
     });
     const data = await res.json();
     return data;
-  } catch (err) {
+  } catch {
     return { success: false, error: "Network error" };
   }
 }
@@ -244,7 +244,7 @@ export async function adminDeleteComment(
       headers: { "x-admin-key": adminKey },
     });
     return await res.json();
-  } catch (err) {
+  } catch {
     return { success: false, error: "Failed to delete comment" };
   }
 }

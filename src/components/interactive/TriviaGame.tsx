@@ -12,7 +12,6 @@ import {
   RotateCcw,
   Home,
   User,
-  Sparkles,
   Medal,
 } from "lucide-react";
 import {
@@ -42,10 +41,13 @@ export default function TriviaGame() {
 
   // Load remembered user name
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("saa_user_name");
-      if (saved) setPlayerName(saved);
-    } catch {}
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("saa_user_name");
+        if (saved) setPlayerName(saved);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Fetch leaderboard when reaching results

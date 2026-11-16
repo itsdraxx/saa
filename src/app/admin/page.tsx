@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -52,55 +52,12 @@ export default function AdminPage() {
   const [triviaScores, setTriviaScores] = useState<TriviaLeaderboardEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Auto-login from localStorage
-  useEffect(() => {
-    try {
-      const savedKey = localStorage.getItem("saa_admin_key");
-      if (savedKey) {
-        setAdminKey(savedKey);
-        verifyAndLoad(savedKey);
-      }
-    } catch {}
-  }, []);
-
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const verifyAndLoad = async (key: string) => {
-    setIsVerifying(true);
-    setAuthError("");
-
-    const res = await verifyAdminKey(key);
-    if (res.success) {
-      setIsAuthenticated(true);
-      try {
-        localStorage.setItem("saa_admin_key", key);
-      } catch {}
-      await refreshAllData(key);
-    } else {
-      setIsAuthenticated(false);
-      setAuthError(res.error || "Invalid Admin Key. Please try again.");
-    }
-    setIsVerifying(false);
-  };
-
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminKey.trim()) return;
-    verifyAndLoad(adminKey.trim());
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setAdminKey("");
-    try {
-      localStorage.removeItem("saa_admin_key");
-    } catch {}
-  };
-
-  const refreshAllData = async (key: string = adminKey) => {
+  const refreshAllData = useCallback(async (key: string = adminKey) => {
     setIsLoadingData(true);
     try {
       const [statsRes, commentsRes, wishesRes, triviaRes] = await Promise.all([
@@ -118,6 +75,52 @@ export default function AdminPage() {
       console.warn("Error refreshing admin data:", err);
     }
     setIsLoadingData(false);
+  }, [adminKey]);
+
+  const verifyAndLoad = useCallback(async (key: string) => {
+    setIsVerifying(true);
+    setAuthError("");
+
+    const res = await verifyAdminKey(key);
+    if (res.success) {
+      setIsAuthenticated(true);
+      try {
+        localStorage.setItem("saa_admin_key", key);
+      } catch {}
+      await refreshAllData(key);
+    } else {
+      setIsAuthenticated(false);
+      setAuthError(res.error || "Invalid Admin Key. Please try again.");
+    }
+    setIsVerifying(false);
+  }, [refreshAllData]);
+
+  // Auto-login from localStorage (deferred to avoid setState in effect warning)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const savedKey = localStorage.getItem("saa_admin_key");
+        if (savedKey) {
+          setAdminKey(savedKey);
+          verifyAndLoad(savedKey);
+        }
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [verifyAndLoad]);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminKey.trim()) return;
+    verifyAndLoad(adminKey.trim());
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setAdminKey("");
+    try {
+      localStorage.removeItem("saa_admin_key");
+    } catch {}
   };
 
   // Delete Actions

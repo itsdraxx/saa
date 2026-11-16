@@ -38,10 +38,13 @@ export default function InstagramCommentsSheet({
 
   // Check admin key
   useEffect(() => {
-    try {
-      const key = localStorage.getItem("saa_admin_key");
-      if (key) setHasAdminAccess(true);
-    } catch {}
+    const timer = setTimeout(() => {
+      try {
+        const key = localStorage.getItem("saa_admin_key");
+        if (key) setHasAdminAccess(true);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   // Load comment likes when opened

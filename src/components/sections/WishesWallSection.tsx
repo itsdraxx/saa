@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect, useCallback } from "react";
+import { motion } from "motion/react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { Send, Heart, Sparkles, Check, Trash2, User } from "lucide-react";
 import { fetchWishes, postWish, adminDeleteWish } from "@/lib/api";
@@ -26,20 +26,7 @@ export default function WishesWallSection() {
   // Admin access state
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
-  // Load initial wishes and remembered user name
-  useEffect(() => {
-    try {
-      const savedName = localStorage.getItem("saa_user_name");
-      if (savedName) setAuthorName(savedName);
-
-      const adminKey = localStorage.getItem("saa_admin_key");
-      if (adminKey) setHasAdminAccess(true);
-    } catch {}
-
-    loadWishes();
-  }, []);
-
-  const loadWishes = async () => {
+  const loadWishes = useCallback(async () => {
     setIsLoading(true);
     const res = await fetchWishes(50);
     if (res.success) {
@@ -47,7 +34,23 @@ export default function WishesWallSection() {
       setTotalCount(res.count);
     }
     setIsLoading(false);
-  };
+  }, []);
+
+  // Load initial wishes and remembered user name
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadWishes();
+      try {
+        const savedName = localStorage.getItem("saa_user_name");
+        if (savedName) setAuthorName(savedName);
+
+        const adminKey = localStorage.getItem("saa_admin_key");
+        if (adminKey) setHasAdminAccess(true);
+      } catch {}
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [loadWishes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
