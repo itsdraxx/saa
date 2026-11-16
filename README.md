@@ -52,7 +52,7 @@ npm run dev
 
 #### 3. Admin Portal (`admin/` • Port 3002)
 Dedicated, isolated moderation portal.
-- **PIN Protected**: `BujjiSatya25!`
+- **Username & Password Protected**: Configurable in `backend/.env`
 - **No public navbar or unnecessary clutter**: Clean, focused moderation interface.
 - **Features**: Post-wise comment moderation with post selector dropdown, guest wishes approval/deletion, and family trivia leaderboard moderation.
 ```bash
@@ -63,8 +63,10 @@ npm run dev
 
 ---
 
-## 🔑 Admin Secret
-- **Default PIN**: `BujjiSatya25!` (configurable in `backend/.env` under `ADMIN_SECRET`)
+## 🔑 Admin Credentials
+Configured in `backend/.env`:
+- **Default Username**: `admin` (`ADMIN_USERNAME`)
+- **Default Password**: `BujjiSatya25!` (`ADMIN_PASSWORD`)
 
 ---
 

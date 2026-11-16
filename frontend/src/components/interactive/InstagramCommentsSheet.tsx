@@ -40,7 +40,7 @@ export default function InstagramCommentsSheet({
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const key = localStorage.getItem("saa_admin_key");
+        const key = localStorage.getItem("saa_admin_token") || localStorage.getItem("saa_admin_key");
         if (key) setHasAdminAccess(true);
       } catch {}
     }, 0);

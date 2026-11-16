@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ShieldCheck,
-  KeyRound,
+  User,
+  Lock,
   Trash2,
   RefreshCw,
   LogOut,
@@ -19,7 +20,8 @@ import {
 } from "lucide-react";
 import { instagramPosts } from "@/data/instagramPosts";
 import {
-  verifyAdminKey,
+  adminLogin,
+  verifyAdminToken,
   adminGetStats,
   adminGetComments,
   adminDeleteComment,
@@ -39,7 +41,9 @@ const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
 export default function AdminPage() {
-  const [adminKey, setAdminKey] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [adminToken, setAdminToken] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -61,14 +65,15 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const refreshAllData = useCallback(async (key: string = adminKey) => {
+  const refreshAllData = useCallback(async (token: string = adminToken) => {
+    if (!token) return;
     setIsLoadingData(true);
     try {
       const [statsRes, commentsRes, wishesRes, triviaRes] = await Promise.all([
-        adminGetStats(key),
-        adminGetComments(key, 200),
-        adminGetWishes(key, 200),
-        adminGetTrivia(key, 200),
+        adminGetStats(token),
+        adminGetComments(token, 200),
+        adminGetWishes(token, 200),
+        adminGetTrivia(token, 200),
       ]);
 
       if (statsRes.success && statsRes.stats) setStats(statsRes.stats);
@@ -79,51 +84,59 @@ export default function AdminPage() {
       console.warn("Error refreshing admin data:", err);
     }
     setIsLoadingData(false);
-  }, [adminKey]);
+  }, [adminToken]);
 
-  const verifyAndLoad = useCallback(async (key: string) => {
-    setIsVerifying(true);
-    setAuthError("");
-
-    const res = await verifyAdminKey(key);
-    if (res.success) {
-      setIsAuthenticated(true);
-      try {
-        localStorage.setItem("saa_admin_key", key);
-      } catch {}
-      await refreshAllData(key);
-    } else {
-      setIsAuthenticated(false);
-      setAuthError(res.error || "Invalid Admin Key. Please try again.");
-    }
-    setIsVerifying(false);
-  }, [refreshAllData]);
-
-  // Auto-login from localStorage
+  // Auto-login from saved token
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       try {
-        const savedKey = localStorage.getItem("saa_admin_key");
-        if (savedKey) {
-          setAdminKey(savedKey);
-          verifyAndLoad(savedKey);
+        const savedToken = localStorage.getItem("saa_admin_token");
+        if (savedToken) {
+          setIsVerifying(true);
+          const res = await verifyAdminToken(savedToken);
+          if (res.success) {
+            setAdminToken(savedToken);
+            setIsAuthenticated(true);
+            await refreshAllData(savedToken);
+          } else {
+            localStorage.removeItem("saa_admin_token");
+          }
+          setIsVerifying(false);
         }
       } catch {}
     }, 0);
     return () => clearTimeout(timer);
-  }, [verifyAndLoad]);
+  }, [refreshAllData]);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  // Handle Login submission
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminKey.trim()) return;
-    verifyAndLoad(adminKey.trim());
+    if (!username.trim() || !password.trim()) return;
+
+    setIsVerifying(true);
+    setAuthError("");
+
+    const res = await adminLogin(username.trim(), password.trim());
+    if (res.success && res.token) {
+      setIsAuthenticated(true);
+      setAdminToken(res.token);
+      try {
+        localStorage.setItem("saa_admin_token", res.token);
+      } catch {}
+      await refreshAllData(res.token);
+    } else {
+      setIsAuthenticated(false);
+      setAuthError(res.error || "Invalid username or password. Please try again.");
+    }
+    setIsVerifying(false);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    setAdminKey("");
+    setAdminToken("");
+    setPassword("");
     try {
-      localStorage.removeItem("saa_admin_key");
+      localStorage.removeItem("saa_admin_token");
     } catch {}
   };
 
@@ -131,7 +144,7 @@ export default function AdminPage() {
   const handleDeleteComment = async (id: number) => {
     if (!confirm(`Are you sure you want to permanently delete Comment #${id}?`)) return;
 
-    const res = await adminDeleteComment(id, adminKey);
+    const res = await adminDeleteComment(id, adminToken);
     if (res.success) {
       setComments((prev) => prev.filter((c) => c.id !== id));
       showToast(`Comment #${id} deleted`);
@@ -144,7 +157,7 @@ export default function AdminPage() {
   const handleDeleteWish = async (id: number) => {
     if (!confirm(`Are you sure you want to permanently delete Wish #${id}?`)) return;
 
-    const res = await adminDeleteWish(id, adminKey);
+    const res = await adminDeleteWish(id, adminToken);
     if (res.success) {
       setWishes((prev) => prev.filter((w) => w.id !== id));
       showToast(`Wish #${id} deleted`);
@@ -157,7 +170,7 @@ export default function AdminPage() {
   const handleDeleteTrivia = async (id: number) => {
     if (!confirm(`Are you sure you want to permanently delete Trivia Score #${id}?`)) return;
 
-    const res = await adminDeleteTrivia(id, adminKey);
+    const res = await adminDeleteTrivia(id, adminToken);
     if (res.success) {
       setTriviaScores((prev) => prev.filter((t) => t.id !== id));
       showToast(`Trivia score #${id} deleted`);
@@ -205,7 +218,7 @@ export default function AdminPage() {
   );
 
   // ──────────────────────────────────────────────
-  // 1. LOGIN SCREEN (Clean & Centered)
+  // 1. LOGIN SCREEN (Username & Password)
   // ──────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
@@ -219,27 +232,51 @@ export default function AdminPage() {
             Admin Moderation Portal
           </h2>
           <p className="mt-1 text-xs text-soft-brown">
-            25 Years of Us — Manage comments, wishes, and trivia leaderboard
+            25 Years of Us — Sign in with your admin credentials
           </p>
 
           <form onSubmit={handleLoginSubmit} className="mt-6 space-y-4">
+            {/* Username Input */}
             <div className="relative text-left">
               <label className="block text-xs font-semibold text-soft-brown mb-1">
-                Admin Secret Key
+                Username
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (authError) setAuthError("");
+                  }}
+                  placeholder="Enter admin username..."
+                  required
+                  autoComplete="username"
+                  className="w-full rounded-2xl border-2 border-warm-beige bg-champagne/30 pl-10 pr-4 py-3 text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden"
+                />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-soft-brown/50 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div className="relative text-left">
+              <label className="block text-xs font-semibold text-soft-brown mb-1">
+                Password
               </label>
               <div className="relative">
                 <input
                   type="password"
-                  value={adminKey}
+                  value={password}
                   onChange={(e) => {
-                    setAdminKey(e.target.value);
+                    setPassword(e.target.value);
                     if (authError) setAuthError("");
                   }}
-                  placeholder="Enter secret key (e.g. BujjiSatya25!)..."
+                  placeholder="Enter admin password..."
                   required
-                  className="w-full rounded-2xl border-2 border-warm-beige bg-champagne/30 px-4 py-3 text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden"
+                  autoComplete="current-password"
+                  className="w-full rounded-2xl border-2 border-warm-beige bg-champagne/30 pl-10 pr-4 py-3 text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden"
                 />
-                <KeyRound className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-soft-brown/40 pointer-events-none" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-soft-brown/50 pointer-events-none" />
               </div>
             </div>
 
@@ -252,10 +289,10 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={isVerifying || !adminKey.trim()}
+              disabled={isVerifying || !username.trim() || !password.trim()}
               className="w-full rounded-2xl bg-burgundy py-3 text-sm font-semibold text-warm-white shadow-md hover:bg-deep-burgundy transition-all disabled:opacity-50 cursor-pointer"
             >
-              {isVerifying ? "Verifying..." : "Unlock Dashboard"}
+              {isVerifying ? "Verifying..." : "Sign In"}
             </button>
           </form>
 

@@ -336,7 +336,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     if (commentId.startsWith("backend-")) {
       const numericId = Number(commentId.replace("backend-", ""));
       try {
-        const adminKey = localStorage.getItem("saa_admin_key") || "";
+        const adminKey = localStorage.getItem("saa_admin_token") || localStorage.getItem("saa_admin_key") || "";
         if (adminKey && !isNaN(numericId)) {
           await adminDeleteComment(numericId, adminKey);
         } else if (!isNaN(numericId)) {

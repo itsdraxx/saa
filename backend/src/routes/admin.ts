@@ -1,10 +1,35 @@
 import { Router } from "express";
 import { dbAll, dbGet, dbRun, saveDb } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, getAdminToken } from "../middleware/auth.js";
 
 const router = Router();
 
-// All admin routes require the x-admin-key header
+// ─── POST /admin/login ────────────────────────────────
+router.post("/login", (req, res) => {
+  const { username, password } = req.body || {};
+  const expectedUser = process.env.ADMIN_USERNAME || "admin";
+  const expectedPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || "BujjiSatya25!";
+
+  if (!username || !password) {
+    res.status(400).json({ success: false, error: "Username and password are required" });
+    return;
+  }
+
+  if (username !== expectedUser || password !== expectedPass) {
+    res.status(401).json({ success: false, error: "Invalid username or password" });
+    return;
+  }
+
+  const token = getAdminToken();
+  res.json({
+    success: true,
+    token,
+    username: expectedUser,
+    message: "Admin authentication successful",
+  });
+});
+
+// All routes below require valid admin token or credentials
 router.use(requireAdmin);
 
 // ─── POST /admin/verify ───────────────────────────────

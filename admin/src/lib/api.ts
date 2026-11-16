@@ -9,18 +9,39 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:3001";
 
 // ============================================
-// Admin Verification & Moderation Endpoints
+// Admin Username/Password Authentication
 // ============================================
 
-export async function verifyAdminKey(
-  adminKey: string
+export async function adminLogin(
+  username: string,
+  password: string
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    return { success: !!data.success, token: data.token, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Connection failed to backend API",
+    };
+  }
+}
+
+export async function verifyAdminToken(
+  token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-key": adminKey,
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
       },
     });
     const data = await res.json();
@@ -34,11 +55,14 @@ export async function verifyAdminKey(
 }
 
 export async function adminGetStats(
-  adminKey: string
+  token: string
 ): Promise<{ success: boolean; stats?: AdminStats; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/stats`, {
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return { success: !!data.success, stats: data.stats, error: data.error };
@@ -51,12 +75,15 @@ export async function adminGetStats(
 }
 
 export async function adminGetComments(
-  adminKey: string,
+  token: string,
   limit: number = 200
 ): Promise<{ success: boolean; comments: BackendComment[]; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/comments?limit=${limit}`, {
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return {
@@ -75,12 +102,15 @@ export async function adminGetComments(
 
 export async function adminDeleteComment(
   commentId: number,
-  adminKey: string
+  token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/comments/${commentId}`, {
       method: "DELETE",
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return { success: !!data.success, error: data.error };
@@ -93,12 +123,15 @@ export async function adminDeleteComment(
 }
 
 export async function adminGetWishes(
-  adminKey: string,
+  token: string,
   limit: number = 200
 ): Promise<{ success: boolean; wishes: GuestWish[]; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/wishes?limit=${limit}`, {
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return {
@@ -117,12 +150,15 @@ export async function adminGetWishes(
 
 export async function adminDeleteWish(
   wishId: number,
-  adminKey: string
+  token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/wishes/${wishId}`, {
       method: "DELETE",
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return { success: !!data.success, error: data.error };
@@ -135,12 +171,15 @@ export async function adminDeleteWish(
 }
 
 export async function adminGetTrivia(
-  adminKey: string,
+  token: string,
   limit: number = 200
 ): Promise<{ success: boolean; scores: TriviaLeaderboardEntry[]; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/trivia?limit=${limit}`, {
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return {
@@ -159,12 +198,15 @@ export async function adminGetTrivia(
 
 export async function adminDeleteTrivia(
   scoreId: number,
-  adminKey: string
+  token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/admin/trivia/${scoreId}`, {
       method: "DELETE",
-      headers: { "x-admin-key": adminKey },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
     });
     const data = await res.json();
     return { success: !!data.success, error: data.error };
