@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST='{"components/interactive/MemoryMap.tsx -> leaflet":{"id":814,"files":["static/chunks/77cbbdfc.065339c767b432a4.js"]},"components/interactive/MemoryMap.tsx -> react-leaflet":{"id":8942,"files":["static/chunks/77cbbdfc.065339c767b432a4.js","static/chunks/561.3b715a1f2c627f31.js"]}}';
