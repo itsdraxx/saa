@@ -4,7 +4,6 @@ import TimelineSection from "@/components/sections/TimelineSection";
 import GalleryPreview from "@/components/sections/GalleryPreview";
 import GlassJarSection from "@/components/sections/GlassJarSection";
 import ThenVsNowSection from "@/components/sections/ThenVsNowSection";
-import MessagesSection from "@/components/sections/MessagesSection";
 import TriviaPreview from "@/components/sections/TriviaPreview";
 import MapPreview from "@/components/sections/MapPreview";
 import WishesWallSection from "@/components/sections/WishesWallSection";
@@ -31,19 +30,16 @@ export default function HomePage() {
       {/* 6. Then vs Now Photo Comparison */}
       <ThenVsNowSection />
 
-      {/* 7. Family Voice & Video Messages */}
-      <MessagesSection />
-
-      {/* 8. Family Trivia Quiz Teaser */}
+      {/* 7. Family Trivia Quiz Teaser */}
       <TriviaPreview />
 
-      {/* 9. The Memory Map Teaser */}
+      {/* 8. The Memory Map Teaser */}
       <MapPreview />
 
-      {/* 10. Guest Wishes Wall (Anniversary Blessings) */}
+      {/* 9. Guest Wishes Wall (Anniversary Blessings) */}
       <WishesWallSection />
 
-      {/* 11. Final Emotional Dedication */}
+      {/* 10. Final Emotional Dedication */}
       <DedicationSection />
     </div>
   );

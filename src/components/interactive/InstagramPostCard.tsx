@@ -40,7 +40,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
   // Like state (persisted in localStorage)
   const [isLiked, setIsLiked] = useState<boolean>(false);
-  const [likesCount, setLikesCount] = useState<number>(post.likesCount);
+  const [likesCount, setLikesCount] = useState<number>(0);
   const [showHeartAnim, setShowHeartAnim] = useState(false);
 
   // Bookmark / Save state
@@ -49,8 +49,8 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
   // Share tooltip / toast state
   const [showShareToast, setShowShareToast] = useState(false);
 
-  // Comments state (persisted in localStorage)
-  const [comments, setComments] = useState<InstagramComment[]>(post.comments);
+  // Comments state (persisted in localStorage & backend)
+  const [comments, setComments] = useState<InstagramComment[]>([]);
   const [isCommentsSheetOpen, setIsCommentsSheetOpen] = useState(false);
 
   // User Name state (persisted in localStorage)
@@ -79,7 +79,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         const storedSaved = localStorage.getItem(`saa_insta_save_${post.id}`);
         if (storedSaved === "true" && isMounted) setIsSaved(true);
 
-        // 1. Fetch Backend Comments & Merge with Seed Comments
+        // 1. Fetch Backend Comments
         const backendRes = await fetchComments(post.id);
         if (backendRes.success && Array.isArray(backendRes.comments) && isMounted) {
           const backendFormatted: InstagramComment[] = backendRes.comments.map((c) => ({
@@ -96,24 +96,35 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
           let localComments: InstagramComment[] = [];
           const storedComments = localStorage.getItem(`saa_insta_comments_${post.id}`);
           if (storedComments) {
-            const parsed = JSON.parse(storedComments);
-            if (Array.isArray(parsed)) localComments = parsed;
+            try {
+              const parsed = JSON.parse(storedComments);
+              if (Array.isArray(parsed)) localComments = parsed;
+            } catch {}
           }
 
-          // Combine: Seed Comments + Local + Backend (avoiding duplicates)
-          const allComments = [...post.comments];
-          for (const c of [...localComments, ...backendFormatted]) {
-            if (!allComments.some((existing) => existing.text === c.text && existing.username === c.username)) {
+          // Combine: Backend + Local (avoiding duplicates)
+          const allComments: InstagramComment[] = [];
+          for (const c of [...backendFormatted, ...localComments]) {
+            if (!allComments.some((existing) => existing.id === c.id || (existing.text === c.text && existing.username === c.username))) {
               allComments.push(c);
             }
           }
           setComments(allComments);
+        } else if (isMounted) {
+          // Fallback if offline
+          const storedComments = localStorage.getItem(`saa_insta_comments_${post.id}`);
+          if (storedComments) {
+            try {
+              const parsed = JSON.parse(storedComments);
+              if (Array.isArray(parsed)) setComments(parsed);
+            } catch {}
+          }
         }
 
         // 2. Fetch Shared Likes from Backend
         const backendLikes = await fetchLikes(post.id);
         if (typeof backendLikes === "number" && isMounted) {
-          const totalLikes = post.likesCount + backendLikes + (storedLike === "true" && backendLikes === 0 ? 1 : 0);
+          const totalLikes = backendLikes + (storedLike === "true" && backendLikes === 0 ? 1 : 0);
           setLikesCount(totalLikes);
         }
       } catch (err) {
@@ -132,7 +143,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [post.id, post.likesCount, post.comments]);
+  }, [post.id]);
 
   // Open comments flow: asks for name if never filled, else opens comments sheet immediately!
   const handleOpenCommentsFlow = () => {
@@ -185,7 +196,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     // Call backend API to sync shared like count
     toggleLike(post.id, getVisitorId()).then((res) => {
       if (res.success && typeof res.count === "number") {
-        setLikesCount(post.likesCount + res.count);
+        setLikesCount(res.count);
       }
     }).catch(() => {});
   };
@@ -238,10 +249,15 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
       if (!isLiked) {
         setIsLiked(true);
-        setLikesCount(likesCount + 1);
+        setLikesCount((prev) => prev + 1);
         try {
           localStorage.setItem(`saa_insta_like_${post.id}`, "true");
         } catch {}
+        toggleLike(post.id, getVisitorId()).then((res) => {
+          if (res.success && typeof res.count === "number") {
+            setLikesCount(res.count);
+          }
+        }).catch(() => {});
       }
       triggerHeartAnimation();
     }
@@ -583,7 +599,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         <div className="px-3.5 sm:px-4 text-left pb-3">
           {/* Likes Count */}
           <p className="font-sans text-xs sm:text-sm font-bold text-charcoal">
-            {likesCount.toLocaleString()} likes
+            {likesCount === 1 ? "1 like" : `${likesCount.toLocaleString()} likes`}
           </p>
 
           {/* Caption Description */}
@@ -627,30 +643,43 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
               ========================================================= */}
           <div className="mt-2.5 pt-2 border-t border-warm-beige/40">
             {/* View all comments button -> Opens Instagram Comments Sheet */}
-            <button
-              onClick={handleOpenCommentsFlow}
-              className="text-xs font-semibold text-soft-brown/70 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
-            >
-              <span>View all {comments.length} comments</span>
-            </button>
+            {comments.length > 0 ? (
+              <button
+                onClick={handleOpenCommentsFlow}
+                className="text-xs font-semibold text-soft-brown/70 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
+              >
+                <span>
+                  View all {comments.length} {comments.length === 1 ? "comment" : "comments"}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={handleOpenCommentsFlow}
+                className="text-xs font-medium text-soft-brown/60 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
+              >
+                <span>No comments yet. Be the first to comment...</span>
+              </button>
+            )}
 
             {/* Latest 1-2 comment previews */}
-            <div className="space-y-1 mt-1">
-              {comments.slice(-2).map((comment) => (
-                <div
-                  key={comment.id}
-                  onClick={handleOpenCommentsFlow}
-                  className="flex items-start justify-between text-xs sm:text-sm leading-snug cursor-pointer group/comment hover:opacity-85"
-                >
-                  <div className="flex-1 text-left">
-                    <span className="font-bold text-charcoal mr-1.5">
-                      {comment.username}
-                    </span>
-                    <span className="text-charcoal/90">{comment.text}</span>
+            {comments.length > 0 && (
+              <div className="space-y-1 mt-1">
+                {comments.slice(-2).map((comment) => (
+                  <div
+                    key={comment.id}
+                    onClick={handleOpenCommentsFlow}
+                    className="flex items-start justify-between text-xs sm:text-sm leading-snug cursor-pointer group/comment hover:opacity-85"
+                  >
+                    <div className="flex-1 text-left">
+                      <span className="font-bold text-charcoal mr-1.5">
+                        {comment.username}
+                      </span>
+                      <span className="text-charcoal/90">{comment.text}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Quick "Add a comment..." trigger row */}
             <div

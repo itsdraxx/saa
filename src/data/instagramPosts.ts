@@ -49,29 +49,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
     ],
-    likesCount: 184,
+    likesCount: 0,
     caption:
       "A chance encounter at a friend's gathering in Hyderabad changed everything. Two strangers, nervous smiles, one endless conversation, and a spark that set 25 years into motion.",
     category: "milestone",
     hashtags: ["#FirstMeeting", "#Fate", "#WhereItAllBegan", "#BujjiAndSatya"],
-    comments: [
-      {
-        id: "c1",
-        username: "rahul_k",
-        text: "The legendary story Dad tells at every single family dinner! 😂❤️",
-        timestamp: "2d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-      {
-        id: "c2",
-        username: "priya_m",
-        text: "Destined from day one! Look at how meant to be you both are ✨",
-        timestamp: "1d",
-        avatarText: "PM",
-        avatarBg: "bg-pink-600",
-      },
-    ],
+    comments: [],
   },
 
   // 2. Our Wedding Day (2001) - MULTI-IMAGE CAROUSEL (3 images)
@@ -107,7 +90,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "sparkles",
       },
     ],
-    likesCount: 512,
+    likesCount: 0,
     caption:
       "On 23 November 2001, surrounded by family, sacred Vedic mantras, and the divine fragrance of jasmine, Bujji and Satya became one. 25 years later, every promise made under this mandap stands stronger than ever.",
     category: "wedding",
@@ -118,32 +101,7 @@ export const instagramPosts: InstagramPost[] = [
       "#SouthIndianWedding",
       "#SacredVows",
     ],
-    comments: [
-      {
-        id: "c3",
-        username: "ananya_k",
-        text: "23-11-2001 — The day our whole family was born! Mom you looked like an absolute queen in that crimson silk saree 🥹🌸",
-        timestamp: "3d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-      {
-        id: "c4",
-        username: "satya_brother",
-        text: "What a day! We danced through the night until the sun rose. Best wedding ever 🕺🎉",
-        timestamp: "2d",
-        avatarText: "SB",
-        avatarBg: "bg-emerald-600",
-      },
-      {
-        id: "c5",
-        username: "chinnu_v",
-        text: "True definition of soulmates made for each other! Happy 25th Bujji Aunty & Satya Uncle! ❤️",
-        timestamp: "1d",
-        avatarText: "CV",
-        avatarBg: "bg-purple-600",
-      },
-    ],
+    comments: [],
   },
 
   // 3. Our First Home (2000) - Single Post
@@ -163,21 +121,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "home",
       },
     ],
-    likesCount: 226,
+    likesCount: 0,
     caption:
       "Our very first little flat that became our whole world. We painted the walls together, argued for two hours over curtain colours, and filled every corner with the scent of fresh cardamom chai.",
     category: "milestone",
     hashtags: ["#FirstHome", "#ChaiAndMemories", "#BuildingALife", "#YoungLove"],
-    comments: [
-      {
-        id: "c6",
-        username: "bujji_sister",
-        text: "I still remember those yellow floral curtains you both debated over haha! So precious ❤️",
-        timestamp: "4d",
-        avatarText: "BS",
-        avatarBg: "bg-amber-600",
-      },
-    ],
+    comments: [],
   },
 
   // 4. Welcome, Little One (2002) - Single Post
@@ -197,29 +146,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
     ],
-    likesCount: 395,
+    likesCount: 0,
     caption:
       "Our first child arrived, turning our universe upside down in the most beautiful way. Sleepless nights became our sweetest memories, and our family of two blossomed into three.",
     category: "family",
     hashtags: ["#FirstChild", "#ParentsAtLast", "#Parenthood", "#OurWorld"],
-    comments: [
-      {
-        id: "c7",
-        username: "rahul_k",
-        text: "Wait is that about me?! Look at those chubby baby cheeks haha! 👶🍼",
-        timestamp: "3d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-      {
-        id: "c8",
-        username: "ananya_k",
-        text: "Aww Rahul was so cute before he started annoying me 😂 Just kidding, love you brother!",
-        timestamp: "2d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-    ],
+    comments: [],
   },
 
   // 5. Growing Family (2005) - Single Post
@@ -239,29 +171,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "sparkles",
       },
     ],
-    likesCount: 348,
+    likesCount: 0,
     caption:
       "Our second bundle of joy completed our circle of love. The house grew louder, messier, and infinitely more joyful. Every room echoed with tiny footsteps, laughter, and bedtime stories.",
     category: "family",
     hashtags: ["#FamilyOfFour", "#DoubleTrouble", "#JoyUnfiltered", "#Blessed"],
-    comments: [
-      {
-        id: "c9",
-        username: "ananya_k",
-        text: "And that's my official grand entrance into the world! 🙋‍♀️✨",
-        timestamp: "2d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-      {
-        id: "c10",
-        username: "satya_cousin",
-        text: "Two of the sweetest kids, raised with so much devotion and grace! 🙏",
-        timestamp: "1d",
-        avatarText: "SC",
-        avatarBg: "bg-teal-600",
-      },
-    ],
+    comments: [],
   },
 
   // 6. Dream Home (2008) - Single Post
@@ -281,21 +196,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "home",
       },
     ],
-    likesCount: 312,
+    likesCount: 0,
     caption:
       "After years of patient dreaming and working hand-in-hand, we opened the doors to our forever home. A green garden for the children to run, and that famous quiet balcony for our evening cup of chai together.",
     category: "milestone",
     hashtags: ["#DreamHome", "#GrihaPravesh", "#SacredBlessings", "#HomeIsWhereTheHeartIs"],
-    comments: [
-      {
-        id: "c11",
-        username: "priya_m",
-        text: "That balcony is where Dad still reads the morning newspaper and Mom tends to her tulsi plant 🌿☕️",
-        timestamp: "3d",
-        avatarText: "PM",
-        avatarBg: "bg-pink-600",
-      },
-    ],
+    comments: [],
   },
 
   // 7. Goa Holiday (2010) - MULTI-IMAGE CAROUSEL (3 images)
@@ -331,29 +237,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "plane",
       },
     ],
-    likesCount: 428,
+    likesCount: 0,
     caption:
       "Our very first family trip to the coast! Warm sand between our toes, sunset strolls along the waves, and the kids touching the sea for the first time. Pure, unadulterated happiness.",
     category: "travel",
     hashtags: ["#GoaDiaries", "#BeachVacation", "#SunsetLovers", "#FamilyFirsts"],
-    comments: [
-      {
-        id: "c12",
-        username: "rahul_k",
-        text: "Remember Dad losing his sunglasses 5 minutes into the ocean waves?! We laughed for hours 😂🌊",
-        timestamp: "5d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-      {
-        id: "c13",
-        username: "ananya_k",
-        text: "I collected like 20 seashells and Mom carried them all in her purse! Best trip ever 🐚❤️",
-        timestamp: "3d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-    ],
+    comments: [],
   },
 
   // 8. Silver Streak — 15th Anniversary (2014) - Single Post
@@ -373,21 +262,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "sparkles",
       },
     ],
-    likesCount: 364,
+    likesCount: 0,
     caption:
       "Fifteen years together! The kids planned an unforgettable surprise party. There were happy tears, hilarious speeches, and a homemade chocolate cake that leaned slightly to the left but tasted of pure magic.",
     category: "celebration",
     hashtags: ["#15YearsStrong", "#CrystalAnniversary", "#SurpriseParty", "#FamilyLove"],
-    comments: [
-      {
-        id: "c14",
-        username: "rahul_k",
-        text: "We worked on that surprise party for two whole weeks without you guys noticing! Proud moment 😎",
-        timestamp: "4d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-    ],
+    comments: [],
   },
 
   // 9. Shimla Snow Trip (2017) - MULTI-IMAGE CAROUSEL (3 images)
@@ -423,29 +303,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "sparkles",
       },
     ],
-    likesCount: 462,
+    likesCount: 0,
     caption:
       "Packed the car and headed straight for the Himalayas! We witnessed snow for the very first time, built a hilariously wobbly snowman, and drank steaming hot chocolate by the fireplace.",
     category: "travel",
     hashtags: ["#ShimlaSnow", "#WinterInHimalayas", "#SnowmanMakers", "#MountainAir"],
-    comments: [
-      {
-        id: "c15",
-        username: "ananya_k",
-        text: "Mom was wearing four sweaters and Dad's gloves and STILL shivering! 🥶🧣 Cutest mom ever!",
-        timestamp: "3d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-      {
-        id: "c16",
-        username: "satya_colleague",
-        text: "Looking sharp as always Satya garu and Bujji garu! Wonderful memories! ❄️",
-        timestamp: "2d",
-        avatarText: "SC",
-        avatarBg: "bg-indigo-600",
-      },
-    ],
+    comments: [],
   },
 
   // 10. 20 Years of Us (2019) - Single Post
@@ -465,21 +328,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "ring",
       },
     ],
-    likesCount: 489,
+    likesCount: 0,
     caption:
       "Two decades of growth, partnership, and laughter. We renewed our sacred vows in a cozy ceremony at home with our children by our side. Some loves truly grow richer and sweeter with time.",
     category: "celebration",
     hashtags: ["#20YearsOfLove", "#TwoDecades", "#VowRenewal", "#ForeverLove"],
-    comments: [
-      {
-        id: "c17",
-        username: "priya_m",
-        text: "You both still look at each other with the same spark as college sweethearts! 💕",
-        timestamp: "5d",
-        avatarText: "PM",
-        avatarBg: "bg-pink-600",
-      },
-    ],
+    comments: [],
   },
 
   // 11. Empty Nest, Full Hearts (2022) - Single Post
@@ -499,29 +353,12 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
     ],
-    likesCount: 415,
+    likesCount: 0,
     caption:
       "The kids stepped out into the world for college, and our home grew quiet. But in that stillness, we rediscovered the rhythms of our early courtship. Long romantic walks, spontaneous coffee dates, and endless talks.",
     category: "milestone",
     hashtags: ["#EmptyNest", "#SecondCourtship", "#LifelongPartners", "#Soulmates"],
-    comments: [
-      {
-        id: "c18",
-        username: "rahul_k",
-        text: "Calling you guys every Sunday without fail! You two enjoy your date nights ❤️🥂",
-        timestamp: "2d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-      {
-        id: "c19",
-        username: "ananya_k",
-        text: "Proud of you both! Don't forget to eat dinner on time Mom! 😘",
-        timestamp: "1d",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-    ],
+    comments: [],
   },
 
   // 12. 25 Years — Silver Jubilee (2024 / 2026) - MULTI-IMAGE CAROUSEL (4 images)
@@ -565,7 +402,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "sparkles",
       },
     ],
-    likesCount: 789,
+    likesCount: 0,
     caption:
       "A quarter-century of unwavering love, deep laughter, and beautiful sacrifices. From that very first glance in 1999 to this Silver Jubilee, every single heartbeat has been a blessing. Here is to Bujji & Satya — 25 Years of Love, and forever more to come! 🥂👑❤️",
     category: "celebration",
@@ -577,32 +414,6 @@ export const instagramPosts: InstagramPost[] = [
       "#CoupleGoals",
       "#TogetherForever",
     ],
-    comments: [
-      {
-        id: "c20",
-        username: "rahul_k",
-        text: "Happy 25th Silver Wedding Anniversary Mom & Dad! You are our biggest inspiration and our rock. Love you both endlessly! 👑🥂❤️",
-        timestamp: "1d",
-        avatarText: "RK",
-        avatarBg: "bg-blue-600",
-      },
-      {
-        id: "c21",
-        username: "ananya_k",
-        text: "You two showed us what real, unconditional love looks like every single day. Happy 25th anniversary to the king and queen of our hearts! 🌸✨🥹",
-        timestamp: "18h",
-        avatarText: "AK",
-        avatarBg: "bg-rose-600",
-      },
-      {
-        id: "c22",
-        username: "suresh_uncle",
-        text: "Hearty congratulations Bujji and Satya! May Lord Venkateswara shower you with health, happiness, and another 50 golden years together! 🙏🪔",
-        timestamp: "12h",
-        avatarText: "SU",
-        avatarBg: "bg-emerald-600",
-      },
-    ],
+    comments: [],
   },
 ];
-
