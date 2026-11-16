@@ -57,15 +57,30 @@ app.set("trust proxy", 1);
 
 // General rate limiter
 app.use("/api/saa", generalLimiter);
+app.use("/comments", generalLimiter);
+app.use("/likes", generalLimiter);
+app.use("/trivia", generalLimiter);
+app.use("/wishes", generalLimiter);
 
 // ─── Routes ───────────────────────────────────────────
-
+// Mount routes under both /api/saa/* and root /* so any API_BASE works seamlessly
 app.use("/api/saa/comments", commentsRouter);
+app.use("/comments", commentsRouter);
+
 app.use("/api/saa/likes", likesRouter);
+app.use("/likes", likesRouter);
+
 app.use("/api/saa/trivia", triviaRouter);
+app.use("/trivia", triviaRouter);
+
 app.use("/api/saa/wishes", wishesRouter);
+app.use("/wishes", wishesRouter);
+
 app.use("/api/saa/admin", adminRouter);
+app.use("/admin", adminRouter);
+
 app.use("/api/saa/health", healthRouter);
+app.use("/health", healthRouter);
 
 // Root endpoint
 app.get("/", (_req, res) => {
