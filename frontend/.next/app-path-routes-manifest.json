@@ -1,0 +1,13 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/_global-error/page": "/_global-error",
+  "/api/glass-jar/route": "/api/glass-jar",
+  "/api/locations/route": "/api/locations",
+  "/api/memories/route": "/api/memories",
+  "/api/trivia/route": "/api/trivia",
+  "/favicon.ico/route": "/favicon.ico",
+  "/gallery/page": "/gallery",
+  "/page": "/",
+  "/memory-map/page": "/memory-map",
+  "/trivia/page": "/trivia"
+}

@@ -1,0 +1,13 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/api/glass-jar/route": "app/api/glass-jar/route.js",
+  "/api/locations/route": "app/api/locations/route.js",
+  "/api/memories/route": "app/api/memories/route.js",
+  "/api/trivia/route": "app/api/trivia/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/gallery/page": "app/gallery/page.js",
+  "/page": "app/page.js",
+  "/memory-map/page": "app/memory-map/page.js",
+  "/trivia/page": "app/trivia/page.js"
+}

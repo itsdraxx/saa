@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 25 Years of Us — Bujji & Satya Silver Jubilee Website ❤️
 
-## Getting Started
+Celebrating 25 extraordinary years of love, family, and togetherness for Bujji & Satya (married 23 November 2001).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏛️ Project Architecture
+
+The codebase is cleanly separated into three independent services:
+
+```
+saa/
+├── frontend/    # 🌐 Public Anniversary Website (Next.js 16 • Port 3000)
+├── backend/     # ⚡ REST API & SQLite DB (Express + sql.js • Port 3001)
+├── admin/       # 🛡️ Dedicated Admin Moderation Portal (Next.js 16 • Port 3002)
+└── scripts/     # 🛠️ Workspace utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Quick Start
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Option A: Run All Services Together (One Command)
+From the project root:
+```bash
+npm run dev
+```
+This automatically launches all three services simultaneously with colored log prefixes:
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:3001](http://localhost:3001)
+- **Admin Portal**: [http://localhost:3002](http://localhost:3002)
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+### Option B: Run Services Individually
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### 1. Frontend (`frontend/` • Port 3000)
+Public anniversary website with 25-Year Timeline, Memory Feed, Trivia Quiz, Glass Jar, and Guest Wishes Wall.
+```bash
+cd frontend
+npm run dev
+# or from root: npm run dev:frontend
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### 2. Backend (`backend/` • Port 3001)
+Express REST API powered by pure-JS SQLite (`sql.js`). Lightweight (~35-40 MB RAM) and optimized for 1 OCPU / 1 GB RAM cloud VMs.
+```bash
+cd backend
+npm run dev
+# or from root: npm run dev:backend
+```
 
-## Deploy on Vercel
+#### 3. Admin Portal (`admin/` • Port 3002)
+Dedicated, isolated moderation portal.
+- **PIN Protected**: `BujjiSatya25!`
+- **No public navbar or unnecessary clutter**: Clean, focused moderation interface.
+- **Features**: Post-wise comment moderation with post selector dropdown, guest wishes approval/deletion, and family trivia leaderboard moderation.
+```bash
+cd admin
+npm run dev
+# or from root: npm run dev:admin
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔑 Admin Secret
+- **Default PIN**: `BujjiSatya25!` (configurable in `backend/.env` under `ADMIN_SECRET`)
+
+---
+
+## 📦 Production Builds
+
+```bash
+# Build all services at once:
+npm run build
+
+# Or individually:
+npm run build:frontend
+npm run build:backend
+npm run build:admin
+```
