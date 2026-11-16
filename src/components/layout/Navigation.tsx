@@ -13,6 +13,7 @@ const navLinks = [
   { label: "Then & Now", href: "#then-now" },
   { label: "Messages", href: "#messages" },
   { label: "Trivia", href: "#trivia" },
+  { label: "Wishes", href: "#wishes" },
   { label: "Dedication", href: "#dedication" },
 ];
 

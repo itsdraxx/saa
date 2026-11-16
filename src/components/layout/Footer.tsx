@@ -1,4 +1,5 @@
-import { Heart } from "lucide-react";
+import Link from "next/link";
+import { Heart, Shield } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -25,6 +26,16 @@ export default function Footer() {
         <p className="mt-4 text-xs font-medium text-soft-brown/75">
           Made with all our love by your family
         </p>
+
+        <div className="mt-6">
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1 text-[11px] text-soft-brown/50 hover:text-burgundy transition-colors"
+          >
+            <Shield className="h-3 w-3" />
+            <span>Admin Portal</span>
+          </Link>
+        </div>
       </div>
     </footer>
   );

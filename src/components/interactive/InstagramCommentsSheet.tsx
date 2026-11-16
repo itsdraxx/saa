@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Heart, CheckCircle2, Check, User, Sparkles } from "lucide-react";
+import { X, Heart, CheckCircle2, Check, User, Sparkles, Trash2 } from "lucide-react";
 import type { InstagramPost, InstagramComment } from "@/data/instagramPosts";
 
 interface InstagramCommentsSheetProps {
@@ -12,6 +12,7 @@ interface InstagramCommentsSheetProps {
   post: InstagramPost;
   comments: InstagramComment[];
   onAddComment: (text: string, userName: string) => void;
+  onDeleteComment?: (commentId: string) => void;
   currentUserName: string;
   onOpenNameModal: () => void;
 }
@@ -22,6 +23,7 @@ export default function InstagramCommentsSheet({
   post,
   comments,
   onAddComment,
+  onDeleteComment,
   currentUserName,
   onOpenNameModal,
 }: InstagramCommentsSheetProps) {
@@ -29,9 +31,18 @@ export default function InstagramCommentsSheet({
   const [commentLikes, setCommentLikes] = useState<Record<string, boolean>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const [justPosted, setJustPosted] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Check admin key
+  useEffect(() => {
+    try {
+      const key = localStorage.getItem("saa_admin_key");
+      if (key) setHasAdminAccess(true);
+    } catch {}
+  }, [isOpen]);
 
   // Load comment likes when opened
   useEffect(() => {
@@ -275,20 +286,32 @@ export default function InstagramCommentsSheet({
                         </div>
                       </div>
 
-                      {/* Comment Like Heart */}
-                      <button
-                        onClick={() => handleToggleCommentLike(comment.id)}
-                        className="pt-1 text-soft-brown/60 hover:scale-115 active:scale-95 transition-transform cursor-pointer"
-                        aria-label="Like comment"
-                      >
-                        <Heart
-                          className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
-                            isCommentLiked
-                              ? "fill-[#ED4956] text-[#ED4956]"
-                              : "text-soft-brown/50 hover:text-burgundy"
-                          }`}
-                        />
-                      </button>
+                      <div className="flex items-center gap-1.5 pt-1">
+                        {hasAdminAccess && onDeleteComment && (
+                          <button
+                            type="button"
+                            onClick={() => onDeleteComment(comment.id)}
+                            className="text-red-400 hover:text-red-600 p-0.5 hover:scale-115 active:scale-95 transition-all cursor-pointer"
+                            title="Admin: Delete Comment"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        {/* Comment Like Heart */}
+                        <button
+                          onClick={() => handleToggleCommentLike(comment.id)}
+                          className="text-soft-brown/60 hover:scale-115 active:scale-95 transition-transform cursor-pointer"
+                          aria-label="Like comment"
+                        >
+                          <Heart
+                            className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
+                              isCommentLiked
+                                ? "fill-[#ED4956] text-[#ED4956]"
+                                : "text-soft-brown/50 hover:text-burgundy"
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   );
                 })

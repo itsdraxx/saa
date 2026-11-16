@@ -20,6 +20,14 @@ import {
 import type { InstagramPost, InstagramComment } from "@/data/instagramPosts";
 import InstagramCommentsSheet from "./InstagramCommentsSheet";
 import InstagramNameModal from "./InstagramNameModal";
+import {
+  fetchComments,
+  postComment,
+  fetchLikes,
+  toggleLike,
+  getVisitorId,
+  adminDeleteComment,
+} from "@/lib/api";
 
 interface InstagramPostCardProps {
   post: InstagramPost;
@@ -53,33 +61,70 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
   const lastTapRef = useRef<number>(0);
 
-  // Hydration-safe client-side sync from localStorage
+  // Hydration-safe client-side sync from localStorage & Backend API
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let isMounted = true;
+
+    const timer = setTimeout(async () => {
       try {
         const savedName = localStorage.getItem("saa_user_name");
-        if (savedName) setUserName(savedName);
+        if (savedName && isMounted) setUserName(savedName);
 
         const storedLike = localStorage.getItem(`saa_insta_like_${post.id}`);
-        if (storedLike === "true") {
+        if (storedLike === "true" && isMounted) {
           setIsLiked(true);
-          setLikesCount(post.likesCount + 1);
         }
 
         const storedSaved = localStorage.getItem(`saa_insta_save_${post.id}`);
-        if (storedSaved === "true") setIsSaved(true);
+        if (storedSaved === "true" && isMounted) setIsSaved(true);
 
-        const storedComments = localStorage.getItem(`saa_insta_comments_${post.id}`);
-        if (storedComments) {
-          const parsed = JSON.parse(storedComments);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setComments([...post.comments, ...parsed]);
+        // 1. Fetch Backend Comments & Merge with Seed Comments
+        const backendRes = await fetchComments(post.id);
+        if (backendRes.success && Array.isArray(backendRes.comments) && isMounted) {
+          const backendFormatted: InstagramComment[] = backendRes.comments.map((c) => ({
+            id: `backend-${c.id}`,
+            username: c.author_name.toLowerCase().replace(/\s+/g, "_"),
+            text: c.text,
+            timestamp: c.created_at,
+            avatarText: c.author_name.slice(0, 2).toUpperCase(),
+            avatarBg: "bg-burgundy",
+            isCurrentUser: c.author_name === savedName,
+          }));
+
+          // Local offline fallback comments (if any)
+          let localComments: InstagramComment[] = [];
+          const storedComments = localStorage.getItem(`saa_insta_comments_${post.id}`);
+          if (storedComments) {
+            const parsed = JSON.parse(storedComments);
+            if (Array.isArray(parsed)) localComments = parsed;
           }
+
+          // Combine: Seed Comments + Local + Backend (avoiding duplicates)
+          const allComments = [...post.comments];
+          for (const c of [...localComments, ...backendFormatted]) {
+            if (!allComments.some((existing) => existing.text === c.text && existing.username === c.username)) {
+              allComments.push(c);
+            }
+          }
+          setComments(allComments);
         }
-      } catch {}
+
+        // 2. Fetch Shared Likes from Backend
+        const backendLikes = await fetchLikes(post.id);
+        if (typeof backendLikes === "number" && isMounted) {
+          // If backend has recorded likes, add them to base post likes
+          const totalLikes = post.likesCount + backendLikes + (storedLike === "true" && backendLikes === 0 ? 1 : 0);
+          setLikesCount(totalLikes);
+        }
+      } catch (err) {
+        console.warn("Sync error:", err);
+      }
     }, 0);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [post.id, post.likesCount, post.comments]);
 
   // Open comments flow: asks for name if never filled, else opens comments sheet immediately!
@@ -119,7 +164,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
   const handleToggleLike = () => {
     const nextState = !isLiked;
     setIsLiked(nextState);
-    const newCount = nextState ? likesCount + 1 : likesCount - 1;
+    const newCount = nextState ? likesCount + 1 : Math.max(0, likesCount - 1);
     setLikesCount(newCount);
 
     try {
@@ -129,6 +174,13 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     if (nextState) {
       triggerHeartAnimation();
     }
+
+    // Call backend API to sync shared like count
+    toggleLike(post.id, getVisitorId()).then((res) => {
+      if (res.success && typeof res.count === "number") {
+        setLikesCount(post.likesCount + res.count);
+      }
+    }).catch(() => {});
   };
 
   // Toggle Save
@@ -200,10 +252,11 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     setCurrentSlide((prev) => (prev < post.images.length - 1 ? prev + 1 : 0));
   };
 
-  // Add Comment from Sheet
-  const handleAddCommentFromSheet = (text: string, authorName: string) => {
+  // Add Comment from Sheet (Optimistic UI + Backend Post + LocalStorage fallback)
+  const handleAddCommentFromSheet = async (text: string, authorName: string) => {
+    const tempId = `comment-${Date.now()}`;
     const newComment: InstagramComment = {
-      id: `comment-${Date.now()}`,
+      id: tempId,
       username: authorName.toLowerCase().replace(/\s+/g, "_"),
       text: text,
       timestamp: "Just now",
@@ -224,6 +277,50 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         JSON.stringify(userComments)
       );
     } catch {}
+
+    // Post to backend database
+    try {
+      const res = await postComment(post.id, authorName, text);
+      if (res.success && res.comment) {
+        // Update temporary ID with backend ID
+        setComments((prev) =>
+          prev.map((c) =>
+            c.id === tempId ? { ...c, id: `backend-${res.comment!.id}` } : c
+          )
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to post comment to backend:", err);
+    }
+  };
+
+  // Delete Comment (Admin action)
+  const handleDeleteComment = async (commentId: string) => {
+    // 1. Remove from local state
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+
+    // 2. Remove from localStorage
+    try {
+      const stored = localStorage.getItem(`saa_insta_comments_${post.id}`);
+      if (stored) {
+        const userComments: InstagramComment[] = JSON.parse(stored);
+        const filtered = userComments.filter((c) => c.id !== commentId);
+        localStorage.setItem(`saa_insta_comments_${post.id}`, JSON.stringify(filtered));
+      }
+    } catch {}
+
+    // 3. If it's a backend comment, delete from backend DB
+    if (commentId.startsWith("backend-")) {
+      const numericId = Number(commentId.replace("backend-", ""));
+      try {
+        const adminKey = localStorage.getItem("saa_admin_key") || "";
+        if (adminKey && !isNaN(numericId)) {
+          await adminDeleteComment(numericId, adminKey);
+        }
+      } catch (err) {
+        console.warn("Failed to delete comment on backend:", err);
+      }
+    }
   };
 
   const currentMedia = post.images[currentSlide] || post.images[0];
@@ -574,6 +671,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         post={post}
         comments={comments}
         onAddComment={handleAddCommentFromSheet}
+        onDeleteComment={handleDeleteComment}
         currentUserName={userName}
         onOpenNameModal={() => setIsNameModalOpen(true)}
       />

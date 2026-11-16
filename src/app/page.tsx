@@ -7,6 +7,7 @@ import ThenVsNowSection from "@/components/sections/ThenVsNowSection";
 import MessagesSection from "@/components/sections/MessagesSection";
 import TriviaPreview from "@/components/sections/TriviaPreview";
 import MapPreview from "@/components/sections/MapPreview";
+import WishesWallSection from "@/components/sections/WishesWallSection";
 import DedicationSection from "@/components/sections/DedicationSection";
 
 export default function HomePage() {
@@ -39,7 +40,10 @@ export default function HomePage() {
       {/* 9. The Memory Map Teaser */}
       <MapPreview />
 
-      {/* 10. Final Emotional Dedication */}
+      {/* 10. Guest Wishes Wall (Anniversary Blessings) */}
+      <WishesWallSection />
+
+      {/* 11. Final Emotional Dedication */}
       <DedicationSection />
     </div>
   );

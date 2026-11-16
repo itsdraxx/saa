@@ -1,10 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { triviaQuestions } from "@/data/trivia";
-import { Trophy, CheckCircle2, XCircle, ArrowRight, RotateCcw, Home } from "lucide-react";
+import {
+  Trophy,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  RotateCcw,
+  Home,
+  User,
+  Sparkles,
+  Medal,
+} from "lucide-react";
+import {
+  fetchTriviaLeaderboard,
+  submitTriviaScore,
+  getVisitorId,
+} from "@/lib/api";
+import type { TriviaLeaderboardEntry } from "@/lib/types";
 
 export default function TriviaGame() {
   const [gameState, setGameState] = useState<"intro" | "playing" | "results">("intro");
@@ -12,6 +28,37 @@ export default function TriviaGame() {
   const [score, setScore] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+
+  // Time tracking
+  const [startTime, setStartTime] = useState<number>(0);
+
+  // Name & Leaderboard state
+  const [playerName, setPlayerName] = useState("");
+  const [isScoreSubmitted, setIsScoreSubmitted] = useState(false);
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [leaderboard, setLeaderboard] = useState<TriviaLeaderboardEntry[]>([]);
+  const [totalPlayers, setTotalPlayers] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load remembered user name
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("saa_user_name");
+      if (saved) setPlayerName(saved);
+    } catch {}
+  }, []);
+
+  // Fetch leaderboard when reaching results
+  useEffect(() => {
+    if (gameState === "results") {
+      fetchTriviaLeaderboard().then((res) => {
+        if (res.success) {
+          setLeaderboard(res.leaderboard);
+          setTotalPlayers(res.total_players);
+        }
+      });
+    }
+  }, [gameState]);
 
   const currentQ = triviaQuestions[currentIndex];
 
@@ -21,6 +68,9 @@ export default function TriviaGame() {
     setScore(0);
     setSelectedOption(null);
     setIsAnswered(false);
+    setIsScoreSubmitted(false);
+    setUserRank(null);
+    setStartTime(Date.now());
   };
 
   const handleSelectOption = (index: number) => {
@@ -41,6 +91,41 @@ export default function TriviaGame() {
     } else {
       setGameState("results");
     }
+  };
+
+  const handleSubmitScore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!playerName.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      localStorage.setItem("saa_user_name", playerName.trim());
+    } catch {}
+
+    const timeTaken = startTime > 0 ? Math.round((Date.now() - startTime) / 1000) : 60;
+    const percentage = Math.round((score / triviaQuestions.length) * 100);
+
+    const res = await submitTriviaScore({
+      player_name: playerName.trim(),
+      score,
+      total: triviaQuestions.length,
+      percentage,
+      time_taken: timeTaken,
+      visitor_id: getVisitorId(),
+    });
+
+    if (res.success) {
+      setIsScoreSubmitted(true);
+      if (res.rank) setUserRank(res.rank);
+
+      // Refresh leaderboard
+      const lbRes = await fetchTriviaLeaderboard();
+      if (lbRes.success) {
+        setLeaderboard(lbRes.leaderboard);
+        setTotalPlayers(lbRes.total_players);
+      }
+    }
+    setIsSubmitting(false);
   };
 
   const getResultsFeedback = () => {
@@ -246,6 +331,108 @@ export default function TriviaGame() {
                 <p className="mx-auto max-w-md font-body text-sm leading-relaxed text-soft-brown">
                   {feedback.desc}
                 </p>
+
+                {/* Score Submission Form or Submitted Rank Badge */}
+                <div className="mt-6 mx-auto max-w-md">
+                  {!isScoreSubmitted ? (
+                    <form
+                      onSubmit={handleSubmitScore}
+                      className="rounded-2xl border-2 border-gold/40 bg-champagne/30 p-4 sm:p-5 text-left"
+                    >
+                      <div className="flex items-center gap-2 text-burgundy font-semibold text-sm">
+                        <Trophy className="h-4 w-4 text-gold shrink-0" />
+                        <span>Add your name to the Family Leaderboard!</span>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={playerName}
+                            onChange={(e) => setPlayerName(e.target.value)}
+                            placeholder="Your name or relation..."
+                            maxLength={35}
+                            required
+                            className="w-full rounded-xl border border-warm-beige bg-warm-white px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:outline-hidden"
+                          />
+                          <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-soft-brown/40 pointer-events-none" />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting || !playerName.trim()}
+                          className="rounded-xl bg-burgundy px-4 py-2.5 text-xs sm:text-sm font-semibold text-warm-white hover:bg-deep-burgundy transition-all disabled:opacity-50 shrink-0 cursor-pointer"
+                        >
+                          {isSubmitting ? "Saving..." : "Submit Rank"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 text-center">
+                      <p className="font-heading text-lg font-bold text-emerald-800">
+                        🎉 Rank #{userRank || 1} on the Board!
+                      </p>
+                      <p className="text-xs text-emerald-700 mt-0.5">
+                        Your score is saved as <span className="font-semibold">{playerName}</span>!
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Family Leaderboard */}
+                {leaderboard.length > 0 && (
+                  <div className="mt-8 rounded-2xl border border-warm-beige/80 bg-warm-white p-4 sm:p-6 text-left shadow-xs">
+                    <div className="flex items-center justify-between border-b border-warm-beige/50 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Medal className="h-5 w-5 text-gold" />
+                        <h3 className="font-heading text-lg font-bold text-charcoal">
+                          Family Leaderboard
+                        </h3>
+                      </div>
+                      <span className="text-[11px] font-semibold text-soft-brown/70 bg-champagne/60 px-2.5 py-0.5 rounded-full">
+                        {totalPlayers} {totalPlayers === 1 ? "player" : "players"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 divide-y divide-warm-beige/30 max-h-60 overflow-y-auto pr-1">
+                      {leaderboard.map((entry, idx) => {
+                        const rankNumber = idx + 1;
+                        const medal =
+                          rankNumber === 1 ? "🥇" : rankNumber === 2 ? "🥈" : rankNumber === 3 ? "🥉" : `#${rankNumber}`;
+                        const isCurrent = entry.player_name.toLowerCase() === playerName.trim().toLowerCase();
+
+                        return (
+                          <div
+                            key={entry.id || idx}
+                            className={`flex items-center justify-between py-2 text-xs sm:text-sm ${
+                              isCurrent ? "font-bold text-burgundy bg-peach-50/60 rounded-lg px-2" : "text-charcoal"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <span className="w-6 text-center font-bold text-sm shrink-0">
+                                {medal}
+                              </span>
+                              <span className="truncate max-w-[180px] sm:max-w-[240px]">
+                                {entry.player_name}
+                              </span>
+                              {isCurrent && (
+                                <span className="text-[9px] font-semibold text-burgundy bg-peach-100 px-1.5 py-0.2 rounded-full shrink-0">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-semibold text-soft-brown">
+                                {entry.score}/{entry.total}
+                              </span>
+                              <span className="text-[11px] text-soft-brown/60">
+                                ({Math.round(entry.percentage)}%)
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                   <button
