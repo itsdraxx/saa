@@ -7,9 +7,10 @@ import {
   MapPin,
   Calendar,
   Compass,
-  RotateCcw,
   ChevronLeft,
   ChevronRight,
+  Plus,
+  Minus,
   Sparkles,
 } from "lucide-react";
 
@@ -24,6 +25,8 @@ interface LeafletBundle {
   TileLayer: React.ComponentType<{
     attribution: string;
     url: string;
+    subdomains?: string;
+    maxZoom?: number;
   }>;
   Marker: React.ComponentType<{
     position: [number, number];
@@ -33,16 +36,20 @@ interface LeafletBundle {
   }>;
   useMap: () => {
     flyTo: (latlng: [number, number], zoom: number, options?: object) => void;
+    zoomIn: () => void;
+    zoomOut: () => void;
   };
-  createCustomIcon: (loc: MapLocation, isSelected: boolean) => unknown;
+  createAppleIcon: (loc: MapLocation, isSelected: boolean) => unknown;
 }
 
-// Child component inside MapContainer to smoothly pan/fly when selection changes
-function MapFlyController({
+// Child component inside MapContainer to smoothly handle Apple Maps camera motion
+function MapCameraController({
   target,
+  zoomAction,
   useMapHook,
 }: {
   target: [number, number, number] | null;
+  zoomAction: { type: "in" | "out" | "overview"; id: number } | null;
   useMapHook: LeafletBundle["useMap"];
 }) {
   const map = useMapHook();
@@ -50,22 +57,39 @@ function MapFlyController({
   useEffect(() => {
     if (target && map) {
       map.flyTo([target[0], target[1]], target[2], {
-        duration: 1.2,
+        duration: 1.4,
         easeLinearity: 0.25,
       });
     }
   }, [target, map]);
+
+  useEffect(() => {
+    if (!zoomAction || !map) return;
+    if (zoomAction.type === "in") {
+      map.zoomIn();
+    } else if (zoomAction.type === "out") {
+      map.zoomOut();
+    } else if (zoomAction.type === "overview") {
+      map.flyTo([20.5937, 78.9629], 5, { duration: 1.4 });
+    }
+  }, [zoomAction, map]);
 
   return null;
 }
 
 export default function MemoryMap() {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
+  // Offset latitude slightly (-0.008) so the pinned marker and its photo popup appear centered above the bottom slider
   const [flyTarget, setFlyTarget] = useState<[number, number, number] | null>([
-    mapLocations[0].lat,
+    mapLocations[0].lat - 0.008,
     mapLocations[0].lng,
-    8,
+    13,
   ]);
+  const [zoomAction, setZoomAction] = useState<{
+    type: "in" | "out" | "overview";
+    id: number;
+  } | null>(null);
+
   const [leafletBundle, setLeafletBundle] = useState<LeafletBundle | null>(null);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -77,64 +101,157 @@ export default function MemoryMap() {
       import("react-leaflet"),
       import("leaflet"),
     ]).then(([reactLeaflet, L]) => {
-      // Create Snapchat-style story pin icon with emoji avatar
-      const createCustomIcon = (loc: MapLocation, isSelected: boolean) =>
-        L.divIcon({
-          className: `custom-snap-marker ${isSelected ? "marker-active" : ""}`,
+      // Create Apple Maps POI Pin with Image Callout Popup
+      const createAppleIcon = (loc: MapLocation, isSelected: boolean) => {
+        if (isSelected) {
+          // Selected Pin with Apple Maps POI Photo Card Popup
+          return L.divIcon({
+            className: "custom-snap-marker",
+            html: `
+              <div class="apple-callout-anim" style="
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                cursor: pointer;
+                filter: drop-shadow(0 10px 22px rgba(0,0,0,0.22));
+              ">
+                <!-- Apple Maps POI Photo Callout -->
+                <div style="
+                  width: 184px;
+                  background: rgba(255, 255, 255, 0.98);
+                  border-radius: 14px;
+                  border: 1px solid rgba(255, 255, 255, 0.9);
+                  overflow: hidden;
+                  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08);
+                ">
+                  <!-- Small Image Popup -->
+                  <div style="
+                    width: 100%;
+                    height: 86px;
+                    background: #f4ede4;
+                    position: relative;
+                    overflow: hidden;
+                  ">
+                    <img
+                      src="${loc.image}"
+                      alt="${loc.name}"
+                      style="
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        display: block;
+                      "
+                      onerror="this.src='/Golden South Indian Mandap Setting.png';"
+                    />
+                    <div style="
+                      position: absolute;
+                      top: 6px;
+                      right: 6px;
+                      background: rgba(0,0,0,0.55);
+                      backdrop-filter: blur(4px);
+                      color: #ffffff;
+                      font-size: 9px;
+                      font-weight: 700;
+                      padding: 2px 6px;
+                      border-radius: 8px;
+                      letter-spacing: 0.5px;
+                    ">${loc.year}</div>
+                  </div>
+
+                  <!-- Details Area -->
+                  <div style="padding: 7px 9px 8px; text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <div style="
+                      font-weight: 700;
+                      font-size: 11.5px;
+                      color: #1c1c1e;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      line-height: 1.25;
+                    ">${loc.name}</div>
+                    <div style="
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      margin-top: 3px;
+                      font-size: 9.5px;
+                    ">
+                      <span style="
+                        font-weight: 700;
+                        color: #991F2B;
+                        text-transform: capitalize;
+                      ">📍 ${loc.category.replace("-", " ")}</span>
+                      <span style="color: #8e8e93; font-size: 8.5px;">Pinned</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Callout Beak Triangle -->
+                <div style="
+                  width: 0;
+                  height: 0;
+                  border-left: 7px solid transparent;
+                  border-right: 7px solid transparent;
+                  border-top: 8px solid rgba(255, 255, 255, 0.98);
+                  margin-top: -1px;
+                "></div>
+
+                <!-- Apple Maps POI Pin Glyph -->
+                <div style="
+                  width: 34px;
+                  height: 34px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, #991F2B, #6D141E);
+                  border: 2.5px solid #ffffff;
+                  box-shadow: 0 4px 14px rgba(153, 31, 43, 0.55), 0 0 0 3px rgba(212, 154, 50, 0.45);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 17px;
+                  margin-top: 2px;
+                ">
+                  ${loc.icon || "📍"}
+                </div>
+              </div>
+            `,
+            iconSize: [184, 185],
+            iconAnchor: [92, 185],
+          });
+        }
+
+        // Unselected Pin (Apple Maps POI Style)
+        return L.divIcon({
+          className: "custom-snap-marker",
           html: `
             <div style="
-              position: relative;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              background: #ffffff;
+              border: 2px solid #D49A32;
+              box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
               display: flex;
-              flex-direction: column;
               align-items: center;
               justify-content: center;
+              font-size: 15px;
               cursor: pointer;
+              transition: transform 0.2s ease;
             ">
-              <div style="
-                width: ${isSelected ? "46px" : "38px"};
-                height: ${isSelected ? "46px" : "38px"};
-                border-radius: 50%;
-                background: ${isSelected ? "linear-gradient(135deg, #7A1C2E, #5C1523)" : "#FAF7F2"};
-                border: ${isSelected ? "3px solid #C9A96E" : "2px solid #C9A96E"};
-                box-shadow: ${
-                  isSelected
-                    ? "0 8px 24px rgba(122, 28, 46, 0.5), 0 0 0 4px rgba(201, 169, 110, 0.4)"
-                    : "0 4px 12px rgba(0, 0, 0, 0.2)"
-                };
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: ${isSelected ? "22px" : "18px"};
-                transition: transform 0.25s ease;
-                transform: ${isSelected ? "scale(1.1)" : "scale(1)"};
-              ">
-                ${loc.icon || "📍"}
-              </div>
-              ${
-                isSelected
-                  ? `<div style="
-                      width: 0;
-                      height: 0;
-                      border-left: 6px solid transparent;
-                      border-right: 6px solid transparent;
-                      border-top: 8px solid #C9A96E;
-                      margin-top: -1px;
-                      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
-                    "></div>`
-                  : ""
-              }
+              ${loc.icon || "📍"}
             </div>
           `,
-          iconSize: isSelected ? [46, 54] : [38, 38],
-          iconAnchor: isSelected ? [23, 53] : [19, 19],
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
         });
+      };
 
       setLeafletBundle({
         MapContainer: reactLeaflet.MapContainer as unknown as LeafletBundle["MapContainer"],
         TileLayer: reactLeaflet.TileLayer as unknown as LeafletBundle["TileLayer"],
         Marker: reactLeaflet.Marker as unknown as LeafletBundle["Marker"],
         useMap: reactLeaflet.useMap as unknown as LeafletBundle["useMap"],
-        createCustomIcon,
+        createAppleIcon,
       });
     });
   }, []);
@@ -142,7 +259,8 @@ export default function MemoryMap() {
   // Handle selecting a destination card or pin
   const handleSelectLocation = useCallback((loc: MapLocation) => {
     setSelectedLocation(loc);
-    setFlyTarget([loc.lat, loc.lng, 8]);
+    // Zoom in closer towards the pinned location (Zoom 13) with slight offset so popup stays visible
+    setFlyTarget([loc.lat - 0.008, loc.lng, 13]);
 
     // Scroll card in the in-map slider into view
     const cardEl = cardRefs.current[loc.id];
@@ -164,43 +282,58 @@ export default function MemoryMap() {
     handleSelectLocation(mapLocations[newIndex]);
   };
 
-  // Reset to nationwide view
-  const handleResetOverview = () => {
-    setFlyTarget([20.5937, 78.9629, 5]);
+  // Apple Maps Controls Actions
+  const handleZoomIn = () => {
+    setZoomAction({ type: "in", id: Date.now() });
   };
+  const handleZoomOut = () => {
+    setZoomAction({ type: "out", id: Date.now() });
+  };
+  const handleResetOverview = () => {
+    setZoomAction({ type: "overview", id: Date.now() });
+  };
+
+  const currentIndex = mapLocations.findIndex((l) => l.id === selectedLocation.id);
 
   if (!leafletBundle) {
     return (
-      <div className="flex h-[520px] w-full flex-col items-center justify-center rounded-3xl border-2 border-gold/40 bg-champagne/20 text-soft-brown shadow-xl sm:h-[600px]">
+      <div className="flex h-[540px] w-full flex-col items-center justify-center rounded-3xl border border-black/10 bg-champagne/20 text-soft-brown shadow-xl sm:h-[620px]">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-white shadow-md animate-bounce">
-          <MapPin className="h-8 w-8 text-gold" />
+          <MapPin className="h-8 w-8 text-burgundy" />
         </div>
         <p className="mt-4 font-heading text-xl font-semibold text-charcoal">
-          Loading The Memory Map...
+          Loading Apple-Styled Memory Map...
         </p>
-        <p className="mt-1 text-xs text-soft-brown">Gathering 25 years of destinations across India</p>
+        <p className="mt-1 text-xs text-soft-brown">Preparing high-definition landmark tiles</p>
       </div>
     );
   }
 
-  const { MapContainer, TileLayer, Marker, useMap, createCustomIcon } = leafletBundle;
+  const { MapContainer, TileLayer, Marker, useMap, createAppleIcon } = leafletBundle;
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border-2 border-gold/40 bg-warm-white shadow-2xl">
-      {/* ─── 1. Interactive Map Canvas ─── */}
-      <div className="relative h-[520px] w-full sm:h-[600px] md:h-[650px]">
+    <div className="relative w-full overflow-hidden rounded-3xl border border-black/10 bg-warm-white shadow-2xl">
+      {/* ─── 1. Apple-Styled Map Viewport ─── */}
+      <div className="relative h-[550px] w-full sm:h-[620px] md:h-[670px]">
         <MapContainer
-          center={[selectedLocation.lat, selectedLocation.lng]}
-          zoom={8}
+          center={[selectedLocation.lat - 0.008, selectedLocation.lng]}
+          zoom={13}
           scrollWheelZoom={false}
           className="h-full w-full z-0"
         >
+          {/* CartoDB Voyager Tile Layer — The canonical Apple Maps vector look on Leaflet */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            subdomains="abcd"
+            maxZoom={20}
           />
 
-          <MapFlyController target={flyTarget} useMapHook={useMap} />
+          <MapCameraController
+            target={flyTarget}
+            zoomAction={zoomAction}
+            useMapHook={useMap}
+          />
 
           {mapLocations.map((loc) => {
             const isSelected = loc.id === selectedLocation.id;
@@ -208,7 +341,7 @@ export default function MemoryMap() {
               <Marker
                 key={loc.id}
                 position={[loc.lat, loc.lng]}
-                icon={createCustomIcon(loc, isSelected)}
+                icon={createAppleIcon(loc, isSelected)}
                 eventHandlers={{
                   click: () => handleSelectLocation(loc),
                 }}
@@ -217,47 +350,109 @@ export default function MemoryMap() {
           })}
         </MapContainer>
 
-        {/* ─── 2. Floating Top Header Overlay (Snapchat Map Style) ─── */}
-        <div className="pointer-events-none absolute top-4 left-4 right-4 z-[1000] flex items-center justify-between">
-          {/* Destination Badge */}
-          <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/60 bg-warm-white/90 px-4 py-2 text-xs font-semibold text-charcoal shadow-lg backdrop-blur-md">
-            <Compass className="h-4 w-4 text-burgundy" />
-            <span>25-Year Journey Map</span>
-            <span className="hidden sm:inline text-[11px] font-normal text-soft-brown">
-              • {mapLocations.length} Destinations
-            </span>
+        {/* ─── 2. Apple Maps Floating Top Controls ─── */}
+        <div className="pointer-events-none absolute top-4 left-4 right-4 z-[1000] flex items-start justify-between">
+          {/* Left: Apple Search-Style POI Indicator */}
+          <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-3.5 py-2.5 shadow-xl backdrop-blur-xl transition-all">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-burgundy/10 text-burgundy shadow-xs">
+              <MapPin className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy">
+                Destination {currentIndex + 1} of {mapLocations.length}
+              </span>
+              <span className="max-w-[130px] xs:max-w-[180px] sm:max-w-[240px] truncate text-xs sm:text-sm font-semibold text-charcoal">
+                {selectedLocation.name}
+              </span>
+            </div>
           </div>
 
-          {/* Reset Overview Button */}
-          <button
-            type="button"
-            onClick={handleResetOverview}
-            className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-warm-white/90 px-3.5 py-2 text-xs font-semibold text-burgundy shadow-lg backdrop-blur-md transition-all hover:bg-warm-white hover:shadow-xl active:scale-95 cursor-pointer"
-          >
-            <RotateCcw className="h-3.5 w-3.5 text-gold" />
-            <span className="hidden xs:inline">All India View</span>
-          </button>
+          {/* Right: Apple Maps Floating Glass Tool Stack (+, -, Overview) */}
+          <div className="pointer-events-auto flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl backdrop-blur-xl">
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              aria-label="Zoom in"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-charcoal hover:bg-black/5 active:bg-black/10 transition-colors border-b border-black/5 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              aria-label="Zoom out"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-charcoal hover:bg-black/5 active:bg-black/10 transition-colors border-b border-black/5 cursor-pointer"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleResetOverview}
+              aria-label="Reset overview"
+              title="All India View"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-burgundy hover:bg-burgundy/10 active:bg-burgundy/20 transition-colors cursor-pointer"
+            >
+              <Compass className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
-        {/* ─── 3. Floating Bottom Glass Slider (Snapchat Snap Map Style) ─── */}
-        <div className="pointer-events-none absolute bottom-4 sm:bottom-6 left-0 right-0 z-[1000] px-3 sm:px-6">
+        {/* ─── 3. Floating Bottom Glass Slider (Snapchat & Apple Style) ─── */}
+        <div className="pointer-events-none absolute bottom-3 sm:bottom-5 left-0 right-0 z-[1000] px-2 sm:px-6">
           <div className="relative mx-auto max-w-5xl">
-            {/* Left Nav Arrow (Desktop) */}
+            {/* Mobile Navigation Header Bar (Buttons + Dots) */}
+            <div className="pointer-events-auto mb-2 flex items-center justify-between rounded-full border border-white/60 bg-white/85 px-3 py-1 shadow-md backdrop-blur-md sm:hidden">
+              <button
+                type="button"
+                onClick={() => handleNavigate("prev")}
+                className="flex items-center gap-1 text-[11px] font-bold text-burgundy active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <span>Prev</span>
+              </button>
+
+              <div className="flex items-center gap-1.5">
+                {mapLocations.map((loc, idx) => (
+                  <button
+                    key={loc.id}
+                    type="button"
+                    onClick={() => handleSelectLocation(loc)}
+                    aria-label={`Go to ${loc.name}`}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      idx === currentIndex
+                        ? "w-4 bg-burgundy"
+                        : "w-1.5 bg-warm-beige hover:bg-gold"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleNavigate("next")}
+                className="flex items-center gap-1 text-[11px] font-bold text-burgundy active:scale-95 cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Left Chevron Button (Visible on mobile & desktop) */}
             <button
               type="button"
               onClick={() => handleNavigate("prev")}
               aria-label="Previous destination"
-              className="pointer-events-auto absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-warm-white/90 text-burgundy shadow-xl backdrop-blur-md transition-all hover:bg-warm-white hover:scale-105 active:scale-95 cursor-pointer"
+              className="pointer-events-auto absolute -left-1 sm:-left-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
 
-            {/* Right Nav Arrow (Desktop) */}
+            {/* Right Chevron Button (Visible on mobile & desktop) */}
             <button
               type="button"
               onClick={() => handleNavigate("next")}
               aria-label="Next destination"
-              className="pointer-events-auto absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-warm-white/90 text-burgundy shadow-xl backdrop-blur-md transition-all hover:bg-warm-white hover:scale-105 active:scale-95 cursor-pointer"
+              className="pointer-events-auto absolute -right-1 sm:-right-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -265,7 +460,7 @@ export default function MemoryMap() {
             {/* Slideable Cards Container */}
             <div
               ref={sliderRef}
-              className="pointer-events-auto flex gap-3.5 overflow-x-auto scrollbar-none snap-x snap-mandatory py-2 px-1 scroll-smooth"
+              className="pointer-events-auto flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory py-1.5 px-6 sm:px-3 scroll-smooth"
             >
               {mapLocations.map((loc) => {
                 const isSelected = loc.id === selectedLocation.id;
@@ -276,44 +471,50 @@ export default function MemoryMap() {
                       cardRefs.current[loc.id] = el;
                     }}
                     onClick={() => handleSelectLocation(loc)}
-                    className={`shrink-0 snap-center w-[290px] sm:w-[330px] md:w-[350px] cursor-pointer rounded-2xl p-4 transition-all duration-300 ${
+                    className={`shrink-0 snap-center w-[275px] sm:w-[320px] md:w-[340px] cursor-pointer rounded-2xl p-3 sm:p-3.5 transition-all duration-300 ${
                       isSelected
-                        ? "border-2 border-gold bg-warm-white/95 shadow-[0_12px_36px_rgba(122,28,46,0.3)] ring-2 ring-gold/50 scale-[1.02] backdrop-blur-xl"
-                        : "border border-white/70 bg-warm-white/80 shadow-lg backdrop-blur-md hover:bg-warm-white/90 hover:border-gold/50 opacity-90 hover:opacity-100"
+                        ? "border-2 border-gold bg-white/95 shadow-[0_12px_36px_rgba(153,31,43,0.3)] ring-2 ring-gold/40 scale-[1.02] backdrop-blur-2xl"
+                        : "border border-white/70 bg-white/80 shadow-lg backdrop-blur-xl hover:bg-white/95 hover:border-gold/50 opacity-90 hover:opacity-100"
                     }`}
                   >
-                    {/* Top Row: Icon avatar + Title + Badge */}
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl shadow-xs ring-2 transition-all ${
-                          isSelected
-                            ? "bg-champagne/90 ring-gold"
-                            : "bg-champagne/60 ring-warm-beige"
-                        }`}
-                      >
-                        {loc.icon || "📍"}
+                    {/* Top Row: Thumbnail + Title + Pill */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-champagne shadow-xs border border-warm-beige/80">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={loc.image}
+                          alt={loc.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src =
+                              "/Golden South Indian Mandap Setting.png";
+                          }}
+                        />
+                        <span className="absolute bottom-0 right-0 rounded-tl-md bg-white/90 px-1 text-[9px] leading-tight shadow-xs">
+                          {loc.icon}
+                        </span>
                       </div>
 
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 text-left">
                         <div className="flex items-center justify-between gap-1">
-                          <h4 className="truncate font-heading text-sm sm:text-base font-semibold text-charcoal">
+                          <h4 className="truncate font-heading text-xs sm:text-sm font-bold text-charcoal">
                             {loc.name}
                           </h4>
                           {isSelected && (
-                            <span className="flex shrink-0 items-center gap-1 rounded-full bg-burgundy/10 px-2 py-0.5 text-[9px] font-bold text-burgundy">
+                            <span className="flex shrink-0 items-center gap-1 rounded-full bg-burgundy/10 px-1.5 py-0.5 text-[8.5px] font-bold text-burgundy">
                               <span className="h-1.5 w-1.5 rounded-full bg-burgundy animate-ping" />
-                              Active
+                              View
                             </span>
                           )}
                         </div>
 
-                        <div className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-soft-brown">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3 text-gold" />
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold text-soft-brown">
+                          <span className="flex items-center gap-0.5">
+                            <Calendar className="h-2.5 w-2.5 text-gold" />
                             {loc.year}
                           </span>
                           <span>•</span>
-                          <span className="capitalize text-gold font-medium">
+                          <span className="capitalize text-gold font-medium truncate">
                             {loc.category.replace("-", " ")}
                           </span>
                         </div>
@@ -321,17 +522,17 @@ export default function MemoryMap() {
                     </div>
 
                     {/* Story Snippet */}
-                    <p className="mt-2.5 line-clamp-2 font-body text-xs leading-relaxed text-charcoal/80">
+                    <p className="mt-2 line-clamp-2 text-left font-body text-[11px] leading-relaxed text-charcoal/80">
                       {loc.story}
                     </p>
 
-                    {/* Card Footer */}
-                    <div className="mt-2.5 flex items-center justify-between border-t border-warm-beige/40 pt-2 text-[10px] text-soft-brown">
+                    {/* Card Footer with Quick Navigation Hint */}
+                    <div className="mt-2 flex items-center justify-between border-t border-black/5 pt-1.5 text-[10px] text-soft-brown">
                       <span className="flex items-center gap-1 text-gold font-medium">
-                        <Sparkles className="h-3 w-3 text-gold" />
-                        <span>Tap to view pin on map</span>
+                        <Sparkles className="h-2.5 w-2.5 text-gold" />
+                        <span>Tap to zoom in (Level 13)</span>
                       </span>
-                      <span className="font-mono text-soft-brown/60">
+                      <span className="font-mono text-[9px] text-soft-brown/60">
                         {loc.lat.toFixed(2)}°, {loc.lng.toFixed(2)}°
                       </span>
                     </div>

@@ -9,7 +9,8 @@ export const mapLocations: MapLocation[] = [
     year: 1997,
     story:
       "A friend's get-together in Hyderabad. Two strangers across a crowded room, one awkward introduction, and a conversation that lasted until the hosts politely asked everyone to leave. The rest, as they say, is history.",
-    image: "/images/map/hyderabad.jpg",
+    image:
+      "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=600&auto=format&fit=crop&q=80",
     category: "first-meeting",
     icon: "💕",
   },
@@ -21,7 +22,7 @@ export const mapLocations: MapLocation[] = [
     year: 1999,
     story:
       "The grand wedding hall in Secunderabad where they exchanged vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
-    image: "/images/map/wedding-venue.jpg",
+    image: "/Golden South Indian Mandap Setting.png",
     category: "wedding",
     icon: "💒",
   },
@@ -33,7 +34,8 @@ export const mapLocations: MapLocation[] = [
     year: 2000,
     story:
       "A modest two-bedroom flat in Kukatpally. The kitchen was barely big enough for two, the balcony overlooked a busy road, and it was absolutely perfect. This is where they learned to be a team, one burnt roti at a time.",
-    image: "/images/map/first-home.jpg",
+    image:
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80",
     category: "home",
     icon: "🏠",
   },
@@ -45,7 +47,8 @@ export const mapLocations: MapLocation[] = [
     year: 2010,
     story:
       "Their first family beach holiday. The kids screamed when the waves touched their feet, Dad got sunburned, Mom found the perfect seaside café, and they all agreed: this is what happiness feels like. They've been back three times since.",
-    image: "/images/map/goa.jpg",
+    image:
+      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop&q=80",
     category: "holiday",
     icon: "🏖️",
   },
@@ -57,7 +60,8 @@ export const mapLocations: MapLocation[] = [
     year: 2013,
     story:
       "They drove from Delhi to Agra to see the Taj Mahal at sunrise. Dad drove eight hours, the kids slept the whole way, and Mom navigated with a paper map (the GPS had given up). Worth every minute when they saw it glowing in the morning light.",
-    image: "/images/map/delhi.jpg",
+    image:
+      "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80",
     category: "holiday",
     icon: "🕌",
   },
@@ -69,7 +73,8 @@ export const mapLocations: MapLocation[] = [
     year: 2017,
     story:
       "The family's mountain adventure. None of them had seen snow before, and the excitement was uncontainable. They built a lopsided snowman, had an epic snowball fight, and drank enough hot chocolate to last a lifetime. The photos are priceless.",
-    image: "/images/map/shimla.jpg",
+    image:
+      "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600&auto=format&fit=crop&q=80",
     category: "holiday",
     icon: "❄️",
   },
@@ -81,7 +86,8 @@ export const mapLocations: MapLocation[] = [
     year: 2022,
     story:
       "A houseboat journey through the Kerala backwaters — just the two of them, after the kids left for college. Floating through palm-lined canals, eating fresh fish curry, and watching the sunset paint the water gold. A second honeymoon, twenty-three years later.",
-    image: "/images/map/kerala.jpg",
+    image:
+      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&auto=format&fit=crop&q=80",
     category: "special",
     icon: "🚤",
   },
@@ -93,7 +99,8 @@ export const mapLocations: MapLocation[] = [
     year: 2008,
     story:
       "The home they'd been dreaming of for years. A garden where the kids could play, a kitchen big enough for Mom's legendary biryani operations, a balcony for evening chai, and walls that would eventually be covered in family photos and children's art.",
-    image: "/images/map/dream-home.jpg",
+    image:
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
     category: "home",
     icon: "🏡",
   },

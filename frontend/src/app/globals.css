@@ -279,3 +279,36 @@ button, a, input, textarea {
     inset 0 2px 4px rgba(255, 255, 255, 0.45),
     inset 0 -2px 4px rgba(0, 0, 0, 0.4);
 }
+
+/* ============================================
+   Apple Maps Pin & Callout Styling
+   ============================================ */
+@keyframes applePinBloom {
+  0% { transform: scale(0.65) translateY(14px); opacity: 0; }
+  65% { transform: scale(1.03) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.apple-callout-anim {
+  animation: applePinBloom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: bottom center;
+}
+
+.custom-snap-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Hide default leaflet zoom controls so our sleek Apple glass controls rule */
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 8px 0 0 0 !important;
+  color: #71717a !important;
+  padding: 1px 6px !important;
+}
