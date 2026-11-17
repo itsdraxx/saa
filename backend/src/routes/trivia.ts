@@ -36,6 +36,48 @@ router.get("/leaderboard", (req, res) => {
   });
 });
 
+// ─── GET /trivia/status ───────────────────────────────
+router.get("/status", (req, res) => {
+  const visitorId = typeof req.query.visitor_id === "string" ? req.query.visitor_id : undefined;
+
+  if (!visitorId) {
+    res.json({ success: true, completed: false });
+    return;
+  }
+
+  const existing = dbGet<{
+    id: number;
+    player_name: string;
+    score: number;
+    total: number;
+    percentage: number;
+    time_taken: number | null;
+    created_at: string;
+  }>(
+    "SELECT id, player_name, score, total, percentage, time_taken, created_at FROM trivia_scores WHERE visitor_id = ? ORDER BY id DESC LIMIT 1",
+    [visitorId]
+  );
+
+  if (!existing) {
+    res.json({ success: true, completed: false });
+    return;
+  }
+
+  const rankRow = dbGet<{ rank: number }>(
+    `SELECT COUNT(*) + 1 as rank
+     FROM trivia_scores
+     WHERE percentage > ? OR (percentage = ? AND (time_taken IS NOT NULL AND time_taken < ?))`,
+    [existing.percentage, existing.percentage, existing.time_taken ?? 999999]
+  );
+
+  res.json({
+    success: true,
+    completed: true,
+    rank: rankRow?.rank ?? 1,
+    entry: existing,
+  });
+});
+
 // ─── POST /trivia/score ───────────────────────────────
 router.post("/score", writeLimiter, (req, res) => {
   const { player_name, score, total, percentage, time_taken, visitor_id } = req.body;
@@ -55,6 +97,40 @@ router.post("/score", writeLimiter, (req, res) => {
   if (typeof percentage !== "number" || percentage < 0 || percentage > 100) {
     res.status(400).json({ success: false, error: "percentage must be 0-100" });
     return;
+  }
+
+  // Prevent multiple re-answers / duplicate submissions for the same visitor
+  if (visitor_id && typeof visitor_id === "string") {
+    const existing = dbGet<{
+      id: number;
+      player_name: string;
+      score: number;
+      total: number;
+      percentage: number;
+      time_taken: number | null;
+      created_at: string;
+    }>(
+      "SELECT id, player_name, score, total, percentage, time_taken, created_at FROM trivia_scores WHERE visitor_id = ? ORDER BY id DESC LIMIT 1",
+      [visitor_id]
+    );
+
+    if (existing) {
+      const rankRow = dbGet<{ rank: number }>(
+        `SELECT COUNT(*) + 1 as rank
+         FROM trivia_scores
+         WHERE percentage > ? OR (percentage = ? AND (time_taken IS NOT NULL AND time_taken < ?))`,
+        [existing.percentage, existing.percentage, existing.time_taken ?? 999999]
+      );
+
+      res.status(200).json({
+        success: true,
+        already_submitted: true,
+        rank: rankRow?.rank ?? 1,
+        entry: existing,
+        message: "You have already submitted your score for this trivia!",
+      });
+      return;
+    }
   }
 
   const cleanName = sanitize(player_name).slice(0, 40);

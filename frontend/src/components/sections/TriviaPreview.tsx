@@ -1,21 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { triviaQuestions } from "@/data/trivia";
-import { CheckCircle2, XCircle, ArrowRight, HelpCircle, Trophy } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowRight, HelpCircle, Trophy, Lock } from "lucide-react";
 
 export default function TriviaPreview() {
   const sampleQuestion = triviaQuestions[2] || triviaQuestions[0]; // The funny restaurant question!
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [answered, setAnswered] = useState(false);
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const [completedScore, setCompletedScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        // Check if sample question was already answered
+        const savedChoice = localStorage.getItem("saa_trivia_preview_choice");
+        if (savedChoice !== null) {
+          setSelectedOption(Number(savedChoice));
+          setAnswered(true);
+        }
+        // Check if full quiz was already completed
+        const fullCompleted = localStorage.getItem("saa_trivia_completed") === "true";
+        if (fullCompleted) {
+          setIsQuizCompleted(true);
+          const score = localStorage.getItem("saa_trivia_score");
+          if (score !== null) setCompletedScore(Number(score));
+        }
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSelect = (index: number) => {
     if (answered) return;
     setSelectedOption(index);
     setAnswered(true);
+    try {
+      localStorage.setItem("saa_trivia_preview_choice", String(index));
+    } catch {}
   };
 
   const isCorrect = selectedOption !== null && sampleQuestion.options[selectedOption].isCorrect;
@@ -41,9 +67,16 @@ export default function TriviaPreview() {
               <HelpCircle className="h-4 w-4" />
               <span>Sample Question • {sampleQuestion.category}</span>
             </div>
-            <span className="rounded-full bg-champagne/70 px-3 py-1 text-xs text-soft-brown">
-              1 of {triviaQuestions.length} Questions
-            </span>
+            <div className="flex items-center gap-2">
+              {answered && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-warm-beige/40 px-2.5 py-0.5 text-[11px] font-semibold text-soft-brown">
+                  <Lock className="h-3 w-3" /> Locked
+                </span>
+              )}
+              <span className="rounded-full bg-champagne/70 px-3 py-1 text-xs text-soft-brown">
+                1 of {triviaQuestions.length} Questions
+              </span>
+            </div>
           </div>
 
           {/* Question Title */}
@@ -55,15 +88,15 @@ export default function TriviaPreview() {
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {sampleQuestion.options.map((option, index) => {
               const isSelected = selectedOption === index;
-              let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20";
+              let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20 cursor-pointer";
 
               if (answered) {
                 if (option.isCorrect) {
-                  btnClass = "border-emerald-500 bg-emerald-50 text-emerald-900";
+                  btnClass = "border-emerald-500 bg-emerald-50 text-emerald-900 cursor-not-allowed";
                 } else if (isSelected) {
-                  btnClass = "border-rose-400 bg-rose-50 text-rose-900";
+                  btnClass = "border-rose-400 bg-rose-50 text-rose-900 cursor-not-allowed";
                 } else {
-                  btnClass = "border-warm-beige/40 opacity-50 bg-warm-white text-charcoal";
+                  btnClass = "border-warm-beige/40 opacity-50 bg-warm-white text-charcoal cursor-not-allowed";
                 }
               }
 
@@ -110,14 +143,25 @@ export default function TriviaPreview() {
           </AnimatePresence>
         </motion.div>
 
-        {/* CTA to Full Game */}
-        <div className="mt-10">
+        {/* CTA to Full Game / View Results */}
+        <div className="mt-10 flex flex-col items-center gap-3">
+          {isQuizCompleted && completedScore !== null && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50/90 px-4 py-1.5 text-xs font-semibold text-emerald-900 shadow-2xs">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span>You answered the Family Trivia! Score: {completedScore}/{triviaQuestions.length}</span>
+            </div>
+          )}
+
           <Link
             href="/trivia"
             className="inline-flex items-center gap-2 rounded-full bg-burgundy px-8 py-3.5 text-sm font-medium text-warm-white shadow-md transition-all duration-300 hover:bg-deep-burgundy hover:shadow-lg active:scale-95"
           >
             <Trophy className="h-4 w-4 text-gold" />
-            <span>Play the Full Family Quiz ({triviaQuestions.length} Questions)</span>
+            <span>
+              {isQuizCompleted
+                ? `View Your Quiz Score & Leaderboard (${completedScore ?? "?"}/${triviaQuestions.length})`
+                : `Play the Full Family Quiz (${triviaQuestions.length} Questions)`}
+            </span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

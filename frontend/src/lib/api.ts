@@ -151,6 +151,21 @@ export async function fetchTriviaLeaderboard(
   }
 }
 
+export async function checkTriviaStatus(visitorId: string): Promise<{
+  success: boolean;
+  completed: boolean;
+  rank?: number;
+  entry?: TriviaLeaderboardEntry;
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/trivia/status?visitor_id=${encodeURIComponent(visitorId)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch {
+    return { success: false, completed: false };
+  }
+}
+
 export async function submitTriviaScore(data: {
   player_name: string;
   score: number;

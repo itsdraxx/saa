@@ -9,14 +9,18 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
-  RotateCcw,
   Home,
   User,
   Medal,
+  Lock,
+  Eye,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   fetchTriviaLeaderboard,
   submitTriviaScore,
+  checkTriviaStatus,
   getVisitorId,
 } from "@/lib/api";
 import type { TriviaLeaderboardEntry } from "@/lib/types";
@@ -27,6 +31,8 @@ export default function TriviaGame() {
   const [score, setScore] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
+  const [showReview, setShowReview] = useState(false);
 
   // Time tracking
   const [startTime, setStartTime] = useState<number>(0);
@@ -39,14 +45,72 @@ export default function TriviaGame() {
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load remembered user name
+  // Initialize & check if trivia was already answered / in progress
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const saved = localStorage.getItem("saa_user_name");
-        if (saved) setPlayerName(saved);
+        const savedName = localStorage.getItem("saa_user_name");
+        if (savedName) setPlayerName(savedName);
+
+        // 1. Check if already completed locally
+        const completed = localStorage.getItem("saa_trivia_completed") === "true";
+        if (completed) {
+          const savedScore = Number(localStorage.getItem("saa_trivia_score") || "0");
+          const savedAnswers = localStorage.getItem("saa_trivia_answers");
+          const savedRank = localStorage.getItem("saa_trivia_rank");
+          const submitted = localStorage.getItem("saa_trivia_submitted") === "true";
+
+          setScore(savedScore);
+          if (savedAnswers) {
+            try {
+              setUserAnswers(JSON.parse(savedAnswers));
+            } catch {}
+          }
+          if (savedRank) setUserRank(Number(savedRank));
+          setIsScoreSubmitted(submitted);
+          setGameState("results");
+          return;
+        }
+
+        // 2. Check if in progress (to prevent refreshing to re-answer a question)
+        const inProgress = localStorage.getItem("saa_trivia_in_progress");
+        if (inProgress) {
+          try {
+            const parsed = JSON.parse(inProgress);
+            if (typeof parsed.currentIndex === "number" && parsed.answers) {
+              setCurrentIndex(parsed.currentIndex);
+              setScore(parsed.score || 0);
+              setUserAnswers(parsed.answers);
+              if (parsed.answers[parsed.currentIndex] !== undefined) {
+                setSelectedOption(parsed.answers[parsed.currentIndex]);
+                setIsAnswered(true);
+              }
+              setStartTime(parsed.startTime || 0);
+              setGameState("playing");
+            }
+          } catch {}
+        }
+
+        // 3. Query backend with visitor_id to prevent retakes across sessions
+        const visitorId = getVisitorId();
+        checkTriviaStatus(visitorId).then((status) => {
+          if (status.completed && status.entry) {
+            setScore(status.entry.score);
+            setPlayerName(status.entry.player_name);
+            setUserRank(status.rank || null);
+            setIsScoreSubmitted(true);
+            setGameState("results");
+            try {
+              localStorage.setItem("saa_trivia_completed", "true");
+              localStorage.setItem("saa_trivia_score", String(status.entry.score));
+              localStorage.setItem("saa_trivia_submitted", "true");
+              if (status.rank) localStorage.setItem("saa_trivia_rank", String(status.rank));
+            } catch {}
+          }
+        });
       } catch {}
     }, 0);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -65,33 +129,99 @@ export default function TriviaGame() {
   const currentQ = triviaQuestions[currentIndex];
 
   const handleStart = () => {
+    // If already completed, lock and do nothing
+    if (localStorage.getItem("saa_trivia_completed") === "true") {
+      setGameState("results");
+      return;
+    }
+
     setGameState("playing");
     setCurrentIndex(0);
     setScore(0);
     setSelectedOption(null);
     setIsAnswered(false);
+    setUserAnswers({});
     setIsScoreSubmitted(false);
     setUserRank(null);
-    setStartTime(Date.now());
+    const start = Date.now();
+    setStartTime(start);
+
+    try {
+      localStorage.setItem(
+        "saa_trivia_in_progress",
+        JSON.stringify({
+          currentIndex: 0,
+          score: 0,
+          answers: {},
+          startTime: start,
+        })
+      );
+    } catch {}
   };
 
   const handleSelectOption = (index: number) => {
+    // Strict lock: once answered, cannot re-answer this question!
     if (isAnswered) return;
+
     setSelectedOption(index);
     setIsAnswered(true);
 
-    if (currentQ.options[index].isCorrect) {
-      setScore((prev) => prev + 1);
+    const isCorrect = currentQ.options[index].isCorrect;
+    const newScore = isCorrect ? score + 1 : score;
+    if (isCorrect) {
+      setScore(newScore);
     }
+
+    const newAnswers = { ...userAnswers, [currentIndex]: index };
+    setUserAnswers(newAnswers);
+
+    // Persist immediately in localStorage so refreshing cannot undo the answer
+    try {
+      localStorage.setItem(
+        "saa_trivia_in_progress",
+        JSON.stringify({
+          currentIndex,
+          score: newScore,
+          answers: newAnswers,
+          startTime,
+        })
+      );
+    } catch {}
   };
 
   const handleNext = () => {
     if (currentIndex + 1 < triviaQuestions.length) {
-      setCurrentIndex((prev) => prev + 1);
-      setSelectedOption(null);
-      setIsAnswered(false);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+
+      if (userAnswers[nextIndex] !== undefined) {
+        setSelectedOption(userAnswers[nextIndex]);
+        setIsAnswered(true);
+      } else {
+        setSelectedOption(null);
+        setIsAnswered(false);
+      }
+
+      try {
+        localStorage.setItem(
+          "saa_trivia_in_progress",
+          JSON.stringify({
+            currentIndex: nextIndex,
+            score,
+            answers: userAnswers,
+            startTime,
+          })
+        );
+      } catch {}
     } else {
+      // Completed all questions — lock in results permanently!
       setGameState("results");
+      try {
+        localStorage.setItem("saa_trivia_completed", "true");
+        localStorage.setItem("saa_trivia_score", String(score));
+        localStorage.setItem("saa_trivia_answers", JSON.stringify(userAnswers));
+        localStorage.removeItem("saa_trivia_in_progress");
+      } catch {}
     }
   };
 
@@ -118,7 +248,15 @@ export default function TriviaGame() {
 
     if (res.success) {
       setIsScoreSubmitted(true);
-      if (res.rank) setUserRank(res.rank);
+      if (res.rank) {
+        setUserRank(res.rank);
+        try {
+          localStorage.setItem("saa_trivia_rank", String(res.rank));
+        } catch {}
+      }
+      try {
+        localStorage.setItem("saa_trivia_submitted", "true");
+      } catch {}
 
       // Refresh leaderboard
       const lbRes = await fetchTriviaLeaderboard();
@@ -162,7 +300,7 @@ export default function TriviaGame() {
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-3xl border-2 border-gold/40 bg-warm-white p-8 text-center shadow-xl sm:p-12"
         >
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-champagne/70 text-gold shadow-sm">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-champagne/70 text-gold shadow-xs">
             <Trophy className="h-10 w-10 text-gold" />
           </div>
 
@@ -178,14 +316,14 @@ export default function TriviaGame() {
             <span>•</span>
             <span>⏱️ No Time Limit</span>
             <span>•</span>
-            <span>❤️ 100% Fun</span>
+            <span>🔒 One-time Attempt</span>
           </div>
 
           <div>
             <button
               type="button"
               onClick={handleStart}
-              className="inline-flex items-center gap-2 rounded-full bg-burgundy px-8 py-3.5 text-sm font-semibold text-warm-white shadow-md transition-all duration-300 hover:bg-deep-burgundy hover:shadow-lg active:scale-95"
+              className="inline-flex items-center gap-2 rounded-full bg-burgundy px-8 py-3.5 text-sm font-semibold text-warm-white shadow-md transition-all duration-300 hover:bg-deep-burgundy hover:shadow-lg active:scale-95 cursor-pointer"
             >
               <span>Begin the Quiz</span>
               <ArrowRight className="h-4 w-4" />
@@ -224,9 +362,17 @@ export default function TriviaGame() {
           </div>
 
           {/* Question Text */}
-          <span className="inline-block rounded-full bg-champagne/60 px-3 py-1 text-[11px] font-semibold text-soft-brown uppercase tracking-wider">
-            {currentQ.category}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="inline-block rounded-full bg-champagne/60 px-3 py-1 text-[11px] font-semibold text-soft-brown uppercase tracking-wider">
+              {currentQ.category}
+            </span>
+            {isAnswered && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warm-beige/40 px-2.5 py-0.5 text-[11px] font-semibold text-soft-brown">
+                <Lock className="h-3 w-3" /> Answer Locked
+              </span>
+            )}
+          </div>
+
           <h3 className="mt-3 font-heading text-2xl font-semibold text-charcoal sm:text-3xl">
             {currentQ.question}
           </h3>
@@ -235,15 +381,15 @@ export default function TriviaGame() {
           <div className="mt-6 space-y-3">
             {currentQ.options.map((opt, idx) => {
               const isSelected = selectedOption === idx;
-              let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20";
+              let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20 cursor-pointer";
 
               if (isAnswered) {
                 if (opt.isCorrect) {
-                  btnClass = "border-emerald-500 bg-emerald-50 text-emerald-950 shadow-sm";
+                  btnClass = "border-emerald-500 bg-emerald-50 text-emerald-950 shadow-xs cursor-not-allowed";
                 } else if (isSelected) {
-                  btnClass = "border-rose-400 bg-rose-50 text-rose-950";
+                  btnClass = "border-rose-400 bg-rose-50 text-rose-950 cursor-not-allowed";
                 } else {
-                  btnClass = "border-warm-beige/30 bg-warm-white/40 text-charcoal/40";
+                  btnClass = "border-warm-beige/30 bg-warm-white/40 text-charcoal/40 cursor-not-allowed";
                 }
               }
 
@@ -286,7 +432,7 @@ export default function TriviaGame() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex items-center gap-2 rounded-full bg-burgundy px-6 py-2.5 text-xs font-semibold tracking-wider text-warm-white uppercase shadow-sm transition-all hover:bg-deep-burgundy active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full bg-burgundy px-6 py-2.5 text-xs font-semibold tracking-wider text-warm-white uppercase shadow-xs transition-all hover:bg-deep-burgundy active:scale-95 cursor-pointer"
                   >
                     <span>{currentIndex + 1 === triviaQuestions.length ? "See Final Score" : "Next Question"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -298,10 +444,10 @@ export default function TriviaGame() {
         </motion.div>
       )}
 
-      {/* RESULTS SCREEN */}
+      {/* RESULTS SCREEN (Locked: Cannot re-answer) */}
       {gameState === "results" && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="rounded-3xl border-2 border-gold/40 bg-warm-white p-8 text-center shadow-xl sm:p-12"
         >
@@ -310,11 +456,17 @@ export default function TriviaGame() {
             return (
               <>
                 <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-gold/30 to-champagne/80 text-4xl shadow-md">
-                  {score >= 8 ? "👑" : score >= 5 ? "💖" : "✨"}
+                  {score >= 10 ? "👑" : score >= 7 ? "💖" : "✨"}
                 </div>
 
-                <div className="mt-4 inline-block rounded-full border border-gold/40 bg-warm-white px-4 py-1 text-xs font-semibold text-gold">
-                  {feedback.badge}
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <div className="rounded-full border border-gold/40 bg-warm-white px-4 py-1 text-xs font-semibold text-gold">
+                    {feedback.badge}
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-800">
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>Answers Locked</span>
+                  </div>
                 </div>
 
                 <h2 className="mt-3 font-heading text-3xl font-semibold text-charcoal sm:text-4xl">
@@ -368,12 +520,12 @@ export default function TriviaGame() {
                       </div>
                     </form>
                   ) : (
-                    <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 text-center">
+                    <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 text-center shadow-2xs">
                       <p className="font-heading text-lg font-bold text-emerald-800">
                         🎉 Rank #{userRank || 1} on the Board!
                       </p>
                       <p className="text-xs text-emerald-700 mt-0.5">
-                        Your score is saved as <span className="font-semibold">{playerName}</span>!
+                        Your score is locked in as <span className="font-semibold">{playerName}</span>!
                       </p>
                     </div>
                   )}
@@ -381,7 +533,7 @@ export default function TriviaGame() {
 
                 {/* Family Leaderboard */}
                 {leaderboard.length > 0 && (
-                  <div className="mt-8 rounded-2xl border border-warm-beige/80 bg-warm-white p-4 sm:p-6 text-left shadow-xs">
+                  <div className="mt-8 rounded-2xl border border-warm-beige/80 bg-warm-white p-4 sm:p-6 text-left shadow-2xs">
                     <div className="flex items-center justify-between border-b border-warm-beige/50 pb-3">
                       <div className="flex items-center gap-2">
                         <Medal className="h-5 w-5 text-gold" />
@@ -416,7 +568,7 @@ export default function TriviaGame() {
                                 {entry.player_name}
                               </span>
                               {isCurrent && (
-                                <span className="text-[9px] font-semibold text-burgundy bg-peach-100 px-1.5 py-0.2 rounded-full shrink-0">
+                                <span className="text-[9px] font-semibold text-burgundy bg-peach-100 px-1.5 py-0.5 rounded-full shrink-0">
                                   You
                                 </span>
                               )}
@@ -436,18 +588,113 @@ export default function TriviaGame() {
                   </div>
                 )}
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                {/* REVIEW YOUR ANSWERS ACCORDION (Locked, read-only) */}
+                <div className="mt-8 text-left">
                   <button
                     type="button"
-                    onClick={handleStart}
-                    className="inline-flex items-center gap-2 rounded-full bg-burgundy px-7 py-3 text-sm font-medium text-warm-white shadow-md transition-all hover:bg-deep-burgundy active:scale-95"
+                    onClick={() => setShowReview(!showReview)}
+                    className="flex w-full items-center justify-between rounded-2xl border border-warm-beige/80 bg-champagne/30 px-5 py-3 text-xs sm:text-sm font-semibold text-charcoal hover:bg-champagne/50 transition-all cursor-pointer"
                   >
-                    <RotateCcw className="h-4 w-4" />
-                    <span>Play Again</span>
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-burgundy" />
+                      <span>{showReview ? "Hide Your Locked Answers" : "Review All Answers & Memories (Read-only)"}</span>
+                    </div>
+                    {showReview ? <ChevronUp className="h-4 w-4 text-soft-brown" /> : <ChevronDown className="h-4 w-4 text-soft-brown" />}
                   </button>
+
+                  <AnimatePresence>
+                    {showReview && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-4 space-y-4 overflow-hidden"
+                      >
+                        {triviaQuestions.map((q, qIdx) => {
+                          const chosenIdx = userAnswers[qIdx];
+                          const hasChosen = chosenIdx !== undefined;
+                          const wasCorrect = hasChosen && q.options[chosenIdx]?.isCorrect;
+
+                          return (
+                            <div
+                              key={q.id}
+                              className="rounded-2xl border border-warm-beige/70 bg-warm-white p-4 text-xs sm:text-sm shadow-2xs"
+                            >
+                              <div className="flex items-center justify-between border-b border-warm-beige/40 pb-2">
+                                <span className="text-[11px] font-semibold text-burgundy uppercase">
+                                  Question {qIdx + 1} • {q.category}
+                                </span>
+                                {hasChosen ? (
+                                  wasCorrect ? (
+                                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                                      <CheckCircle2 className="h-3.5 w-3.5" /> Correct
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 font-semibold text-rose-600">
+                                      <XCircle className="h-3.5 w-3.5" /> Missed
+                                    </span>
+                                  )
+                                ) : (
+                                  <span className="text-soft-brown/60">Unanswered</span>
+                                )}
+                              </div>
+
+                              <p className="mt-2 font-heading text-sm sm:text-base font-semibold text-charcoal">
+                                {q.question}
+                              </p>
+
+                              <div className="mt-3 space-y-1.5">
+                                {q.options.map((opt, optIdx) => {
+                                  const isSelectedByPlayer = chosenIdx === optIdx;
+                                  let rowStyle = "bg-champagne/10 border-warm-beige/30 text-charcoal/70";
+
+                                  if (opt.isCorrect) {
+                                    rowStyle = "bg-emerald-50 border-emerald-400 text-emerald-950 font-semibold";
+                                  } else if (isSelectedByPlayer && !opt.isCorrect) {
+                                    rowStyle = "bg-rose-50 border-rose-300 text-rose-950 line-through";
+                                  }
+
+                                  return (
+                                    <div
+                                      key={optIdx}
+                                      className={`flex items-center justify-between rounded-xl border px-3 py-2 ${rowStyle}`}
+                                    >
+                                      <span>{opt.text}</span>
+                                      {opt.isCorrect && (
+                                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                                          ✓ Correct Answer
+                                        </span>
+                                      )}
+                                      {isSelectedByPlayer && !opt.isCorrect && (
+                                        <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
+                                          Your Choice
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <p className="mt-2.5 text-[11px] leading-relaxed text-soft-brown border-t border-warm-beige/30 pt-2">
+                                💡 <span className="font-semibold">Memory note:</span> {q.explanation}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Actions: NO "Play Again" — locked permanently */}
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-warm-beige/80 bg-champagne/40 px-6 py-2.5 text-xs font-semibold text-soft-brown shadow-2xs">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <span>Trivia Completed • Scores Locked</span>
+                  </div>
                   <Link
                     href="/"
-                    className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-charcoal shadow-xs transition-all hover:bg-champagne/30 active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-charcoal shadow-2xs transition-all hover:bg-champagne/30 active:scale-95"
                   >
                     <Home className="h-4 w-4" />
                     <span>Back to Anniversary Home</span>
@@ -461,4 +708,3 @@ export default function TriviaGame() {
     </div>
   );
 }
-
