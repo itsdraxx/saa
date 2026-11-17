@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Glass Jar", href: "#glass-jar" },
   { label: "Then & Now", href: "#then-now" },
   { label: "Trivia", href: "#trivia" },
+  { label: "Memory Map", href: "#map" },
   { label: "Wishes", href: "#wishes" },
   { label: "Dedication", href: "#dedication" },
 ];
