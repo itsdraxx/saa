@@ -6,10 +6,15 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import { Send, Heart, Sparkles, Check, Trash2, User } from "lucide-react";
 import { fetchWishes, postWish, adminDeleteWish } from "@/lib/api";
 import type { GuestWish } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 
 const EMOJI_OPTIONS = ["❤️", "🙏", "🪔", "🎉", "🥂", "🌸", "✨", "💐", "🕊️", "💛"];
 
 export default function WishesWallSection() {
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].wishes;
+
   const [wishes, setWishes] = useState<GuestWish[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,8 +114,8 @@ export default function WishesWallSection() {
     <section id="wishes" className="relative py-20 sm:py-28 bg-peach-50/40 overflow-hidden">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          title="Anniversary Blessings & Wishes"
-          subtitle="Leave a personal prayer, memory, or loving blessing for Bujji & Satya as they celebrate 25 years together"
+          title={t.heading}
+          subtitle={t.subtitle}
         />
 
         {/* ── Wish Submission Box ── */}
@@ -125,7 +130,7 @@ export default function WishesWallSection() {
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="h-5 w-5 text-gold" />
             <h3 className="font-heading text-lg sm:text-xl font-bold text-charcoal">
-              Write a Blessing for Mom & Dad
+              {isTelugu ? "అమ్మ & నాన్నల కోసం మీ ఆశీస్సులు రాయండి" : "Write a Blessing for Mom & Dad"}
             </h3>
           </div>
 
@@ -133,7 +138,7 @@ export default function WishesWallSection() {
             {/* Emoji Selector */}
             <div>
               <label className="block text-xs font-semibold text-soft-brown mb-1.5">
-                Choose a celebration symbol:
+                {isTelugu ? "శుభ చిహ్నాన్ని ఎంచుకోండి:" : "Choose a celebration symbol:"}
               </label>
               <div className="flex flex-wrap gap-2">
                 {EMOJI_OPTIONS.map((emoji) => (
@@ -157,14 +162,14 @@ export default function WishesWallSection() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-soft-brown mb-1">
-                  Your Name <span className="text-burgundy">*</span>
+                  {t.nameLabel} <span className="text-burgundy">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={authorName}
                     onChange={(e) => setAuthorName(e.target.value)}
-                    placeholder="e.g. Ramesh, Priya, Kiran..."
+                    placeholder={t.namePlaceholder}
                     maxLength={40}
                     required
                     className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden"
@@ -175,13 +180,13 @@ export default function WishesWallSection() {
 
               <div>
                 <label className="block text-xs font-semibold text-soft-brown mb-1">
-                  Relation / Title <span className="text-soft-brown/60">(optional)</span>
+                  {t.relationLabel} <span className="text-soft-brown/60">({isTelugu ? "ఐచ్ఛికం" : "optional"})</span>
                 </label>
                 <input
                   type="text"
                   value={relation}
                   onChange={(e) => setRelation(e.target.value)}
-                  placeholder="e.g. Son, Daughter, Brother, Friend..."
+                  placeholder={t.relationPlaceholder}
                   maxLength={30}
                   className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden"
                 />
@@ -191,12 +196,12 @@ export default function WishesWallSection() {
             {/* Message Textarea */}
             <div>
               <label className="block text-xs font-semibold text-soft-brown mb-1">
-                Your Blessing or Message <span className="text-burgundy">*</span>
+                {t.messageLabel} <span className="text-burgundy">*</span>
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Write your wishes, blessings, or favorite memory with Mom & Dad..."
+                placeholder={t.messagePlaceholder}
                 rows={3}
                 maxLength={500}
                 required
@@ -216,7 +221,7 @@ export default function WishesWallSection() {
             {/* Submit Button */}
             <div className="flex items-center justify-between pt-1">
               <span className="text-[11px] text-soft-brown/70">
-                Visible to all family members ❤️
+                {isTelugu ? "కుటుంబ సభ్యులందరికీ కనిపిస్తుంది ❤️" : "Visible to all family members ❤️"}
               </span>
 
               <button
@@ -227,12 +232,12 @@ export default function WishesWallSection() {
                 {justSubmitted ? (
                   <>
                     <Check className="h-4 w-4 text-emerald-300" />
-                    <span>Blessing Sent!</span>
+                    <span>{isTelugu ? "ఆశీస్సులు పంపబడ్డాయి!" : "Blessing Sent!"}</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-3.5 w-3.5" />
-                    <span>{isSubmitting ? "Sending..." : "Post Blessing"}</span>
+                    <span>{isSubmitting ? (t.submitting || "Sending...") : (t.submitWish || "Post Blessing")}</span>
                   </>
                 )}
               </button>
@@ -244,25 +249,27 @@ export default function WishesWallSection() {
         <div className="mt-16">
           <div className="flex items-center justify-between mb-6">
             <h4 className="font-heading text-xl sm:text-2xl font-bold text-charcoal">
-              Family Blessings ({totalCount})
+              {isTelugu ? `ఆత్మీయుల ఆశీస్సులు (${totalCount})` : `Family Blessings (${totalCount})`}
             </h4>
             <span className="text-xs text-soft-brown font-medium">
-              Sorted newest first
+              {isTelugu ? "కొత్తవి ముందుగా" : "Sorted newest first"}
             </span>
           </div>
 
           {isLoading ? (
             <div className="py-12 text-center text-soft-brown/70 text-sm">
-              Loading heartfelt blessings...
+              {isTelugu ? "ఆశీస్సులను లోడ్ చేస్తోంది..." : "Loading heartfelt blessings..."}
             </div>
           ) : wishes.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-warm-beige bg-warm-white/60 p-12 text-center text-soft-brown">
               <Heart className="h-10 w-10 text-gold/60 mx-auto mb-2" />
               <p className="font-heading text-lg font-semibold text-charcoal">
-                Be the first to leave a blessing!
+                {isTelugu ? "మొదటి శుభాకాంక్షను మీరే తెలపండి!" : "Be the first to leave a blessing!"}
               </p>
               <p className="text-xs mt-1 max-w-sm mx-auto">
-                Fill out the form above to share your anniversary wishes with Bujji & Satya.
+                {isTelugu
+                  ? "బుజ్జి & సత్య దంపతులకు మీ ఆశీస్సులను పంచుకోవడానికి పై ఫారమ్‌ను పూరించండి."
+                  : "Fill out the form above to share your anniversary wishes with Bujji & Satya."}
               </p>
             </div>
           ) : (

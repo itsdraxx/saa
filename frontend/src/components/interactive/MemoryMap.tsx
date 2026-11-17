@@ -14,8 +14,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import type * as maplibreglType from "maplibre-gl";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations, mapLocationsTelugu } from "@/data/translations";
 
 export default function MemoryMap() {
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].map;
+
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [is3D, setIs3D] = useState(true);
@@ -35,6 +40,10 @@ export default function MemoryMap() {
     const el = document.createElement("div");
     el.className = "custom-maplibre-marker";
     el.style.cursor = "pointer";
+
+    const locName = (isTelugu && mapLocationsTelugu[loc.id]?.name) ? mapLocationsTelugu[loc.id].name : loc.name;
+    const locCategory = (isTelugu && mapLocationsTelugu[loc.id]?.category) ? mapLocationsTelugu[loc.id].category : loc.category;
+    const pinnedText = isTelugu ? "గుర్తించబడింది" : "Pinned";
 
     if (isSelected) {
       el.innerHTML = `
@@ -66,7 +75,7 @@ export default function MemoryMap() {
             ">
               <img
                 src="${loc.image}"
-                alt="${loc.name}"
+                alt="${locName}"
                 style="
                   width: 100%;
                   height: 100%;
@@ -100,7 +109,7 @@ export default function MemoryMap() {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 line-height: 1.25;
-              ">${loc.name}</div>
+              ">${locName}</div>
               <div style="
                 display: flex;
                 align-items: center;
@@ -112,8 +121,8 @@ export default function MemoryMap() {
                   font-weight: 700;
                   color: #991F2B;
                   text-transform: capitalize;
-                ">📍 ${loc.category.replace("-", " ")}</span>
-                <span style="color: #8e8e93; font-size: 8.5px;">Pinned</span>
+                ">📍 ${locCategory.replace("-", " ")}</span>
+                <span style="color: #8e8e93; font-size: 8.5px;">${pinnedText}</span>
               </div>
             </div>
           </div>
@@ -168,7 +177,7 @@ export default function MemoryMap() {
     }
 
     return el;
-  }, []);
+  }, [isTelugu]);
 
   // Update all map markers to reflect current selection
   const refreshMarkers = useCallback(
@@ -364,7 +373,9 @@ export default function MemoryMap() {
             <div className="flex flex-col text-left">
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy">
-                  Destination {currentIndex + 1} of {mapLocations.length}
+                  {isTelugu
+                    ? `గమ్యస్థానం ${currentIndex + 1} / ${mapLocations.length}`
+                    : `Destination ${currentIndex + 1} of ${mapLocations.length}`}
                 </span>
                 {is3D && (
                   <span className="rounded-full bg-burgundy/15 px-1.5 py-0.2 text-[8.5px] font-black text-burgundy tracking-wider uppercase">
@@ -373,7 +384,9 @@ export default function MemoryMap() {
                 )}
               </div>
               <span className="max-w-[130px] xs:max-w-[180px] sm:max-w-[240px] truncate text-xs sm:text-sm font-semibold text-charcoal">
-                {selectedLocation.name}
+                {(isTelugu && mapLocationsTelugu[selectedLocation.id]?.name)
+                  ? mapLocationsTelugu[selectedLocation.id].name
+                  : selectedLocation.name}
               </span>
             </div>
           </div>
@@ -384,8 +397,8 @@ export default function MemoryMap() {
             <button
               type="button"
               onClick={toggle3D}
-              aria-label={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
-              title={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
+              aria-label={is3D ? (isTelugu ? "2D వీక్షణకి మార్చండి" : "Switch to 2D view") : (isTelugu ? "3D వీక్షణకి మార్చండి" : "Switch to 3D perspective")}
+              title={is3D ? (isTelugu ? "2D వీక్షణ" : "Switch to 2D view") : (isTelugu ? "3D వీక్షణ" : "Switch to 3D perspective")}
               className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center border-b border-black/10 font-black text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer ${
                 is3D
                   ? "bg-burgundy text-white shadow-inner font-extrabold"
@@ -415,7 +428,7 @@ export default function MemoryMap() {
               type="button"
               onClick={handleResetOverview}
               aria-label="Reset overview"
-              title="All India View"
+              title={t.allIndiaView || "All India View"}
               className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-burgundy hover:bg-burgundy/10 active:bg-burgundy/20 transition-colors cursor-pointer"
             >
               <Compass className="h-4 w-4" />
@@ -434,7 +447,7 @@ export default function MemoryMap() {
                 className="flex items-center gap-1 text-[11px] font-bold text-burgundy active:scale-95 cursor-pointer"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
-                <span>Prev</span>
+                <span>{t.prev}</span>
               </button>
 
               <div className="flex items-center gap-1.5">
@@ -458,7 +471,7 @@ export default function MemoryMap() {
                 onClick={() => handleNavigate("next")}
                 className="flex items-center gap-1 text-[11px] font-bold text-burgundy active:scale-95 cursor-pointer"
               >
-                <span>Next</span>
+                <span>{t.next}</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -468,6 +481,7 @@ export default function MemoryMap() {
               type="button"
               onClick={() => handleNavigate("prev")}
               aria-label="Previous destination"
+              title={t.prev}
               className="pointer-events-auto absolute -left-1 sm:-left-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -478,6 +492,7 @@ export default function MemoryMap() {
               type="button"
               onClick={() => handleNavigate("next")}
               aria-label="Next destination"
+              title={t.next}
               className="pointer-events-auto absolute -right-1 sm:-right-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronRight className="h-5 w-5" />
@@ -490,6 +505,10 @@ export default function MemoryMap() {
             >
               {mapLocations.map((loc) => {
                 const isSelected = loc.id === selectedLocation.id;
+                const cardLocName = (isTelugu && mapLocationsTelugu[loc.id]?.name) ? mapLocationsTelugu[loc.id].name : loc.name;
+                const cardLocCategory = (isTelugu && mapLocationsTelugu[loc.id]?.category) ? mapLocationsTelugu[loc.id].category : loc.category;
+                const cardLocStory = (isTelugu && mapLocationsTelugu[loc.id]?.story) ? mapLocationsTelugu[loc.id].story : loc.story;
+
                 return (
                   <div
                     key={loc.id}
@@ -509,7 +528,7 @@ export default function MemoryMap() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={loc.image}
-                          alt={loc.name}
+                          alt={cardLocName}
                           className="h-full w-full object-cover"
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).src =
@@ -524,12 +543,12 @@ export default function MemoryMap() {
                       <div className="min-w-0 flex-1 text-left">
                         <div className="flex items-center justify-between gap-1">
                           <h4 className="truncate font-heading text-xs sm:text-sm font-bold text-charcoal">
-                            {loc.name}
+                            {cardLocName}
                           </h4>
                           {isSelected && (
                             <span className="flex shrink-0 items-center gap-1 rounded-full bg-burgundy/10 px-1.5 py-0.5 text-[8.5px] font-bold text-burgundy">
                               <span className="h-1.5 w-1.5 rounded-full bg-burgundy animate-ping" />
-                              View
+                              {isTelugu ? "వీక్షించండి" : "View"}
                             </span>
                           )}
                         </div>
@@ -541,7 +560,7 @@ export default function MemoryMap() {
                           </span>
                           <span>•</span>
                           <span className="capitalize text-gold font-medium truncate">
-                            {loc.category.replace("-", " ")}
+                            {cardLocCategory.replace("-", " ")}
                           </span>
                         </div>
                       </div>
@@ -549,14 +568,14 @@ export default function MemoryMap() {
 
                     {/* Story Snippet */}
                     <p className="mt-2 line-clamp-2 text-left font-body text-[11px] leading-relaxed text-charcoal/80">
-                      {loc.story}
+                      {cardLocStory}
                     </p>
 
                     {/* Card Footer with Quick Navigation Hint */}
                     <div className="mt-2 flex items-center justify-between border-t border-black/5 pt-1.5 text-[10px] text-soft-brown">
                       <span className="flex items-center gap-1 text-gold font-medium">
                         <Sparkles className="h-2.5 w-2.5 text-gold" />
-                        <span>Tap to zoom in (Level 13)</span>
+                        <span>{t.tapToZoom || "Tap to zoom in (Level 13)"}</span>
                       </span>
                       <span className="font-mono text-[9px] text-soft-brown/60">
                         {loc.lat.toFixed(2)}°, {loc.lng.toFixed(2)}°

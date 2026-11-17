@@ -5,20 +5,26 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Heart, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { label: "Our Story", href: "#story" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "Glass Jar", href: "#glass-jar" },
-  { label: "Then & Now", href: "#then-now" },
-  { label: "Trivia", href: "#trivia" },
-  { label: "Memory Map", href: "#map" },
-  { label: "Wishes", href: "#wishes" },
-  { label: "Dedication", href: "#dedication" },
-];
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 export default function Navigation() {
   const router = useRouter();
+  const { language, setLanguage, isTelugu } = useLanguage();
+  const t = translations[language].nav;
+
+  const navLinks = [
+    { label: t.story, href: "#story" },
+    { label: t.gallery, href: "#gallery" },
+    { label: t.glassJar, href: "#glass-jar" },
+    { label: t.thenNow, href: "#then-now" },
+    { label: t.trivia, href: "#trivia" },
+    { label: t.map, href: "#map" },
+    { label: t.wishes, href: "#wishes" },
+    { label: t.dedication, href: "#dedication" },
+  ];
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
@@ -125,6 +131,11 @@ export default function Navigation() {
               );
             })}
 
+            {/* Desktop Language Switcher */}
+            <div className="ml-2">
+              <LanguageSwitcher variant="navbar" />
+            </div>
+
             <button
               onClick={() => {
                 const el = document.getElementById("dedication");
@@ -132,23 +143,33 @@ export default function Navigation() {
               }}
               className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-4 py-1.5 text-xs font-semibold tracking-wide text-warm-white shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_4px_16px_rgba(153,31,43,0.35)] active:scale-95 cursor-pointer group"
             >
-              <span>For Bujji & Satya</span>
+              <span>{isTelugu ? "అంకితం" : "For Bujji & Satya"}</span>
               <Heart className="h-3 w-3 fill-warm-white transition-transform duration-300 group-hover:scale-125" />
             </button>
           </div>
 
-          {/* Mobile Menu Hamburger Button */}
-          <button
-            onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-burgundy hover:bg-champagne/80 hover:scale-110 active:scale-95 transition-all lg:hidden cursor-pointer"
-            aria-label={isMobileOpen ? "Close menu" : "Open menu"}
-          >
-            {isMobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          {/* Mobile Right Controls: Language Button + Hamburger */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setLanguage(language === "en" ? "te" : "en")}
+              className="rounded-full border border-warm-beige bg-peach-50 px-2.5 py-1 text-[11px] font-bold text-burgundy shadow-2xs active:scale-95 cursor-pointer"
+            >
+              {language === "en" ? "తెలుగు" : "EN"}
+            </button>
+
+            <button
+              onClick={() => setIsMobileOpen(!isMobileOpen)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-burgundy hover:bg-champagne/80 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              aria-label={isMobileOpen ? "Close menu" : "Open menu"}
+            >
+              {isMobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </motion.nav>
       </div>
 
@@ -190,6 +211,12 @@ export default function Navigation() {
                   >
                     <X className="h-5 w-5" />
                   </button>
+                </div>
+
+                {/* Mobile Drawer Language Switcher Bar */}
+                <div className="border-b border-warm-beige/40 px-6 py-3 bg-champagne/20 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-soft-brown">Language / భాష:</span>
+                  <LanguageSwitcher variant="navbar" />
                 </div>
 
                 {/* Drawer Links */}

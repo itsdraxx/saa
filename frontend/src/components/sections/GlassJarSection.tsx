@@ -7,12 +7,16 @@ import GlassJar from "@/components/interactive/GlassJar";
 import { glassJarMessages } from "@/data/glass-jar-messages";
 import { Heart, Sparkles, Wand2 } from "lucide-react";
 import type { GlassJarMessage } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations, glassJarNotesTelugu } from "@/data/translations";
 
 export default function GlassJarSection() {
   const [isShaking, setIsShaking] = useState(false);
   const [currentMessage, setCurrentMessage] = useState<GlassJarMessage | null>(null);
   const [revealedIds, setRevealedIds] = useState<number[]>([]);
   const noteRef = useRef<HTMLDivElement>(null);
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].glassJar;
 
   const handleTap = () => {
     if (isShaking) return;
@@ -48,20 +52,20 @@ export default function GlassJarSection() {
 
       <div className="mx-auto max-w-6xl text-center">
         <SectionHeading
-          eyebrow="Interactive Keepsake"
-          title="The Glass Jar of Memories"
-          subtitle="Inside this glowing jar are 25 folded origami notes — timeless memories, secret smiles, and quiet truths why we love Mom & Dad."
+          eyebrow={t.eyebrow || "Interactive Keepsake"}
+          title={t.heading}
+          subtitle={t.subtitle}
         />
 
         {/* Progress Counter Pill */}
         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white/95 px-4 py-1 sm:px-5 sm:py-1.5 text-xs text-soft-brown shadow-xs backdrop-blur-xs">
           <Heart className="h-3.5 w-3.5 fill-burgundy text-burgundy" />
           <span>
-            <strong className="text-burgundy font-semibold">{revealedIds.length}</strong> of{" "}
-            <strong>{glassJarMessages.length}</strong> memories opened
+            <strong className="text-burgundy font-semibold">{revealedIds.length}</strong> {isTelugu ? "నుండి" : "of"}{" "}
+            <strong>{glassJarMessages.length}</strong> {t.memoriesOpened || "memories opened"}
           </span>
           <span className="text-warm-beige">•</span>
-          <span className="text-gold font-medium">Keep tapping for more!</span>
+          <span className="text-gold font-medium">{t.keepTapping || "Keep tapping for more!"}</span>
         </div>
 
         {/* 2-Column Layout on Desktop (Jar Left, Note Right) & Compact Stack on Mobile */}
@@ -71,7 +75,7 @@ export default function GlassJarSection() {
             <GlassJar isShaking={isShaking} onTap={handleTap} />
 
             <p className="mt-2.5 sm:mt-3 text-[11px] sm:text-xs font-semibold tracking-wider text-soft-brown uppercase">
-              Click or tap the jar to unfold a note
+              {t.clickJar || "Click or tap the jar to unfold a note"}
             </p>
 
             <button
@@ -81,7 +85,7 @@ export default function GlassJarSection() {
               className="group mt-2.5 sm:mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-burgundy via-deep-burgundy to-burgundy px-5 sm:px-7 py-2 sm:py-3 text-[11px] sm:text-xs font-semibold tracking-wider text-warm-white uppercase shadow-[0_6px_18px_rgba(158,61,44,0.28)] transition-all duration-300 hover:scale-105 hover:shadow-[0_10px_24px_rgba(158,61,44,0.4)] active:scale-95 disabled:opacity-50 cursor-pointer"
             >
               <Wand2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gold transition-transform group-hover:rotate-45" />
-              <span>{currentMessage ? "Unfold Another Note" : "Shake & Open Note"}</span>
+              <span>{currentMessage ? (t.unfoldAnother || "Unfold Another Note") : (t.shakeAndOpen || "Shake & Open Note")}</span>
               <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-peach-200" />
             </button>
           </div>
@@ -116,12 +120,19 @@ export default function GlassJarSection() {
 
                     {/* Note message */}
                     <p className="font-heading text-sm sm:text-xl md:text-2xl font-normal leading-relaxed text-charcoal">
-                      &ldquo;{currentMessage.message}&rdquo;
+                      &ldquo;
+                      {(isTelugu && glassJarNotesTelugu[currentMessage.id]?.message)
+                        ? glassJarNotesTelugu[currentMessage.id].message
+                        : currentMessage.message}
+                      &rdquo;
                     </p>
 
                     {currentMessage.author && (
                       <p className="font-cursive mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl font-normal text-burgundy">
-                        — With love, {currentMessage.author}
+                        —{" "}
+                        {(isTelugu && glassJarNotesTelugu[currentMessage.id]?.author)
+                          ? glassJarNotesTelugu[currentMessage.id].author
+                          : `With love, ${currentMessage.author}`}
                       </p>
                     )}
                   </motion.div>
@@ -129,7 +140,7 @@ export default function GlassJarSection() {
                   <div className="flex h-28 sm:h-36 md:h-52 flex-col items-center justify-center rounded-2xl sm:rounded-3xl border border-dashed border-warm-beige bg-champagne/20 p-4 sm:p-6 text-center text-xs sm:text-sm text-soft-brown backdrop-blur-xs">
                     <Sparkles className="mb-1.5 sm:mb-2 h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-gold" />
                     <span className="font-medium text-xs sm:text-sm">
-                      Tap the glowing glass jar to release a secret 25-year memory!
+                      {t.emptyJarPrompt || "Tap the glowing glass jar to release a secret 25-year memory!"}
                     </span>
                   </div>
                 )}

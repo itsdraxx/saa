@@ -24,8 +24,12 @@ import {
   getVisitorId,
 } from "@/lib/api";
 import type { TriviaLeaderboardEntry } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations, triviaTelugu } from "@/data/translations";
 
 export default function TriviaGame() {
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].trivia;
   const [gameState, setGameState] = useState<"intro" | "playing" | "results">("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -272,21 +276,27 @@ export default function TriviaGame() {
     const percentage = (score / triviaQuestions.length) * 100;
     if (percentage === 100) {
       return {
-        badge: "🏆 Perfect Score!",
-        title: "The Ultimate Family Historian",
-        desc: "You know Mom & Dad better than they know themselves! You've paid attention to every detail of their 25-year journey.",
+        badge: isTelugu ? "🏆 నూటికి నూరు శాతం!" : "🏆 Perfect Score!",
+        title: t.perfectTitle,
+        desc: isTelugu
+          ? "అమ్మ, నాన్నల గురించి వారి కంటే మీకే ఎక్కువ తెలుసు! వారి 25 ఏళ్ల ప్రయాణంలోని ప్రతి చిన్న విషయాన్ని ఎంతో శ్రద్ధగా గుర్తుపెట్టుకున్నారు."
+          : "You know Mom & Dad better than they know themselves! You've paid attention to every detail of their 25-year journey.",
       };
     } else if (percentage >= 70) {
       return {
-        badge: "🌟 Amazing Job!",
-        title: "Family Insider",
-        desc: "You know so much about their beautiful story and shared moments. A true pillar of the family circle!",
+        badge: isTelugu ? "🌟 అద్భుతమైన ప్రతిభ!" : "🌟 Amazing Job!",
+        title: t.greatTitle,
+        desc: isTelugu
+          ? "వారి అందమైన కథ మరియు మధుర క్షణాల గురించి మీకు ఎంతో బాగా తెలుసు. కుటుంబానికి నిజమైన మూలస్తంభం!"
+          : "You know so much about their beautiful story and shared moments. A true pillar of the family circle!",
       };
     } else {
       return {
-        badge: "❤️ Made with Love",
-        title: "Warm Heart, Fresh Memories",
-        desc: "Every answer is a chance to learn another beautiful anecdote from Mom and Dad's 25 years together!",
+        badge: isTelugu ? "❤️ ప్రేమతో కూడిన జ్ఞాపకాలు" : "❤️ Made with Love",
+        title: t.goodTitle,
+        desc: isTelugu
+          ? "ప్రతి సమాధానం అమ్మ, నాన్నల 25 ఏళ్ల ప్రయాణం నుండి మరొక మధురమైన జ్ఞాపకాన్ని తెలుసుకునే అవకాశం!"
+          : "Every answer is a chance to learn another beautiful anecdote from Mom and Dad's 25 years together!",
       };
     }
   };
@@ -305,18 +315,18 @@ export default function TriviaGame() {
           </div>
 
           <h2 className="mt-6 font-heading text-3xl font-semibold text-charcoal sm:text-4xl">
-            25 Years of Family Trivia
+            {t.gameTitle}
           </h2>
           <p className="mt-3 font-body text-sm leading-relaxed text-soft-brown sm:text-base">
-            How well do you remember the wedding traditions, hilarious kitchen experiments, holiday mishaps, and everyday habits that make Mom & Dad so special?
+            {t.gameSubtitle}
           </p>
 
           <div className="my-6 inline-flex items-center gap-3 rounded-full border border-warm-beige bg-champagne/30 px-5 py-2 text-xs text-soft-brown">
-            <span>📝 {triviaQuestions.length} Questions</span>
+            <span>📝 {isTelugu ? `${triviaQuestions.length} ప్రశ్నలు` : `${triviaQuestions.length} Questions`}</span>
             <span>•</span>
-            <span>⏱️ No Time Limit</span>
+            <span>⏱️ {isTelugu ? "సమయ పరిమితి లేదు" : "No Time Limit"}</span>
             <span>•</span>
-            <span>🔒 One-time Attempt</span>
+            <span>🔒 {t.oneTimeNotice || "One-time Attempt"}</span>
           </div>
 
           <div>
@@ -325,7 +335,7 @@ export default function TriviaGame() {
               onClick={handleStart}
               className="inline-flex items-center gap-2 rounded-full bg-burgundy px-8 py-3.5 text-sm font-semibold text-warm-white shadow-md transition-all duration-300 hover:bg-deep-burgundy hover:shadow-lg active:scale-95 cursor-pointer"
             >
-              <span>Begin the Quiz</span>
+              <span>{t.beginQuiz}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -346,9 +356,11 @@ export default function TriviaGame() {
           <div className="mb-6">
             <div className="flex items-center justify-between text-xs font-semibold text-soft-brown">
               <span className="text-burgundy uppercase tracking-wider">
-                Question {currentIndex + 1} of {triviaQuestions.length}
+                {isTelugu
+                  ? `${t.questionLabel} ${currentIndex + 1} / ${triviaQuestions.length}`
+                  : `Question ${currentIndex + 1} of ${triviaQuestions.length}`}
               </span>
-              <span>Score: {score}</span>
+              <span>{t.scoreLabel}: {score}</span>
             </div>
             {/* Progress Bar */}
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-champagne/60">
@@ -364,23 +376,26 @@ export default function TriviaGame() {
           {/* Question Text */}
           <div className="flex items-center justify-between">
             <span className="inline-block rounded-full bg-champagne/60 px-3 py-1 text-[11px] font-semibold text-soft-brown uppercase tracking-wider">
-              {currentQ.category}
+              {isTelugu && triviaTelugu[currentQ.id]?.category ? triviaTelugu[currentQ.id].category : currentQ.category}
             </span>
             {isAnswered && (
               <span className="inline-flex items-center gap-1 rounded-full bg-warm-beige/40 px-2.5 py-0.5 text-[11px] font-semibold text-soft-brown">
-                <Lock className="h-3 w-3" /> Answer Locked
+                <Lock className="h-3 w-3" /> {t.answerLocked}
               </span>
             )}
           </div>
 
           <h3 className="mt-3 font-heading text-2xl font-semibold text-charcoal sm:text-3xl">
-            {currentQ.question}
+            {isTelugu && triviaTelugu[currentQ.id]?.question ? triviaTelugu[currentQ.id].question : currentQ.question}
           </h3>
 
           {/* Options */}
           <div className="mt-6 space-y-3">
             {currentQ.options.map((opt, idx) => {
               const isSelected = selectedOption === idx;
+              const optText = (isTelugu && triviaTelugu[currentQ.id]?.options?.[idx])
+                ? triviaTelugu[currentQ.id].options[idx]
+                : opt.text;
               let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20 cursor-pointer";
 
               if (isAnswered) {
@@ -401,7 +416,7 @@ export default function TriviaGame() {
                   disabled={isAnswered}
                   className={`flex w-full items-center justify-between rounded-2xl border-2 p-4 text-left font-body text-sm font-medium transition-all duration-200 ${btnClass}`}
                 >
-                  <span>{opt.text}</span>
+                  <span>{optText}</span>
                   {isAnswered && opt.isCorrect && (
                     <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                   )}
@@ -422,10 +437,10 @@ export default function TriviaGame() {
                 className="mt-6 rounded-2xl border border-gold/40 bg-champagne/30 p-4"
               >
                 <p className="font-heading text-base font-semibold text-burgundy">
-                  {currentQ.options[selectedOption!].isCorrect ? "Correct! 🎉" : "Not quite! 😊"}
+                  {currentQ.options[selectedOption!].isCorrect ? t.correctBanner : t.incorrectBanner}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-soft-brown">
-                  {currentQ.explanation}
+                  {isTelugu && triviaTelugu[currentQ.id]?.explanation ? triviaTelugu[currentQ.id].explanation : currentQ.explanation}
                 </p>
 
                 <div className="mt-4 text-right">
@@ -434,7 +449,7 @@ export default function TriviaGame() {
                     onClick={handleNext}
                     className="inline-flex items-center gap-2 rounded-full bg-burgundy px-6 py-2.5 text-xs font-semibold tracking-wider text-warm-white uppercase shadow-xs transition-all hover:bg-deep-burgundy active:scale-95 cursor-pointer"
                   >
-                    <span>{currentIndex + 1 === triviaQuestions.length ? "See Final Score" : "Next Question"}</span>
+                    <span>{currentIndex + 1 === triviaQuestions.length ? t.seeFinalScore : t.nextQuestion}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -465,7 +480,7 @@ export default function TriviaGame() {
                   </div>
                   <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-800">
                     <Lock className="h-3.5 w-3.5" />
-                    <span>Answers Locked</span>
+                    <span>{t.answerLocked}</span>
                   </div>
                 </div>
 
@@ -495,7 +510,7 @@ export default function TriviaGame() {
                     >
                       <div className="flex items-center gap-2 text-burgundy font-semibold text-sm">
                         <Trophy className="h-4 w-4 text-gold shrink-0" />
-                        <span>Add your name to the Family Leaderboard!</span>
+                        <span>{t.addNameToLeaderboard}</span>
                       </div>
                       <div className="mt-3 flex items-center gap-2">
                         <div className="relative flex-1">
@@ -503,7 +518,7 @@ export default function TriviaGame() {
                             type="text"
                             value={playerName}
                             onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="Your name or relation..."
+                            placeholder={t.playerNamePlaceholder}
                             maxLength={35}
                             required
                             className="w-full rounded-xl border border-warm-beige bg-warm-white px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:outline-hidden"
@@ -515,17 +530,18 @@ export default function TriviaGame() {
                           disabled={isSubmitting || !playerName.trim()}
                           className="rounded-xl bg-burgundy px-4 py-2.5 text-xs sm:text-sm font-semibold text-warm-white hover:bg-deep-burgundy transition-all disabled:opacity-50 shrink-0 cursor-pointer"
                         >
-                          {isSubmitting ? "Saving..." : "Submit Rank"}
+                          {isSubmitting ? (t.savingRank || "Saving...") : (t.submitRank || "Submit Rank")}
                         </button>
                       </div>
                     </form>
                   ) : (
                     <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 text-center shadow-2xs">
                       <p className="font-heading text-lg font-bold text-emerald-800">
-                        🎉 Rank #{userRank || 1} on the Board!
+                        {isTelugu ? `🎉 బోర్డులో మీ ర్యాంక్: #${userRank || 1}!` : `🎉 Rank #${userRank || 1} on the Board!`}
                       </p>
                       <p className="text-xs text-emerald-700 mt-0.5">
-                        Your score is locked in as <span className="font-semibold">{playerName}</span>!
+                        {isTelugu ? "మీ స్కోరు ఈ పేరుతో నమోదైంది: " : "Your score is locked in as "}
+                        <span className="font-semibold">{playerName}</span>!
                       </p>
                     </div>
                   )}
@@ -538,11 +554,11 @@ export default function TriviaGame() {
                       <div className="flex items-center gap-2">
                         <Medal className="h-5 w-5 text-gold" />
                         <h3 className="font-heading text-lg font-bold text-charcoal">
-                          Family Leaderboard
+                          {t.familyLeaderboard}
                         </h3>
                       </div>
                       <span className="text-[11px] font-semibold text-soft-brown/70 bg-champagne/60 px-2.5 py-0.5 rounded-full">
-                        {totalPlayers} {totalPlayers === 1 ? "player" : "players"}
+                        {totalPlayers} {totalPlayers === 1 ? t.playerSingle : t.playersCount}
                       </span>
                     </div>
 
@@ -569,7 +585,7 @@ export default function TriviaGame() {
                               </span>
                               {isCurrent && (
                                 <span className="text-[9px] font-semibold text-burgundy bg-peach-100 px-1.5 py-0.5 rounded-full shrink-0">
-                                  You
+                                  {isTelugu ? "మీరు" : "You"}
                                 </span>
                               )}
                             </div>
@@ -597,7 +613,7 @@ export default function TriviaGame() {
                   >
                     <div className="flex items-center gap-2">
                       <Eye className="h-4 w-4 text-burgundy" />
-                      <span>{showReview ? "Hide Your Locked Answers" : "Review All Answers & Memories (Read-only)"}</span>
+                      <span>{showReview ? (t.hideReviewButton || "Hide Your Locked Answers") : (t.reviewAnswersButton || "Review All Answers & Memories (Read-only)")}</span>
                     </div>
                     {showReview ? <ChevronUp className="h-4 w-4 text-soft-brown" /> : <ChevronDown className="h-4 w-4 text-soft-brown" />}
                   </button>
@@ -614,6 +630,10 @@ export default function TriviaGame() {
                           const chosenIdx = userAnswers[qIdx];
                           const hasChosen = chosenIdx !== undefined;
                           const wasCorrect = hasChosen && q.options[chosenIdx]?.isCorrect;
+                          const teRevQ = isTelugu ? triviaTelugu[q.id] : undefined;
+                          const revQuestion = teRevQ?.question || q.question;
+                          const revCategory = teRevQ?.category || q.category;
+                          const revExplanation = teRevQ?.explanation || q.explanation;
 
                           return (
                             <div
@@ -622,30 +642,31 @@ export default function TriviaGame() {
                             >
                               <div className="flex items-center justify-between border-b border-warm-beige/40 pb-2">
                                 <span className="text-[11px] font-semibold text-burgundy uppercase">
-                                  Question {qIdx + 1} • {q.category}
+                                  {isTelugu ? `${t.questionLabel} ${qIdx + 1}` : `Question ${qIdx + 1}`} • {revCategory}
                                 </span>
                                 {hasChosen ? (
                                   wasCorrect ? (
                                     <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                                      <CheckCircle2 className="h-3.5 w-3.5" /> Correct
+                                      <CheckCircle2 className="h-3.5 w-3.5" /> {isTelugu ? "సరిగ్గా సమాధానం ఇచ్చారు" : "Correct"}
                                     </span>
                                   ) : (
                                     <span className="inline-flex items-center gap-1 font-semibold text-rose-600">
-                                      <XCircle className="h-3.5 w-3.5" /> Missed
+                                      <XCircle className="h-3.5 w-3.5" /> {isTelugu ? "తప్పయింది" : "Missed"}
                                     </span>
                                   )
                                 ) : (
-                                  <span className="text-soft-brown/60">Unanswered</span>
+                                  <span className="text-soft-brown/60">{isTelugu ? "సమాధానం ఇవ్వలేదు" : "Unanswered"}</span>
                                 )}
                               </div>
 
                               <p className="mt-2 font-heading text-sm sm:text-base font-semibold text-charcoal">
-                                {q.question}
+                                {revQuestion}
                               </p>
 
                               <div className="mt-3 space-y-1.5">
                                 {q.options.map((opt, optIdx) => {
                                   const isSelectedByPlayer = chosenIdx === optIdx;
+                                  const optRevText = teRevQ?.options?.[optIdx] || opt.text;
                                   let rowStyle = "bg-champagne/10 border-warm-beige/30 text-charcoal/70";
 
                                   if (opt.isCorrect) {
@@ -659,15 +680,15 @@ export default function TriviaGame() {
                                       key={optIdx}
                                       className={`flex items-center justify-between rounded-xl border px-3 py-2 ${rowStyle}`}
                                     >
-                                      <span>{opt.text}</span>
+                                      <span>{optRevText}</span>
                                       {opt.isCorrect && (
                                         <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                                          ✓ Correct Answer
+                                          {isTelugu ? "✓ సరైన సమాధానం" : "✓ Correct Answer"}
                                         </span>
                                       )}
                                       {isSelectedByPlayer && !opt.isCorrect && (
                                         <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
-                                          Your Choice
+                                          {isTelugu ? "మీరు ఎంచుకున్నది" : "Your Choice"}
                                         </span>
                                       )}
                                     </div>
@@ -676,7 +697,7 @@ export default function TriviaGame() {
                               </div>
 
                               <p className="mt-2.5 text-[11px] leading-relaxed text-soft-brown border-t border-warm-beige/30 pt-2">
-                                💡 <span className="font-semibold">Memory note:</span> {q.explanation}
+                                💡 <span className="font-semibold">{isTelugu ? "జ్ఞాపకం:" : "Memory note:"}</span> {revExplanation}
                               </p>
                             </div>
                           );
@@ -690,14 +711,14 @@ export default function TriviaGame() {
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                   <div className="inline-flex items-center gap-2 rounded-full border border-warm-beige/80 bg-champagne/40 px-6 py-2.5 text-xs font-semibold text-soft-brown shadow-2xs">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Trivia Completed • Scores Locked</span>
+                    <span>{t.triviaCompletedPill || "Trivia Completed • Scores Locked"}</span>
                   </div>
                   <Link
                     href="/"
                     className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-charcoal shadow-2xs transition-all hover:bg-champagne/30 active:scale-95"
                   >
                     <Home className="h-4 w-4" />
-                    <span>Back to Anniversary Home</span>
+                    <span>{t.backHome || "Back to Anniversary Home"}</span>
                   </Link>
                 </div>
               </>

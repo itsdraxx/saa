@@ -6,11 +6,15 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import InstagramPostCard from "@/components/interactive/InstagramPostCard";
 import { instagramPosts } from "@/data/instagramPosts";
 import { Sparkles, Heart, Camera, Compass, Users, Flame } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations, storyHighlightsTelugu } from "@/data/translations";
 
 type FilterCategory = "all" | "wedding" | "family" | "travel" | "celebration";
 
 export default function TimelineSection() {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].timeline;
 
   const filteredPosts =
     activeCategory === "all"
@@ -19,12 +23,12 @@ export default function TimelineSection() {
 
   // Story highlights at the top
   const storyHighlights = [
-    { id: "post-2001", label: "Mandap 2001", emoji: "💍", category: "wedding" },
-    { id: "post-2002", label: "Baby Rahul", emoji: "👶", category: "family" },
-    { id: "post-2008", label: "Dream Home", emoji: "🏡", category: "milestone" },
-    { id: "post-2010", label: "Goa Beach", emoji: "🏖️", category: "travel" },
-    { id: "post-2017", label: "Shimla Snow", emoji: "❄️", category: "travel" },
-    { id: "post-2024", label: "Silver Jubilee", emoji: "🥂", category: "celebration" },
+    { id: "post-2001", label: isTelugu ? storyHighlightsTelugu["post-2001"] : "Mandap 2001", emoji: "💍", category: "wedding" },
+    { id: "post-2002", label: isTelugu ? storyHighlightsTelugu["post-2002"] : "Baby Rahul", emoji: "👶", category: "family" },
+    { id: "post-2008", label: isTelugu ? storyHighlightsTelugu["post-2008"] : "Dream Home", emoji: "🏡", category: "milestone" },
+    { id: "post-2010", label: isTelugu ? storyHighlightsTelugu["post-2010"] : "Goa Beach", emoji: "🏖️", category: "travel" },
+    { id: "post-2017", label: isTelugu ? storyHighlightsTelugu["post-2017"] : "Shimla Snow", emoji: "❄️", category: "travel" },
+    { id: "post-2024", label: isTelugu ? storyHighlightsTelugu["post-2024"] : "Silver Jubilee", emoji: "🥂", category: "celebration" },
   ];
 
   const handleStoryClick = (postId: string) => {
@@ -45,9 +49,9 @@ export default function TimelineSection() {
       <div className="mx-auto max-w-7xl">
         {/* Section Heading */}
         <SectionHeading
-          eyebrow="Chronicle of Love"
-          title="Our 25-Year Journey"
-          subtitle="Explore our family's photo feed — swipe through memories, double-tap to send love ❤️, and leave your blessings in the comments!"
+          eyebrow={t.chronicle || "Chronicle of Love"}
+          title={t.heading}
+          subtitle={t.subtitle}
         />
 
         {/* =========================================================
@@ -78,28 +82,28 @@ export default function TimelineSection() {
             ========================================================= */}
         <div className="mt-8 flex justify-center flex-wrap gap-1.5 sm:gap-2">
           {[
-            { id: "all", label: "All Posts", icon: Sparkles, count: instagramPosts.length },
+            { id: "all", label: t.filterAll, icon: Sparkles, count: instagramPosts.length },
             {
               id: "wedding",
-              label: "Wedding & Vows",
+              label: t.filterWedding,
               icon: Heart,
               count: instagramPosts.filter((p) => p.category === "wedding").length,
             },
             {
               id: "family",
-              label: "Family Moments",
+              label: t.filterFamily,
               icon: Users,
               count: instagramPosts.filter((p) => p.category === "family").length,
             },
             {
               id: "travel",
-              label: "Travels",
+              label: t.filterTravel,
               icon: Compass,
               count: instagramPosts.filter((p) => p.category === "travel").length,
             },
             {
               id: "celebration",
-              label: "Celebrations",
+              label: t.filterCelebration,
               icon: Flame,
               count: instagramPosts.filter((p) => p.category === "celebration").length,
             },
@@ -156,7 +160,7 @@ export default function TimelineSection() {
         <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-champagne/60 border border-warm-beige px-5 py-2 text-xs font-semibold text-soft-brown">
             <Camera className="h-4 w-4 text-burgundy" />
-            <span>You&apos;ve caught up with all 25 years of memories! ❤️</span>
+            <span>{t.caughtUp}</span>
           </div>
         </div>
       </div>

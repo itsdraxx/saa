@@ -5,9 +5,13 @@ import { motion } from "motion/react";
 import { Heart, Sparkles, Mail } from "lucide-react";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import ConfettiCelebration from "@/components/ui/ConfettiCelebration";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 
 export default function DedicationSection() {
   const [isUnsealed, setIsUnsealed] = useState(false);
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].dedication;
 
   return (
     <section id="dedication" className="relative w-full overflow-hidden bg-gradient-to-b from-champagne/40 via-peach-100/50 to-ivory py-32 px-4 text-center sm:px-6 lg:px-8">
@@ -37,11 +41,11 @@ export default function DedicationSection() {
         <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-warm-beige/80 bg-warm-white/95 px-6 py-2 shadow-sm backdrop-blur-md">
           <Sparkles className="h-4 w-4 text-gold animate-pulse" />
           <span className="font-heading text-xl font-bold text-burgundy">
-            <AnimatedCounter target={25} suffix=" Years" />
+            <AnimatedCounter target={25} suffix={isTelugu ? " సంవత్సరాలు" : " Years"} />
           </span>
           <span className="text-soft-brown">•</span>
           <span className="text-xs font-semibold tracking-wider text-soft-brown uppercase">
-            9,131 Days of Unconditional Love
+            {t.milestonePill || "9,131 Days of Unconditional Love"}
           </span>
           <Sparkles className="h-4 w-4 text-gold animate-pulse" />
         </div>
@@ -54,11 +58,11 @@ export default function DedicationSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mt-6 sm:mt-8 font-heading text-3xl sm:text-5xl md:text-6xl font-medium tracking-tight text-burgundy"
         >
-          To Bujji & Satya
+          {t.toCouple || "To Bujji & Satya"}
         </motion.h2>
 
         <p className="font-cursive mt-1.5 sm:mt-2 text-2xl sm:text-3xl md:text-4xl text-gold">
-          The heartbeat of our family
+          {t.heartbeatOfFamily || "The heartbeat of our family"}
         </p>
 
         {/* Interactive Wax Sealed Letter Experience */}
@@ -76,10 +80,10 @@ export default function DedicationSection() {
                   <Mail className="h-6 w-6 sm:h-7 sm:w-7" />
                 </div>
                 <h3 className="font-heading text-xl sm:text-2xl font-semibold text-charcoal">
-                  A Sealed Letter From Our Hearts
+                  {t.sealedLetterTitle || "A Sealed Letter From Our Hearts"}
                 </h3>
                 <p className="mt-1.5 sm:mt-2 text-xs font-medium text-soft-brown">
-                  Click the royal wax seal below to unseal our family&apos;s tribute to you.
+                  {t.sealedLetterPrompt || "Click the royal wax seal below to unseal our family's tribute to you."}
                 </p>
 
                 {/* 3D Wax Seal Button */}
@@ -95,7 +99,7 @@ export default function DedicationSection() {
                   <span className="font-serif text-base sm:text-lg font-bold tracking-wider">XXV</span>
                 </button>
                 <span className="mt-2.5 sm:mt-3 text-[10px] sm:text-[11px] font-semibold tracking-widest text-burgundy uppercase">
-                  Tap to Unseal Letter
+                  {t.tapToUnseal || "Tap to Unseal Letter"}
                 </span>
               </div>
             </motion.div>
@@ -118,26 +122,26 @@ export default function DedicationSection() {
               <span className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 text-xs sm:text-sm text-gold font-serif">✦</span>
 
               <p className="font-heading text-lg sm:text-2xl md:text-3xl font-normal leading-relaxed text-charcoal sm:leading-loose">
-                &ldquo;On 23 November 2001, you took your vows under the mandap, surrounded by the sweet scent of jasmine and the blessings of everyone who loved you. Every day since, through quiet dawns, bustling evenings, shared sacrifices, and joyous feasts, you continued to choose love, patience, and each other.&rdquo;
+                &ldquo;{t.letterP1}&rdquo;
               </p>
 
               <p className="mt-4 sm:mt-6 font-body text-xs sm:text-base md:text-lg leading-relaxed text-soft-brown">
-                This website is our family&apos;s humble tribute to the beautiful world you created from that single day in 2001. Thank you for giving us a home overflowing with warmth, laughter, wisdom, and an unbreakable foundation. You have shown us what true, enduring love looks like.
+                {t.letterP2}
               </p>
 
               {/* Signature Block */}
               <div className="mt-8 sm:mt-10 border-t border-warm-beige/80 pt-6 sm:pt-8">
                 <p className="font-cursive text-2xl sm:text-4xl md:text-5xl text-burgundy">
-                  Happy 25th Silver Anniversary, Bujji & Satya
+                  {t.happyAnniversary || "Happy 25th Silver Anniversary, Bujji & Satya"}
                 </p>
                 <p className="mt-2 sm:mt-3 font-body text-[10px] sm:text-xs font-bold tracking-widest text-soft-brown uppercase">
-                  With all our love, forever and always,
+                  {t.foreverAndAlways || "With all our love, forever and always,"}
                 </p>
                 <p className="font-heading mt-1 text-2xl sm:text-3xl font-bold text-charcoal">
-                  Your Family ❤️
+                  {t.yourFamily || "Your Family ❤️"}
                 </p>
                 <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-soft-brown">
-                  Bujji Weds Satya • 25 Years of Love
+                  {t.taglineLetter || "Bujji Weds Satya • 25 Years of Love"}
                 </p>
               </div>
 

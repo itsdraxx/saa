@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { X, ArrowRight, User } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface InstagramNameModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function InstagramNameModal({
   onSubmitName,
   initialName = "",
 }: InstagramNameModalProps) {
+  const { isTelugu } = useLanguage();
   const [nameInput, setNameInput] = useState(initialName);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -99,10 +101,12 @@ export default function InstagramNameModal({
 
             {/* Heading */}
             <h3 className="mt-4 font-heading text-xl sm:text-2xl font-bold text-charcoal">
-              Welcome to the Family!
+              {isTelugu ? "కుటుంబంలోకి స్వాగతం!" : "Welcome to the Family!"}
             </h3>
             <p className="mt-1 text-xs text-soft-brown leading-relaxed px-2">
-              Please enter your name or family relation so Bujji & Satya know who left these loving blessings ❤️
+              {isTelugu
+                ? "బుజ్జి & సత్య దంపతులకు మీ ఆశీస్సులు ఎవరు అందజేశారో తెలిసేలా దయచేసి మీ పేరు లేదా బంధుత్వాన్ని నమోదు చేయండి ❤️"
+                : "Please enter your name or family relation so Bujji & Satya know who left these loving blessings ❤️"}
             </p>
 
             {/* Form */}
@@ -116,7 +120,7 @@ export default function InstagramNameModal({
                     setNameInput(e.target.value);
                     if (error) setError("");
                   }}
-                  placeholder="e.g. Ramesh, Priya, Kiran Uncle..."
+                  placeholder={isTelugu ? "ఉదా: రమేష్, ప్రియ, కిరణ్ అంకుల్..." : "e.g. Ramesh, Priya, Kiran Uncle..."}
                   maxLength={40}
                   className="w-full rounded-2xl border-2 border-warm-beige bg-champagne/30 px-4 py-3 text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:bg-warm-white focus:outline-hidden transition-all shadow-inner"
                 />
@@ -133,13 +137,15 @@ export default function InstagramNameModal({
                 type="submit"
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-burgundy via-deep-burgundy to-burgundy py-3 px-5 text-sm font-semibold tracking-wide text-warm-white shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-lg active:scale-98 cursor-pointer"
               >
-                <span>Continue to Comments</span>
+                <span>{isTelugu ? "కామెంట్లకు కొనసాగండి" : "Continue to Comments"}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>
 
             <p className="mt-3.5 text-[10px] text-soft-brown/60">
-              You only need to enter this once — it will be remembered for all memories!
+              {isTelugu
+                ? "ఒక్కసారి మాత్రమే నమోదు చేయాలి — అన్ని జ్ఞాపకాలకు ఇది గుర్తుండిపోతుంది!"
+                : "You only need to enter this once — it will be remembered for all memories!"}
             </p>
           </motion.div>
         </div>

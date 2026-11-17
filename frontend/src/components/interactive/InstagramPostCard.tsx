@@ -20,6 +20,8 @@ import {
 import type { InstagramPost, InstagramComment } from "@/data/instagramPosts";
 import InstagramCommentsSheet from "./InstagramCommentsSheet";
 import InstagramNameModal from "./InstagramNameModal";
+import { useLanguage } from "@/context/LanguageContext";
+import { instagramPostsTelugu } from "@/data/translations";
 import {
   fetchComments,
   postComment,
@@ -59,6 +61,21 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
   // Caption expanded state
   const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
+
+  const { isTelugu } = useLanguage();
+  const tePost = isTelugu ? instagramPostsTelugu[post.id] : undefined;
+  const displayTitle = tePost?.title || post.title;
+  const displayCaption = tePost?.caption || post.caption;
+  const displayLocation = tePost?.location || post.location;
+
+  const categoryMapTelugu: Record<string, string> = {
+    wedding: "వివాహం",
+    family: "కుటుంబం",
+    travel: "ప్రయాణం",
+    celebration: "వేడుక",
+    milestone: "మైలురాయి",
+  };
+  const displayCategory = isTelugu ? (categoryMapTelugu[post.category] || post.category) : post.category;
 
   const lastTapRef = useRef<number>(0);
 
@@ -391,7 +408,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
               <div className="flex items-center gap-1 text-[11px] text-soft-brown/80 mt-0.5">
                 <MapPin className="h-3 w-3 text-burgundy shrink-0" />
                 <span className="truncate max-w-[200px] sm:max-w-[260px]">
-                  {post.location}
+                  {displayLocation}
                 </span>
               </div>
             </div>
@@ -399,7 +416,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
           {/* Category Pill Tag */}
           <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-burgundy bg-champagne/80 border border-warm-beige px-2.5 py-1 rounded-full capitalize">
-            {post.category}
+            {displayCategory}
           </span>
         </header>
 
@@ -599,7 +616,9 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         <div className="px-3.5 sm:px-4 text-left pb-3">
           {/* Likes Count */}
           <p className="font-sans text-xs sm:text-sm font-bold text-charcoal">
-            {likesCount === 1 ? "1 like" : `${likesCount.toLocaleString()} likes`}
+            {likesCount === 1
+              ? (isTelugu ? "1 లైక్" : "1 like")
+              : (isTelugu ? `${likesCount.toLocaleString()} లైకులు` : `${likesCount.toLocaleString()} likes`)}
           </p>
 
           {/* Caption Description */}
@@ -608,20 +627,20 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
               bujji_weds_satya
             </span>
             <span className="font-semibold text-burgundy mr-1">
-              {post.title} —
+              {displayTitle} —
             </span>
             <span>
               {isCaptionExpanded
-                ? post.caption
-                : post.caption.slice(0, 115) + (post.caption.length > 115 ? "..." : "")}
+                ? displayCaption
+                : displayCaption.slice(0, 115) + (displayCaption.length > 115 ? "..." : "")}
             </span>
 
-            {post.caption.length > 115 && (
+            {displayCaption.length > 115 && (
               <button
                 onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
                 className="ml-1 text-xs font-medium text-soft-brown/70 hover:text-burgundy cursor-pointer"
               >
-                {isCaptionExpanded ? "less" : "more"}
+                {isCaptionExpanded ? (isTelugu ? "తక్కువ" : "less") : (isTelugu ? "ఇంకా..." : "more")}
               </button>
             )}
           </div>
@@ -649,7 +668,9 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                 className="text-xs font-semibold text-soft-brown/70 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
               >
                 <span>
-                  View all {comments.length} {comments.length === 1 ? "comment" : "comments"}
+                  {isTelugu
+                    ? `అన్ని ${comments.length} కామెంట్లు చూడండి`
+                    : `View all ${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
                 </span>
               </button>
             ) : (
@@ -657,7 +678,11 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                 onClick={handleOpenCommentsFlow}
                 className="text-xs font-medium text-soft-brown/60 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
               >
-                <span>No comments yet. Be the first to comment...</span>
+                <span>
+                  {isTelugu
+                    ? "ఇంకా కామెంట్లు లేవు. మొదటి కామెంట్ మీరే రాయండి..."
+                    : "No comments yet. Be the first to comment..."}
+                </span>
               </button>
             )}
 
@@ -674,6 +699,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                       <span className="font-bold text-charcoal mr-1.5">
                         {comment.username}
                       </span>
+                      {/* USER COMMENT TEXT REMAINS STRICTLY UNTOUCHED AS REQUESTED */}
                       <span className="text-charcoal/90">{comment.text}</span>
                     </div>
                   </div>
@@ -687,7 +713,9 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
               className="mt-2.5 flex items-center justify-between rounded-full bg-champagne/40 border border-warm-beige/70 px-3.5 py-2 cursor-pointer hover:bg-champagne/70 transition-all text-soft-brown/60 text-xs"
             >
               <span className="truncate">
-                {userName ? `Add a comment as ${userName}...` : "Add a comment for Bujji & Satya..."}
+                {userName
+                  ? (isTelugu ? `${userName} గా మీ కామెంట్ రాయండి...` : `Add a comment as ${userName}...`)
+                  : (isTelugu ? "బుజ్జి & సత్య దంపతులకు మీ శుభాకాంక్షలు తెలపండి..." : "Add a comment for Bujji & Satya...")}
               </span>
               <span className="text-sm">❤️</span>
             </div>

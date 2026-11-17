@@ -4,8 +4,13 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import PetalShower from "@/components/ui/PetalShower";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 
 export default function HeroSection() {
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].hero;
+
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col items-center justify-between overflow-hidden px-3 pt-20 pb-2 sm:px-6 sm:pt-24 sm:pb-3">
       {/* 1. Real South Indian Golden Mandap Setting Background */}
@@ -36,9 +41,9 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="font-heading text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] text-[#8B1E28] uppercase drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]"
+          className="font-heading text-[11px] sm:text-xs md:text-sm font-semibold tracking-[0.2em] text-[#8B1E28] uppercase drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]"
         >
-          Celebrating 25 Years of Togetherness
+          {isTelugu ? "25 సంవత్సరాల అనుబంధ వేడుక" : "Celebrating 25 Years of Togetherness"}
         </motion.p>
 
         {/* Decorative Top Flourish Line */}
@@ -60,7 +65,7 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 0.15 }}
           className="font-heading text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#6D121B] leading-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)]"
         >
-          Bujji Weds Satya
+          {isTelugu ? `${t.titleBride} వెడ్స్ ${t.titleGroom}` : "Bujji Weds Satya"}
         </motion.h1>
 
         {/* Decorative Bottom Flourish Line */}
@@ -82,7 +87,8 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 0.25 }}
           className="font-heading text-xl xs:text-2xl sm:text-3xl md:text-4xl italic text-[#8B1E28] font-medium drop-shadow-[0_1px_6px_rgba(255,255,255,0.7)]"
         >
-          25 Years of Love <span className="inline-block text-red-600 not-italic">❤️</span>
+          {isTelugu ? "25 సంవత్సరాల ప్రేమ" : "25 Years of Love"}{" "}
+          <span className="inline-block text-red-600 not-italic">❤️</span>
         </motion.h2>
       </div>
 
@@ -131,7 +137,7 @@ export default function HeroSection() {
         }}
       >
         <span className="text-[9px] sm:text-[10px] font-bold tracking-widest text-white uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-          Explore Our Story
+          {isTelugu ? "మన కథను చూడండి" : "Explore Our Story"}
         </span>
         <motion.div
           animate={{ y: [0, 3, 0] }}

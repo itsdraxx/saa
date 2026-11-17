@@ -6,6 +6,8 @@ import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { triviaQuestions } from "@/data/trivia";
 import { CheckCircle2, XCircle, ArrowRight, HelpCircle, Trophy, Lock } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations, triviaTelugu } from "@/data/translations";
 
 export default function TriviaPreview() {
   const sampleQuestion = triviaQuestions[2] || triviaQuestions[0]; // The funny restaurant question!
@@ -13,6 +15,13 @@ export default function TriviaPreview() {
   const [answered, setAnswered] = useState(false);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [completedScore, setCompletedScore] = useState<number | null>(null);
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].trivia;
+
+  const teQ = isTelugu ? triviaTelugu[sampleQuestion.id] : undefined;
+  const displayQuestion = teQ?.question || sampleQuestion.question;
+  const displayCategory = teQ?.category || sampleQuestion.category;
+  const displayExplanation = teQ?.explanation || sampleQuestion.explanation;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,8 +59,8 @@ export default function TriviaPreview() {
     <section id="trivia" className="w-full bg-champagne/30 py-24 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl text-center">
         <SectionHeading
-          title="Family Trivia"
-          subtitle="Think you know the anniversary couple best? Take a guess at this memory, then challenge yourself with the full quiz!"
+          title={t.previewHeading}
+          subtitle={t.previewSubtitle}
         />
 
         {/* Quiz Sample Card */}
@@ -65,29 +74,30 @@ export default function TriviaPreview() {
           <div className="flex items-center justify-between border-b border-warm-beige/60 pb-4">
             <div className="flex items-center gap-2 text-xs font-semibold text-burgundy uppercase tracking-wider">
               <HelpCircle className="h-4 w-4" />
-              <span>Sample Question • {sampleQuestion.category}</span>
+              <span>{t.sampleTag || "Sample Question"} • {displayCategory}</span>
             </div>
             <div className="flex items-center gap-2">
               {answered && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-warm-beige/40 px-2.5 py-0.5 text-[11px] font-semibold text-soft-brown">
-                  <Lock className="h-3 w-3" /> Locked
+                  <Lock className="h-3 w-3" /> {t.lockedBadge || "Locked"}
                 </span>
               )}
               <span className="rounded-full bg-champagne/70 px-3 py-1 text-xs text-soft-brown">
-                1 of {triviaQuestions.length} Questions
+                {isTelugu ? `${triviaQuestions.length} ప్రశ్నలలో 1వది` : `1 of ${triviaQuestions.length} Questions`}
               </span>
             </div>
           </div>
 
           {/* Question Title */}
           <h3 className="mt-6 font-heading text-2xl font-semibold text-charcoal sm:text-3xl">
-            {sampleQuestion.question}
+            {displayQuestion}
           </h3>
 
           {/* Options */}
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {sampleQuestion.options.map((option, index) => {
               const isSelected = selectedOption === index;
+              const optionText = teQ?.options?.[index] || option.text;
               let btnClass = "border-warm-beige bg-warm-white text-charcoal hover:border-gold hover:bg-champagne/20 cursor-pointer";
 
               if (answered) {
@@ -108,7 +118,7 @@ export default function TriviaPreview() {
                   disabled={answered}
                   className={`flex items-center justify-between rounded-2xl border-2 p-4 text-left font-body text-sm font-medium transition-all duration-200 ${btnClass}`}
                 >
-                  <span>{option.text}</span>
+                  <span>{optionText}</span>
                   {answered && option.isCorrect && (
                     <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                   )}
@@ -132,11 +142,11 @@ export default function TriviaPreview() {
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{isCorrect ? "🎉" : "😅"}</span>
                   <p className="font-heading text-lg font-semibold text-burgundy">
-                    {isCorrect ? "Spot on!" : "Nice try!"}
+                    {isCorrect ? (isTelugu ? "సరైన సమాధానం!" : "Spot on!") : (isTelugu ? "మంచి ప్రయత్నం!" : "Nice try!")}
                   </p>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-soft-brown">
-                  {sampleQuestion.explanation}
+                  {displayExplanation}
                 </p>
               </motion.div>
             )}
@@ -148,7 +158,11 @@ export default function TriviaPreview() {
           {isQuizCompleted && completedScore !== null && (
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50/90 px-4 py-1.5 text-xs font-semibold text-emerald-900 shadow-2xs">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              <span>You answered the Family Trivia! Score: {completedScore}/{triviaQuestions.length}</span>
+              <span>
+                {isTelugu
+                  ? `మీరు ఫ్యామిలీ ట్రివియా పూర్తి చేశారు! స్కోరు: ${completedScore}/${triviaQuestions.length}`
+                  : `You answered the Family Trivia! Score: ${completedScore}/${triviaQuestions.length}`}
+              </span>
             </div>
           )}
 
@@ -159,8 +173,12 @@ export default function TriviaPreview() {
             <Trophy className="h-4 w-4 text-gold" />
             <span>
               {isQuizCompleted
-                ? `View Your Quiz Score & Leaderboard (${completedScore ?? "?"}/${triviaQuestions.length})`
-                : `Play the Full Family Quiz (${triviaQuestions.length} Questions)`}
+                ? (isTelugu
+                    ? `మీ క్విజ్ స్కోరు & లీడర్‌బోర్డ్ చూడండి (${completedScore ?? "?"}/${triviaQuestions.length})`
+                    : `View Your Quiz Score & Leaderboard (${completedScore ?? "?"}/${triviaQuestions.length})`)
+                : (isTelugu
+                    ? `మొత్తం ఫ్యామిలీ క్విజ్ ఆడండి (${triviaQuestions.length} ప్రశ్నలు)`
+                    : `Play the Full Family Quiz (${triviaQuestions.length} Questions)`)}
             </span>
             <ArrowRight className="h-4 w-4" />
           </Link>

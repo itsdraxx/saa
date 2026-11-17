@@ -3,6 +3,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { motion } from "motion/react";
 import { Heart, Clock, Coffee, Sparkles } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 
 interface LoveClockProps {
   weddingDate?: string;
@@ -49,11 +51,14 @@ export default function LoveClock({
     return () => clearInterval(interval);
   }, [weddingDate]);
 
+  const { language } = useLanguage();
+  const t = translations[language].counter;
+
   const units = [
-    { label: "Days of Love", value: elapsed.days.toLocaleString() },
-    { label: "Hours", value: String(elapsed.hours).padStart(2, "0") },
-    { label: "Minutes", value: String(elapsed.minutes).padStart(2, "0") },
-    { label: "Seconds", value: String(elapsed.seconds).padStart(2, "0"), isLive: true },
+    { label: t.daysOfLove || t.days, value: elapsed.days.toLocaleString() },
+    { label: t.hours, value: String(elapsed.hours).padStart(2, "0") },
+    { label: t.minutes, value: String(elapsed.minutes).padStart(2, "0") },
+    { label: t.seconds, value: String(elapsed.seconds).padStart(2, "0"), isLive: true },
   ];
 
   const isLeft = align === "left";
@@ -64,7 +69,7 @@ export default function LoveClock({
       <div className={`mb-3.5 flex items-center gap-2 ${isLeft ? "justify-center lg:justify-start" : "justify-center"}`}>
         <Sparkles className="h-3.5 w-3.5 text-peach-500 animate-pulse" />
         <span className="font-body text-xs font-bold tracking-widest text-burgundy uppercase">
-          Live Journey Counter • Every Second of 25 Years
+          {t.liveTicker}
         </span>
         <Sparkles className="h-3.5 w-3.5 text-peach-500 animate-pulse" />
       </div>
@@ -73,7 +78,7 @@ export default function LoveClock({
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3.5">
         {units.map((unit, idx) => (
           <motion.div
-            key={unit.label}
+            key={idx}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * idx, duration: 0.5 }}
@@ -103,21 +108,21 @@ export default function LoveClock({
             <strong className="text-burgundy font-bold">
               {mounted ? (elapsed.heartbeats / 1000000).toFixed(1) : "950"}M+
             </strong>{" "}
-            Heartbeats Shared
+            {t.heartbeatsShared}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 rounded-full border border-peach-200/90 bg-warm-white/95 px-3.5 py-1 text-[#542B24] shadow-2xs">
           <Coffee className="h-3.5 w-3.5 text-peach-600" />
           <span>
-            <strong className="text-burgundy font-bold">18,250+</strong> Chais
+            <strong className="text-burgundy font-bold">18,250+</strong> {t.chais}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 rounded-full border border-peach-200/90 bg-warm-white/95 px-3.5 py-1 text-[#542B24] shadow-2xs">
           <Clock className="h-3.5 w-3.5 text-gold" />
           <span>
-            <strong className="text-burgundy font-bold">1</strong> Unbreakable Bond
+            <strong className="text-burgundy font-bold">1</strong> {t.unbreakableBond}
           </span>
         </div>
       </div>

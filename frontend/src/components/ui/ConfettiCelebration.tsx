@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Sparkles, PartyPopper } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ConfettiPiece {
   x: number;
@@ -28,6 +29,7 @@ const CONFETTI_COLORS = [
 ];
 
 export default function ConfettiCelebration() {
+  const { isTelugu } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isFiring, setIsFiring] = useState(false);
   const piecesRef = useRef<ConfettiPiece[]>([]);
@@ -153,7 +155,7 @@ export default function ConfettiCelebration() {
       >
         <span className="absolute inset-0 bg-gradient-to-r from-warm-white/0 via-warm-white/25 to-warm-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <PartyPopper className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-        <span>Celebrate 25 Years 🎉</span>
+        <span>{isTelugu ? "25 ఏళ్ల సంబరం జరుపుకోండి 🎉" : "Celebrate 25 Years 🎉"}</span>
         <Sparkles className="h-3.5 w-3.5 text-peach-200" />
       </button>
     </>

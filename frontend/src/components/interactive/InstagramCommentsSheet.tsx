@@ -5,6 +5,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Heart, CheckCircle2, Check, User, Sparkles, Trash2 } from "lucide-react";
 import type { InstagramPost, InstagramComment } from "@/data/instagramPosts";
+import { useLanguage } from "@/context/LanguageContext";
+import { instagramPostsTelugu } from "@/data/translations";
 
 interface InstagramCommentsSheetProps {
   isOpen: boolean;
@@ -27,6 +29,10 @@ export default function InstagramCommentsSheet({
   currentUserName,
   onOpenNameModal,
 }: InstagramCommentsSheetProps) {
+  const { isTelugu } = useLanguage();
+  const tePost = isTelugu ? instagramPostsTelugu[post.id] : undefined;
+  const displayCaption = tePost?.caption || post.caption;
+
   const [commentText, setCommentText] = useState("");
   const [commentLikes, setCommentLikes] = useState<Record<string, boolean>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
@@ -157,10 +163,10 @@ export default function InstagramCommentsSheet({
               <div className="w-8" /> {/* spacer to center title */}
               <div className="flex flex-col items-center text-center">
                 <h3 className="font-sans text-sm sm:text-base font-bold text-charcoal tracking-tight">
-                  Comments
+                  {isTelugu ? "కామెంట్లు" : "Comments"}
                 </h3>
                 <span className="text-[11px] text-soft-brown/70 font-medium">
-                  {comments.length} {comments.length === 1 ? "comment" : "comments"}
+                  {comments.length} {comments.length === 1 ? (isTelugu ? "కామెంట్" : "comment") : (isTelugu ? "కామెంట్లు" : "comments")}
                 </span>
               </div>
               <button
@@ -200,7 +206,7 @@ export default function InstagramCommentsSheet({
                     <CheckCircle2 className="h-3.5 w-3.5 fill-[#0095F6] text-white shrink-0" />
                     <span className="text-[10px] text-soft-brown/60">•</span>
                     <span className="text-[10px] font-semibold text-burgundy bg-peach-100/80 px-2 py-0.2 rounded-full">
-                      Author
+                      {isTelugu ? "రచయిత" : "Author"}
                     </span>
                   </div>
 
@@ -208,7 +214,7 @@ export default function InstagramCommentsSheet({
                     <span className="font-semibold text-burgundy mr-1">
                       {post.title} —
                     </span>
-                    {post.caption}
+                    <span>{displayCaption}</span>
                   </p>
 
                   <div className="mt-1.5 flex items-center gap-3 text-[11px] text-soft-brown/70 font-medium">
@@ -272,7 +278,7 @@ export default function InstagramCommentsSheet({
                             <span>{comment.timestamp}</span>
                             {extraLikes > 0 && (
                               <span className="font-semibold text-burgundy">
-                                {extraLikes} {extraLikes === 1 ? "like" : "likes"}
+                                {extraLikes} {extraLikes === 1 ? (isTelugu ? "లైక్" : "like") : (isTelugu ? "లైకులు" : "likes")}
                               </span>
                             )}
                             <button
@@ -283,7 +289,7 @@ export default function InstagramCommentsSheet({
                               }}
                               className="font-semibold hover:text-charcoal cursor-pointer"
                             >
-                              Reply
+                              {isTelugu ? "స్పందించండి" : "Reply"}
                             </button>
                           </div>
                         </div>
@@ -369,8 +375,8 @@ export default function InstagramCommentsSheet({
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder={
                     currentUserName
-                      ? `Add a comment as ${currentUserName}...`
-                      : "Add a comment..."
+                      ? (isTelugu ? `${currentUserName} గా కామెంట్ రాయండి...` : `Add a comment as ${currentUserName}...`)
+                      : (isTelugu ? "కామెంట్ రాయండి..." : "Add a comment...")
                   }
                   className="w-full text-xs sm:text-sm bg-transparent border-none text-charcoal placeholder:text-soft-brown/50 focus:outline-hidden pr-2"
                 />
@@ -384,10 +390,10 @@ export default function InstagramCommentsSheet({
               >
                 {justPosted ? (
                   <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
-                    <Check className="h-3.5 w-3.5" /> Posted
+                    <Check className="h-3.5 w-3.5" /> {isTelugu ? "పోస్ట్ అయింది" : "Posted"}
                   </span>
                 ) : (
-                  <span>Post</span>
+                  <span>{isTelugu ? "పోస్ట్ చేయండి" : "Post"}</span>
                 )}
               </button>
             </form>

@@ -8,18 +8,20 @@ import Lightbox from "@/components/ui/Lightbox";
 import { galleryItems } from "@/data/gallery";
 import type { GalleryCategory } from "@/lib/types";
 import { ArrowLeft, Camera } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
-const CATEGORIES: { label: string; value: "all" | GalleryCategory }[] = [
-  { label: "All Memories", value: "all" },
-  { label: "Wedding Day", value: "wedding-day" },
-  { label: "Early Years", value: "early-years" },
-  { label: "Family", value: "family" },
-  { label: "Celebrations", value: "celebrations" },
-  { label: "Travels", value: "travels" },
-  { label: "Everyday Moments", value: "everyday" },
+const CATEGORIES: { label: string; labelTe: string; value: "all" | GalleryCategory }[] = [
+  { label: "All Memories", labelTe: "అన్ని జ్ఞాపకాలు", value: "all" },
+  { label: "Wedding Day", labelTe: "పెళ్లి రోజు", value: "wedding-day" },
+  { label: "Early Years", labelTe: "తొలినాళ్లు", value: "early-years" },
+  { label: "Family", labelTe: "కుటుంబం", value: "family" },
+  { label: "Celebrations", labelTe: "వేడుకలు", value: "celebrations" },
+  { label: "Travels", labelTe: "ప్రయాణాలు", value: "travels" },
+  { label: "Everyday Moments", labelTe: "రోజువారీ ముచ్చట్లు", value: "everyday" },
 ];
 
 export default function GalleryPage() {
+  const { isTelugu } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<"all" | GalleryCategory>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -37,13 +39,17 @@ export default function GalleryPage() {
             className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-5 py-2 text-xs font-medium text-charcoal shadow-2xs transition-all hover:bg-champagne/40 active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Anniversary Home</span>
+            <span>{isTelugu ? "తిరిగి హోమ్‌కి వెళ్ళండి" : "Back to Anniversary Home"}</span>
           </Link>
         </div>
 
         <SectionHeading
-          title="The Complete Memory Gallery"
-          subtitle="Explore twenty-five years of cherished photographs, sorted across every major chapter of Mom and Dad's life together."
+          title={isTelugu ? "మధుర జ్ఞాపకాల సంపూర్ణ గ్యాలరీ" : "The Complete Memory Gallery"}
+          subtitle={
+            isTelugu
+              ? "అమ్మ, నాన్నల 25 సంవత్సరాల జీవిత ప్రయాణంలోని అందమైన ఫోటోల సంకలనం."
+              : "Explore twenty-five years of cherished photographs, sorted across every major chapter of Mom and Dad's life together."
+          }
         />
 
         {/* Category Filters */}
@@ -55,13 +61,13 @@ export default function GalleryPage() {
                 key={cat.value}
                 type="button"
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-all duration-300 ${
+                className={`rounded-full px-5 py-2 text-xs font-semibold tracking-wide transition-all duration-300 cursor-pointer ${
                   isActive
                     ? "bg-burgundy text-warm-white shadow-md scale-105"
                     : "border border-warm-beige bg-warm-white text-soft-brown hover:border-gold hover:text-charcoal"
                 }`}
               >
-                {cat.label}
+                {isTelugu ? cat.labelTe : cat.label}
               </button>
             );
           })}
@@ -69,7 +75,11 @@ export default function GalleryPage() {
 
         {/* Items Count Badge */}
         <div className="mt-6 text-center text-xs text-soft-brown">
-          Showing <strong>{filteredItems.length}</strong> photographs
+          {isTelugu ? (
+            <>మొత్తం <strong>{filteredItems.length}</strong> ఫోటోలు కనిపిస్తున్నాయి</>
+          ) : (
+            <>Showing <strong>{filteredItems.length}</strong> photographs</>
+          )}
         </div>
 
         {/* Gallery Grid */}

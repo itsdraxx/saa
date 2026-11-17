@@ -7,17 +7,21 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Lightbox from "@/components/ui/Lightbox";
 import { galleryItems } from "@/data/gallery";
 import { ArrowRight, Camera, Image as ImageIcon } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/data/translations";
 
 export default function GalleryPreview() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const { language, isTelugu } = useLanguage();
+  const t = translations[language].gallery;
   const previewItems = galleryItems.slice(0, 6);
 
   return (
     <section id="gallery" className="w-full bg-champagne/30 pt-10 pb-10 sm:pt-14 sm:pb-14 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          title="Memory Gallery"
-          subtitle="A glimpse into 25 years of stolen moments, festive celebrations, quiet smiles, and extraordinary travels."
+          title={t.heading}
+          subtitle={t.subtitle}
         />
 
         {/* Photo Grid */}
@@ -68,7 +72,7 @@ export default function GalleryPreview() {
             className="inline-flex items-center gap-2 rounded-full border border-burgundy bg-warm-white px-8 py-3.5 text-sm font-medium text-burgundy shadow-sm transition-all duration-300 hover:bg-burgundy hover:text-warm-white hover:shadow-md active:scale-95"
           >
             <ImageIcon className="h-4 w-4" />
-            <span>Explore All {galleryItems.length} Photographs</span>
+            <span>{isTelugu ? `అన్ని ${galleryItems.length} ఫోటోలను చూడండి` : `Explore All ${galleryItems.length} Photographs`}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
