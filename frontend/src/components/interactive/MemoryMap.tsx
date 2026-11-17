@@ -18,8 +18,8 @@ import type * as maplibreglType from "maplibre-gl";
 export default function MemoryMap() {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [is3D, setIs3D] = useState(false);
-  const is3DRef = useRef(false);
+  const [is3D, setIs3D] = useState(true);
+  const is3DRef = useRef(true);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibreglType.Map | null>(null);
@@ -259,10 +259,10 @@ export default function MemoryMap() {
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: "https://tiles.openfreemap.org/styles/bright",
-        center: [mapLocations[0].lng, mapLocations[0].lat - 0.008],
+        center: [mapLocations[0].lng, mapLocations[0].lat - 0.012],
         zoom: 13,
-        pitch: is3DRef.current ? 58 : 0,
-        bearing: is3DRef.current ? -20 : 0,
+        pitch: 58,
+        bearing: -20,
         attributionControl: false,
       });
 
