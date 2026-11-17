@@ -18,6 +18,8 @@ import type * as maplibreglType from "maplibre-gl";
 export default function MemoryMap() {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [is3D, setIs3D] = useState(false);
+  const is3DRef = useRef(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibreglType.Map | null>(null);
@@ -206,11 +208,16 @@ export default function MemoryMap() {
     (loc: MapLocation) => {
       setSelectedLocation(loc);
 
+      const current3D = is3DRef.current;
+
       // Smoothly fly camera to pinned destination with close-up zoom (level 13)
+      // Preserves 3D perspective pitch if 3D mode is active
       if (mapInstanceRef.current) {
         mapInstanceRef.current.flyTo({
-          center: [loc.lng, loc.lat - 0.008],
+          center: [loc.lng, loc.lat - (current3D ? 0.012 : 0.008)],
           zoom: 13,
+          pitch: current3D ? 58 : 0,
+          bearing: current3D ? -20 : 0,
           duration: 1400,
           essential: true,
         });
@@ -243,12 +250,19 @@ export default function MemoryMap() {
 
       maplibreModuleRef.current = maplibregl;
 
+      // Explicitly set local worker URL so browser loads the MapLibre Web Worker without errors
+      if (typeof maplibregl.setWorkerUrl === "function") {
+        maplibregl.setWorkerUrl("/maplibre-gl-worker.mjs");
+      }
+
       // OpenFreeMap Bright vector style URL (100% free, no API keys)
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: "https://tiles.openfreemap.org/styles/bright",
         center: [mapLocations[0].lng, mapLocations[0].lat - 0.008],
         zoom: 13,
+        pitch: is3DRef.current ? 58 : 0,
+        bearing: is3DRef.current ? -20 : 0,
         attributionControl: false,
       });
 
@@ -275,6 +289,21 @@ export default function MemoryMap() {
     handleSelectLocationRef.current = handleSelectLocation;
   }, [handleSelectLocation]);
 
+  // Toggle 3D Bird's-Eye Perspective View
+  const toggle3D = () => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const nextState = !is3D;
+    setIs3D(nextState);
+    is3DRef.current = nextState;
+
+    map.easeTo({
+      pitch: nextState ? 58 : 0,
+      bearing: nextState ? -20 : 0,
+      duration: 1000,
+    });
+  };
+
   // Handle previous/next navigation
   const handleNavigate = (direction: "prev" | "next") => {
     const currentIndex = mapLocations.findIndex((l) => l.id === selectedLocation.id);
@@ -292,9 +321,13 @@ export default function MemoryMap() {
     mapInstanceRef.current?.zoomOut({ duration: 300 });
   };
   const handleResetOverview = () => {
+    setIs3D(false);
+    is3DRef.current = false;
     mapInstanceRef.current?.flyTo({
       center: [78.9629, 20.5937],
       zoom: 4.8,
+      pitch: 0,
+      bearing: 0,
       duration: 1400,
       essential: true,
     });
@@ -329,17 +362,39 @@ export default function MemoryMap() {
               <MapPin className="h-4 w-4" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy">
-                Destination {currentIndex + 1} of {mapLocations.length}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy">
+                  Destination {currentIndex + 1} of {mapLocations.length}
+                </span>
+                {is3D && (
+                  <span className="rounded-full bg-burgundy/15 px-1.5 py-0.2 text-[8.5px] font-black text-burgundy tracking-wider uppercase">
+                    3D
+                  </span>
+                )}
+              </div>
               <span className="max-w-[130px] xs:max-w-[180px] sm:max-w-[240px] truncate text-xs sm:text-sm font-semibold text-charcoal">
                 {selectedLocation.name}
               </span>
             </div>
           </div>
 
-          {/* Right: Apple Maps Floating Glass Tool Stack (+, -, Overview) */}
+          {/* Right: Apple Maps Floating Glass Tool Stack (3D, +, -, Overview) */}
           <div className="pointer-events-auto flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl backdrop-blur-xl">
+            {/* 3D / 2D Perspective Toggle Button */}
+            <button
+              type="button"
+              onClick={toggle3D}
+              aria-label={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
+              title={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
+              className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center border-b border-black/10 font-black text-[11px] sm:text-xs tracking-wider transition-all cursor-pointer ${
+                is3D
+                  ? "bg-burgundy text-white shadow-inner font-extrabold"
+                  : "text-charcoal hover:bg-black/5 active:bg-black/10"
+              }`}
+            >
+              <span>{is3D ? "2D" : "3D"}</span>
+            </button>
+
             <button
               type="button"
               onClick={handleZoomIn}
