@@ -13,265 +13,267 @@ import {
   Minus,
   Sparkles,
 } from "lucide-react";
-
-interface LeafletBundle {
-  MapContainer: React.ComponentType<{
-    center: [number, number];
-    zoom: number;
-    scrollWheelZoom: boolean;
-    className: string;
-    children: React.ReactNode;
-  }>;
-  TileLayer: React.ComponentType<{
-    attribution: string;
-    url: string;
-    subdomains?: string;
-    maxZoom?: number;
-  }>;
-  Marker: React.ComponentType<{
-    position: [number, number];
-    icon: unknown;
-    eventHandlers: { click: () => void };
-    children?: React.ReactNode;
-  }>;
-  useMap: () => {
-    flyTo: (latlng: [number, number], zoom: number, options?: object) => void;
-    zoomIn: () => void;
-    zoomOut: () => void;
-  };
-  createAppleIcon: (loc: MapLocation, isSelected: boolean) => unknown;
-}
-
-// Child component inside MapContainer to smoothly handle Apple Maps camera motion
-function MapCameraController({
-  target,
-  zoomAction,
-  useMapHook,
-}: {
-  target: [number, number, number] | null;
-  zoomAction: { type: "in" | "out" | "overview"; id: number } | null;
-  useMapHook: LeafletBundle["useMap"];
-}) {
-  const map = useMapHook();
-
-  useEffect(() => {
-    if (target && map) {
-      map.flyTo([target[0], target[1]], target[2], {
-        duration: 1.4,
-        easeLinearity: 0.25,
-      });
-    }
-  }, [target, map]);
-
-  useEffect(() => {
-    if (!zoomAction || !map) return;
-    if (zoomAction.type === "in") {
-      map.zoomIn();
-    } else if (zoomAction.type === "out") {
-      map.zoomOut();
-    } else if (zoomAction.type === "overview") {
-      map.flyTo([20.5937, 78.9629], 5, { duration: 1.4 });
-    }
-  }, [zoomAction, map]);
-
-  return null;
-}
+import type * as maplibreglType from "maplibre-gl";
 
 export default function MemoryMap() {
   const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
-  // Offset latitude slightly (-0.008) so the pinned marker and its photo popup appear centered above the bottom slider
-  const [flyTarget, setFlyTarget] = useState<[number, number, number] | null>([
-    mapLocations[0].lat - 0.008,
-    mapLocations[0].lng,
-    13,
-  ]);
-  const [zoomAction, setZoomAction] = useState<{
-    type: "in" | "out" | "overview";
-    id: number;
-  } | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  const [leafletBundle, setLeafletBundle] = useState<LeafletBundle | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<maplibreglType.Map | null>(null);
+  const markersRef = useRef<Record<string, maplibreglType.Marker>>({});
+  const maplibreModuleRef = useRef<typeof maplibreglType | null>(null);
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const handleSelectLocationRef = useRef<(loc: MapLocation) => void>(() => {});
 
-  useEffect(() => {
-    // Dynamically import Leaflet and react-leaflet on client
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet"),
-    ]).then(([reactLeaflet, L]) => {
-      // Create Apple Maps POI Pin with Image Callout Popup
-      const createAppleIcon = (loc: MapLocation, isSelected: boolean) => {
-        if (isSelected) {
-          // Selected Pin with Apple Maps POI Photo Card Popup
-          return L.divIcon({
-            className: "custom-snap-marker",
-            html: `
-              <div class="apple-callout-anim" style="
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                cursor: pointer;
-                filter: drop-shadow(0 10px 22px rgba(0,0,0,0.22));
-              ">
-                <!-- Apple Maps POI Photo Callout -->
-                <div style="
-                  width: 184px;
-                  background: rgba(255, 255, 255, 0.98);
-                  border-radius: 14px;
-                  border: 1px solid rgba(255, 255, 255, 0.9);
-                  overflow: hidden;
-                  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08);
-                ">
-                  <!-- Small Image Popup -->
-                  <div style="
-                    width: 100%;
-                    height: 86px;
-                    background: #f4ede4;
-                    position: relative;
-                    overflow: hidden;
-                  ">
-                    <img
-                      src="${loc.image}"
-                      alt="${loc.name}"
-                      style="
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        display: block;
-                      "
-                      onerror="this.src='/Golden South Indian Mandap Setting.png';"
-                    />
-                    <div style="
-                      position: absolute;
-                      top: 6px;
-                      right: 6px;
-                      background: rgba(0,0,0,0.55);
-                      backdrop-filter: blur(4px);
-                      color: #ffffff;
-                      font-size: 9px;
-                      font-weight: 700;
-                      padding: 2px 6px;
-                      border-radius: 8px;
-                      letter-spacing: 0.5px;
-                    ">${loc.year}</div>
-                  </div>
+  // Helper to build Apple Maps POI Pin element
+  const createMarkerElement = useCallback((loc: MapLocation, isSelected: boolean) => {
+    const el = document.createElement("div");
+    el.className = "custom-maplibre-marker";
+    el.style.cursor = "pointer";
 
-                  <!-- Details Area -->
-                  <div style="padding: 7px 9px 8px; text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                    <div style="
-                      font-weight: 700;
-                      font-size: 11.5px;
-                      color: #1c1c1e;
-                      white-space: nowrap;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      line-height: 1.25;
-                    ">${loc.name}</div>
-                    <div style="
-                      display: flex;
-                      align-items: center;
-                      justify-content: space-between;
-                      margin-top: 3px;
-                      font-size: 9.5px;
-                    ">
-                      <span style="
-                        font-weight: 700;
-                        color: #991F2B;
-                        text-transform: capitalize;
-                      ">📍 ${loc.category.replace("-", " ")}</span>
-                      <span style="color: #8e8e93; font-size: 8.5px;">Pinned</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Callout Beak Triangle -->
-                <div style="
-                  width: 0;
-                  height: 0;
-                  border-left: 7px solid transparent;
-                  border-right: 7px solid transparent;
-                  border-top: 8px solid rgba(255, 255, 255, 0.98);
-                  margin-top: -1px;
-                "></div>
-
-                <!-- Apple Maps POI Pin Glyph -->
-                <div style="
-                  width: 34px;
-                  height: 34px;
-                  border-radius: 50%;
-                  background: linear-gradient(135deg, #991F2B, #6D141E);
-                  border: 2.5px solid #ffffff;
-                  box-shadow: 0 4px 14px rgba(153, 31, 43, 0.55), 0 0 0 3px rgba(212, 154, 50, 0.45);
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  font-size: 17px;
-                  margin-top: 2px;
-                ">
-                  ${loc.icon || "📍"}
-                </div>
-              </div>
-            `,
-            iconSize: [184, 185],
-            iconAnchor: [92, 185],
-          });
-        }
-
-        // Unselected Pin (Apple Maps POI Style)
-        return L.divIcon({
-          className: "custom-snap-marker",
-          html: `
+    if (isSelected) {
+      el.innerHTML = `
+        <div class="apple-callout-anim" style="
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+          filter: drop-shadow(0 10px 22px rgba(0,0,0,0.22));
+          transform-origin: bottom center;
+        ">
+          <!-- Apple Maps POI Photo Callout -->
+          <div style="
+            width: 184px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08);
+          ">
+            <!-- Small Image Popup -->
             <div style="
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              background: #ffffff;
-              border: 2px solid #D49A32;
-              box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 15px;
-              cursor: pointer;
-              transition: transform 0.2s ease;
+              width: 100%;
+              height: 86px;
+              background: #f4ede4;
+              position: relative;
+              overflow: hidden;
             ">
-              ${loc.icon || "📍"}
+              <img
+                src="${loc.image}"
+                alt="${loc.name}"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  display: block;
+                "
+                onerror="this.src='/Golden South Indian Mandap Setting.png';"
+              />
+              <div style="
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
+                color: #ffffff;
+                font-size: 9px;
+                font-weight: 700;
+                padding: 2px 6px;
+                border-radius: 8px;
+                letter-spacing: 0.5px;
+              ">${loc.year}</div>
             </div>
-          `,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
-        });
-      };
 
-      setLeafletBundle({
-        MapContainer: reactLeaflet.MapContainer as unknown as LeafletBundle["MapContainer"],
-        TileLayer: reactLeaflet.TileLayer as unknown as LeafletBundle["TileLayer"],
-        Marker: reactLeaflet.Marker as unknown as LeafletBundle["Marker"],
-        useMap: reactLeaflet.useMap as unknown as LeafletBundle["useMap"],
-        createAppleIcon,
-      });
-    });
+            <!-- Details Area -->
+            <div style="padding: 7px 9px 8px; text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <div style="
+                font-weight: 700;
+                font-size: 11.5px;
+                color: #1c1c1e;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-height: 1.25;
+              ">${loc.name}</div>
+              <div style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: 3px;
+                font-size: 9.5px;
+              ">
+                <span style="
+                  font-weight: 700;
+                  color: #991F2B;
+                  text-transform: capitalize;
+                ">📍 ${loc.category.replace("-", " ")}</span>
+                <span style="color: #8e8e93; font-size: 8.5px;">Pinned</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Callout Beak Triangle -->
+          <div style="
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 8px solid rgba(255, 255, 255, 0.98);
+            margin-top: -1px;
+          "></div>
+
+          <!-- Apple Maps POI Pin Glyph -->
+          <div style="
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #991F2B, #6D141E);
+            border: 2.5px solid #ffffff;
+            box-shadow: 0 4px 14px rgba(153, 31, 43, 0.55), 0 0 0 3px rgba(212, 154, 50, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            margin-top: 2px;
+          ">
+            ${loc.icon || "📍"}
+          </div>
+        </div>
+      `;
+    } else {
+      el.innerHTML = `
+        <div style="
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #ffffff;
+          border: 2px solid #D49A32;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        ">
+          ${loc.icon || "📍"}
+        </div>
+      `;
+    }
+
+    return el;
   }, []);
+
+  // Update all map markers to reflect current selection
+  const refreshMarkers = useCallback(
+    (activeLoc: MapLocation) => {
+      const maplibregl = maplibreModuleRef.current;
+      const map = mapInstanceRef.current;
+      if (!maplibregl || !map) return;
+
+      // Remove existing markers
+      Object.values(markersRef.current).forEach((m) => m.remove());
+      markersRef.current = {};
+
+      // Create updated markers
+      mapLocations.forEach((loc) => {
+        const isSelected = loc.id === activeLoc.id;
+        const el = createMarkerElement(loc, isSelected);
+
+        el.addEventListener("click", () => {
+          handleSelectLocationRef.current(loc);
+        });
+
+        const marker = new maplibregl.Marker({
+          element: el,
+          anchor: isSelected ? "bottom" : "center",
+        })
+          .setLngLat([loc.lng, loc.lat])
+          .addTo(map);
+
+        markersRef.current[loc.id] = marker;
+      });
+    },
+    [createMarkerElement]
+  );
 
   // Handle selecting a destination card or pin
-  const handleSelectLocation = useCallback((loc: MapLocation) => {
-    setSelectedLocation(loc);
-    // Zoom in closer towards the pinned location (Zoom 13) with slight offset so popup stays visible
-    setFlyTarget([loc.lat - 0.008, loc.lng, 13]);
+  const handleSelectLocation = useCallback(
+    (loc: MapLocation) => {
+      setSelectedLocation(loc);
 
-    // Scroll card in the in-map slider into view
-    const cardEl = cardRefs.current[loc.id];
-    if (cardEl && sliderRef.current) {
-      cardEl.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center",
+      // Smoothly fly camera to pinned destination with close-up zoom (level 13)
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo({
+          center: [loc.lng, loc.lat - 0.008],
+          zoom: 13,
+          duration: 1400,
+          essential: true,
+        });
+      }
+
+      // Update markers to bloom selected photo callout
+      refreshMarkers(loc);
+
+      // Scroll card in the in-map slider into view
+      const cardEl = cardRefs.current[loc.id];
+      if (cardEl && sliderRef.current) {
+        cardEl.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    },
+    [refreshMarkers]
+  );
+
+  // Initialize MapLibre GL with OpenFreeMap vector styles
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    let isSubscribed = true;
+
+    import("maplibre-gl").then((maplibregl) => {
+      if (!isSubscribed || !mapContainerRef.current) return;
+
+      maplibreModuleRef.current = maplibregl;
+
+      // OpenFreeMap Bright vector style URL (100% free, no API keys)
+      const map = new maplibregl.Map({
+        container: mapContainerRef.current,
+        style: "https://tiles.openfreemap.org/styles/bright",
+        center: [mapLocations[0].lng, mapLocations[0].lat - 0.008],
+        zoom: 13,
+        attributionControl: false,
       });
-    }
-  }, []);
+
+      mapInstanceRef.current = map;
+
+      map.on("load", () => {
+        if (!isSubscribed) return;
+        setIsMapLoaded(true);
+        refreshMarkers(mapLocations[0]);
+      });
+    });
+
+    return () => {
+      isSubscribed = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [refreshMarkers]);
+
+  // Keep handleSelectLocationRef updated
+  useEffect(() => {
+    handleSelectLocationRef.current = handleSelectLocation;
+  }, [handleSelectLocation]);
 
   // Handle previous/next navigation
   const handleNavigate = (direction: "prev" | "next") => {
@@ -284,74 +286,43 @@ export default function MemoryMap() {
 
   // Apple Maps Controls Actions
   const handleZoomIn = () => {
-    setZoomAction({ type: "in", id: Date.now() });
+    mapInstanceRef.current?.zoomIn({ duration: 300 });
   };
   const handleZoomOut = () => {
-    setZoomAction({ type: "out", id: Date.now() });
+    mapInstanceRef.current?.zoomOut({ duration: 300 });
   };
   const handleResetOverview = () => {
-    setZoomAction({ type: "overview", id: Date.now() });
+    mapInstanceRef.current?.flyTo({
+      center: [78.9629, 20.5937],
+      zoom: 4.8,
+      duration: 1400,
+      essential: true,
+    });
   };
 
   const currentIndex = mapLocations.findIndex((l) => l.id === selectedLocation.id);
 
-  if (!leafletBundle) {
-    return (
-      <div className="flex h-[540px] w-full flex-col items-center justify-center rounded-3xl border border-black/10 bg-champagne/20 text-soft-brown shadow-xl sm:h-[620px]">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-white shadow-md animate-bounce">
-          <MapPin className="h-8 w-8 text-burgundy" />
-        </div>
-        <p className="mt-4 font-heading text-xl font-semibold text-charcoal">
-          Loading Apple-Styled Memory Map...
-        </p>
-        <p className="mt-1 text-xs text-soft-brown">Preparing high-definition landmark tiles</p>
-      </div>
-    );
-  }
-
-  const { MapContainer, TileLayer, Marker, useMap, createAppleIcon } = leafletBundle;
-
   return (
     <div className="relative w-full overflow-hidden rounded-3xl border border-black/10 bg-warm-white shadow-2xl">
-      {/* ─── 1. Apple-Styled Map Viewport ─── */}
+      {/* ─── 1. MapLibre GL + OpenFreeMap Canvas ─── */}
       <div className="relative h-[550px] w-full sm:h-[620px] md:h-[670px]">
-        <MapContainer
-          center={[selectedLocation.lat - 0.008, selectedLocation.lng]}
-          zoom={13}
-          scrollWheelZoom={false}
-          className="h-full w-full z-0"
-        >
-          {/* CartoDB Voyager Tile Layer — The canonical Apple Maps vector look on Leaflet */}
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            subdomains="abcd"
-            maxZoom={20}
-          />
+        <div ref={mapContainerRef} className="h-full w-full z-0" />
 
-          <MapCameraController
-            target={flyTarget}
-            zoomAction={zoomAction}
-            useMapHook={useMap}
-          />
-
-          {mapLocations.map((loc) => {
-            const isSelected = loc.id === selectedLocation.id;
-            return (
-              <Marker
-                key={loc.id}
-                position={[loc.lat, loc.lng]}
-                icon={createAppleIcon(loc, isSelected)}
-                eventHandlers={{
-                  click: () => handleSelectLocation(loc),
-                }}
-              />
-            );
-          })}
-        </MapContainer>
+        {/* Loading Overlay */}
+        {!isMapLoaded && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-champagne/40 backdrop-blur-xs text-soft-brown">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-white shadow-md animate-bounce">
+              <MapPin className="h-8 w-8 text-burgundy" />
+            </div>
+            <p className="mt-4 font-heading text-xl font-semibold text-charcoal">
+              Loading OpenFreeMap Vector Tiles...
+            </p>
+            <p className="mt-1 text-xs text-soft-brown">Connecting to OpenFreeMap Bright style</p>
+          </div>
+        )}
 
         {/* ─── 2. Apple Maps Floating Top Controls ─── */}
-        <div className="pointer-events-none absolute top-4 left-4 right-4 z-[1000] flex items-start justify-between">
+        <div className="pointer-events-none absolute top-4 left-4 right-4 z-10 flex items-start justify-between">
           {/* Left: Apple Search-Style POI Indicator */}
           <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-3.5 py-2.5 shadow-xl backdrop-blur-xl transition-all">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-burgundy/10 text-burgundy shadow-xs">
@@ -398,7 +369,7 @@ export default function MemoryMap() {
         </div>
 
         {/* ─── 3. Floating Bottom Glass Slider (Snapchat & Apple Style) ─── */}
-        <div className="pointer-events-none absolute bottom-3 sm:bottom-5 left-0 right-0 z-[1000] px-2 sm:px-6">
+        <div className="pointer-events-none absolute bottom-3 sm:bottom-5 left-0 right-0 z-10 px-2 sm:px-6">
           <div className="relative mx-auto max-w-5xl">
             {/* Mobile Navigation Header Bar (Buttons + Dots) */}
             <div className="pointer-events-auto mb-2 flex items-center justify-between rounded-full border border-white/60 bg-white/85 px-3 py-1 shadow-md backdrop-blur-md sm:hidden">
@@ -539,6 +510,13 @@ export default function MemoryMap() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* OpenFreeMap Attribution */}
+            <div className="mt-1 flex justify-end">
+              <span className="rounded-md bg-white/60 px-2 py-0.5 text-[9px] text-stone-500 backdrop-blur-xs">
+                Map data © <a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-burgundy">OpenFreeMap</a> & <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline hover:text-burgundy">OpenStreetMap</a>
+              </span>
             </div>
           </div>
         </div>

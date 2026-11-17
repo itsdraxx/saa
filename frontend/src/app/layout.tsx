@@ -37,6 +37,10 @@ export default function RootLayout({
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+        />
       </head>
       <body className="flex min-h-screen flex-col bg-ivory text-charcoal font-body">
         <Navigation />
