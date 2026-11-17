@@ -1,76 +1,92 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import SectionHeading from "@/components/ui/SectionHeading";
-import ImageSlider from "@/components/ui/ImageSlider";
 import { thenVsNowPairs } from "@/data/then-vs-now";
-import { Sparkles, Calendar } from "lucide-react";
+import { Heart } from "lucide-react";
+
+interface SideImageProps {
+  src: string;
+  alt: string;
+  label: string;
+  badgeBg: string;
+}
+
+function SideImage({ src, alt, label, badgeBg }: SideImageProps) {
+  const [error, setError] = useState(false);
+
+  return (
+    <div className="relative aspect-4/5 sm:aspect-3/4 w-full overflow-hidden rounded-xl bg-champagne/40 border border-warm-beige/60">
+      {!error ? (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 16vw"
+          onError={() => setError(true)}
+        />
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-champagne/60 to-warm-beige/40">
+          <Heart className="h-6 w-6 text-burgundy/40 mb-1" />
+          <span className="text-[11px] font-semibold text-soft-brown">{label}</span>
+        </div>
+      )}
+      <div
+        className={`absolute bottom-2 left-2 rounded-md ${badgeBg} px-2 py-0.5 text-[10px] font-bold text-warm-white backdrop-blur-xs shadow-xs`}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
 
 export default function ThenVsNowSection() {
   return (
-    <section id="then-now" className="w-full bg-champagne/25 pt-10 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8">
+    <section id="then-now" className="w-full bg-champagne/25 pt-10 pb-14 sm:pt-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Then & Now"
-          subtitle="Twenty-five years have changed the hairstyles, the houses, and the number of smiles around the table — but the love has only deepened."
+          subtitle="Twenty-five years of shared smiles, cherished memories, and growing together."
         />
 
-        <div className="mt-10 sm:mt-12 space-y-10 sm:space-y-12">
+        {/* 3 in a Row Grid */}
+        <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {thenVsNowPairs.map((pair, index) => (
             <motion.div
               key={pair.id}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.6, delay: index * 0.15 }}
-              className="overflow-hidden rounded-2xl sm:rounded-3xl border border-warm-beige bg-warm-white p-4 sm:p-8 shadow-sm"
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: index * 0.08 }}
+              className="group overflow-hidden rounded-2xl sm:rounded-3xl border border-warm-beige bg-warm-white p-3 sm:p-3.5 shadow-xs transition-all duration-300 hover:border-gold/50 hover:shadow-md"
             >
-              {/* Header */}
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-warm-beige/60 pb-4">
-                <div>
-                  <h3 className="font-heading text-2xl font-semibold text-charcoal sm:text-3xl">
-                    {pair.title}
-                  </h3>
-                  <div className="mt-1 flex items-center gap-2 text-xs font-medium text-gold uppercase tracking-wider">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>{pair.thenYear} vs {pair.nowYear}</span>
-                  </div>
-                </div>
+              {/* Both Images Side by Side */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+                {/* Then Image (Left) */}
+                <SideImage
+                  src={pair.thenImage}
+                  alt={`Then (${pair.thenYear})`}
+                  label={`Then • ${pair.thenYear}`}
+                  badgeBg="bg-charcoal/75"
+                />
 
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-champagne/60 px-3 py-1 text-xs text-soft-brown">
-                  <Sparkles className="h-3 w-3 text-gold" />
-                  <span>Drag the slider to compare</span>
-                </div>
-              </div>
-
-              {/* Slider */}
-              <div className="mx-auto max-w-4xl">
-                <ImageSlider
-                  thenImage={pair.thenImage}
-                  nowImage={pair.nowImage}
-                  thenYear={pair.thenYear}
-                  nowYear={pair.nowYear}
+                {/* Now Image (Right) */}
+                <SideImage
+                  src={pair.nowImage}
+                  alt={`Now (${pair.nowYear})`}
+                  label={`Now • ${pair.nowYear}`}
+                  badgeBg="bg-burgundy/85"
                 />
               </div>
 
-              {/* Captions */}
-              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-warm-beige/60 bg-champagne/20 p-4">
-                  <p className="text-xs font-bold tracking-widest text-burgundy uppercase">
-                    Then • {pair.thenYear}
-                  </p>
-                  <p className="mt-1 font-body text-sm text-soft-brown">
-                    {pair.thenCaption}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-warm-beige/60 bg-champagne/20 p-4">
-                  <p className="text-xs font-bold tracking-widest text-gold uppercase">
-                    Now • {pair.nowYear}
-                  </p>
-                  <p className="mt-1 font-body text-sm text-soft-brown">
-                    {pair.nowCaption}
-                  </p>
-                </div>
+              {/* Title Below Images (No extra text clutter) */}
+              <div className="mt-2.5 sm:mt-3 text-center pb-0.5">
+                <h3 className="font-heading text-base sm:text-lg font-bold text-charcoal">
+                  {pair.title}
+                </h3>
               </div>
             </motion.div>
           ))}
@@ -79,4 +95,3 @@ export default function ThenVsNowSection() {
     </section>
   );
 }
-
