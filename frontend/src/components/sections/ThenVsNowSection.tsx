@@ -8,14 +8,14 @@ import { Sparkles, Calendar } from "lucide-react";
 
 export default function ThenVsNowSection() {
   return (
-    <section id="then-now" className="w-full bg-champagne/25 py-24 px-4 sm:px-6 lg:px-8">
+    <section id="then-now" className="w-full bg-champagne/25 pt-10 pb-16 sm:pt-14 sm:pb-20 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Then & Now"
           subtitle="Twenty-five years have changed the hairstyles, the houses, and the number of smiles around the table — but the love has only deepened."
         />
 
-        <div className="mt-16 space-y-16">
+        <div className="mt-10 sm:mt-12 space-y-10 sm:space-y-12">
           {thenVsNowPairs.map((pair, index) => (
             <motion.div
               key={pair.id}

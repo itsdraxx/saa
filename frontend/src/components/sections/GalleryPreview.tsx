@@ -13,7 +13,7 @@ export default function GalleryPreview() {
   const previewItems = galleryItems.slice(0, 6);
 
   return (
-    <section id="gallery" className="w-full bg-champagne/30 py-24 px-4 sm:px-6 lg:px-8">
+    <section id="gallery" className="w-full bg-champagne/30 pt-10 pb-10 sm:pt-14 sm:pb-14 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           title="Memory Gallery"
@@ -21,7 +21,7 @@ export default function GalleryPreview() {
         />
 
         {/* Photo Grid */}
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 sm:mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {previewItems.map((item, index) => (
             <motion.div
               key={item.id}
@@ -62,7 +62,7 @@ export default function GalleryPreview() {
         </div>
 
         {/* View Full Gallery Link Button */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Link
             href="/gallery"
             className="inline-flex items-center gap-2 rounded-full border border-burgundy bg-warm-white px-8 py-3.5 text-sm font-medium text-burgundy shadow-sm transition-all duration-300 hover:bg-burgundy hover:text-warm-white hover:shadow-md active:scale-95"

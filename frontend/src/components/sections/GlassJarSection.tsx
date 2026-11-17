@@ -34,7 +34,7 @@ export default function GlassJarSection() {
   };
 
   return (
-    <section id="glass-jar" className="relative w-full bg-gradient-to-b from-ivory via-peach-50/40 to-ivory py-28 px-4 sm:px-6 lg:px-8">
+    <section id="glass-jar" className="relative w-full bg-gradient-to-b from-ivory via-peach-50/40 to-ivory pt-10 pb-10 sm:pt-14 sm:pb-14 px-4 sm:px-6 lg:px-8">
       {/* Background Ambience */}
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#F5D0C0_1px,transparent_1px)] [background-size:28px_28px] opacity-50" />
 
@@ -57,7 +57,7 @@ export default function GlassJarSection() {
         </div>
 
         {/* Jar and Interaction Area */}
-        <div className="mt-12 flex flex-col items-center">
+        <div className="mt-8 flex flex-col items-center">
           <GlassJar isShaking={isShaking} onTap={handleTap} />
 
           <p className="mt-4 text-xs font-semibold tracking-widest text-soft-brown uppercase">
@@ -77,7 +77,7 @@ export default function GlassJarSection() {
         </div>
 
         {/* Revealed Note Display Card (Parchment Paper with Wax Seal) */}
-        <div className="mx-auto mt-10 sm:mt-14 min-h-[180px] sm:min-h-[220px] max-w-xl px-2 sm:px-0">
+        <div className="mx-auto mt-8 sm:mt-10 min-h-[160px] sm:min-h-[200px] max-w-xl px-2 sm:px-0">
           <AnimatePresence mode="wait">
             {currentMessage ? (
               <motion.div

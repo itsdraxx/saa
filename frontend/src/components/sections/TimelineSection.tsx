@@ -38,7 +38,7 @@ export default function TimelineSection() {
   };
 
   return (
-    <section id="story" className="relative w-full overflow-hidden bg-ivory py-16 sm:py-24 px-3 sm:px-6 lg:px-8">
+    <section id="story" className="relative w-full overflow-hidden bg-ivory pt-14 pb-8 sm:pt-20 sm:pb-10 px-3 sm:px-6 lg:px-8">
       {/* Background Soft Ambience */}
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(#F5D0C0_1px,transparent_1px)] [background-size:24px_24px] sm:[background-size:28px_28px] opacity-40" />
 
@@ -153,7 +153,7 @@ export default function TimelineSection() {
         </div>
 
         {/* Bottom Feed Notice */}
-        <div className="mt-14 text-center">
+        <div className="mt-8 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-champagne/60 border border-warm-beige px-5 py-2 text-xs font-semibold text-soft-brown">
             <Camera className="h-4 w-4 text-burgundy" />
             <span>You&apos;ve caught up with all 25 years of memories! ❤️</span>
