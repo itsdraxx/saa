@@ -2,7 +2,6 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
-import AmbientSerenade from "@/components/ui/AmbientSerenade";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,7 +42,6 @@ export default function RootLayout({
         <Navigation />
         <main className="flex-1">{children}</main>
         <Footer />
-        <AmbientSerenade />
       </body>
     </html>
   );
