@@ -23,7 +23,7 @@ import adminRouter from "./routes/admin.js";
 import healthRouter from "./routes/health.js";
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = Number(process.env.PORT) || 8080;
 
 // ─── Global Middleware ────────────────────────────────
 

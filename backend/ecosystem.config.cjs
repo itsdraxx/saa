@@ -7,7 +7,6 @@ module.exports = {
       exec_mode: "fork",
       env: {
         NODE_ENV: "production",
-        PORT: 3001,
       },
       max_memory_restart: "100M",
       log_date_format: "YYYY-MM-DD HH:mm:ss",
