@@ -22,7 +22,6 @@ export default function Navigation() {
     { label: t.trivia, href: "#trivia" },
     { label: t.map, href: "#map" },
     { label: t.wishes, href: "#wishes" },
-    { label: t.dedication, href: "#dedication" },
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -143,7 +142,7 @@ export default function Navigation() {
               }}
               className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-4 py-1.5 text-xs font-semibold tracking-wide text-warm-white shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_4px_16px_rgba(153,31,43,0.35)] active:scale-95 cursor-pointer group"
             >
-              <span>{isTelugu ? "అంకితం" : "For Bujji & Satya"}</span>
+              <span>{isTelugu ? "బుజ్జి & సత్య కోసం" : "For Bujji & Satya"}</span>
               <Heart className="h-3 w-3 fill-warm-white transition-transform duration-300 group-hover:scale-125" />
             </button>
           </div>
@@ -243,7 +242,7 @@ export default function Navigation() {
                     onClick={() => handleNavClick("#dedication")}
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-burgundy py-3 text-xs font-semibold tracking-wider text-warm-white uppercase shadow-sm active:scale-95 cursor-pointer"
                   >
-                    <span>For Bujji & Satya</span>
+                    <span>{isTelugu ? "బుజ్జి & సత్య కోసం" : "For Bujji & Satya"}</span>
                     <Heart className="h-3.5 w-3.5 fill-warm-white" />
                   </button>
                   <p className="text-center text-[11px] font-medium text-soft-brown/70">
