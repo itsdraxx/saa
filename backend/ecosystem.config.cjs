@@ -1,9 +1,8 @@
-/** @type {import('pm2').StartOptions} */
-export default {
+module.exports = {
   apps: [
     {
       name: "saa-backend",
-      script: "dist/index.js",
+      script: "./dist/index.js",
       instances: 1,
       exec_mode: "fork",
       env: {
@@ -18,4 +17,3 @@ export default {
     },
   ],
 };
-
