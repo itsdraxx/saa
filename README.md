@@ -64,9 +64,9 @@ npm run dev
 ---
 
 ## 🔑 Admin Credentials
-Configured in `backend/.env`:
-- **Default Username**: `admin` (`ADMIN_USERNAME`)
-- **Default Password**: `BujjiSatya25!` (`ADMIN_PASSWORD`)
+Configured securely via environment variables in `backend/.env`:
+- `ADMIN_USERNAME`: Admin login username
+- `ADMIN_PASSWORD`: Secret admin password (set your own in `.env`)
 
 ---
 

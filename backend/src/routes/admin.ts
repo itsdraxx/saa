@@ -8,7 +8,12 @@ const router = Router();
 router.post("/login", (req, res) => {
   const { username, password } = req.body || {};
   const expectedUser = process.env.ADMIN_USERNAME || "admin";
-  const expectedPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || "BujjiSatya25!";
+  const expectedPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET;
+
+  if (!expectedPass) {
+    res.status(500).json({ success: false, error: "Server admin credentials not configured in environment" });
+    return;
+  }
 
   if (!username || !password) {
     res.status(400).json({ success: false, error: "Username and password are required" });

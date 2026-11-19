@@ -6,7 +6,10 @@ import crypto from "node:crypto";
  */
 export function getAdminToken(): string {
   const username = process.env.ADMIN_USERNAME || "admin";
-  const password = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || "BujjiSatya25!";
+  const password = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET;
+  if (!password) {
+    throw new Error("ADMIN_PASSWORD is not set in environment");
+  }
   return crypto.createHmac("sha256", "saa-anniversary-salt").update(`${username}:${password}`).digest("hex");
 }
 
@@ -15,11 +18,17 @@ export function getAdminToken(): string {
  */
 export function isValidAdminToken(token: string): boolean {
   if (!token) return false;
-  const expected = getAdminToken();
-  if (token === expected) return true;
+  const rawPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET;
+  if (!rawPass) return false;
+
+  try {
+    const expected = getAdminToken();
+    if (token === expected) return true;
+  } catch {
+    return false;
+  }
 
   // Fallback: also accept the raw password for direct curl or legacy tests
-  const rawPass = process.env.ADMIN_PASSWORD || process.env.ADMIN_SECRET || "BujjiSatya25!";
   if (token === rawPass) return true;
 
   return false;

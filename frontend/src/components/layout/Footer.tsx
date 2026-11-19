@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, Shield } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 
@@ -32,18 +32,6 @@ export default function Footer() {
         <p className="mt-4 text-xs font-medium text-soft-brown/75">
           {t.craftedWith || "Made with all our love by your family"}
         </p>
-
-        <div className="mt-6">
-          <a
-            href={process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3002"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] text-soft-brown/50 hover:text-burgundy transition-colors"
-          >
-            <Shield className="h-3 w-3" />
-            <span>{t.adminPortal || "Admin Portal"}</span>
-          </a>
-        </div>
       </div>
     </footer>
   );
