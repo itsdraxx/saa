@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Heart } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
@@ -11,6 +12,18 @@ export default function Footer() {
   return (
     <footer className="border-t border-warm-beige/50 bg-champagne/40">
       <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
+        <div className="mb-5 flex justify-center">
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-peach-100 to-champagne p-1 shadow-md ring-2 ring-gold/50 transition-transform duration-300 hover:scale-105">
+            <Image
+              src="/logo.svg"
+              alt="25th Anniversary Crest"
+              width={52}
+              height={52}
+              className="h-full w-full object-contain"
+            />
+          </div>
+        </div>
+
         <h3 className="font-heading text-3xl font-semibold text-charcoal sm:text-4xl">
           {t.title || "Bujji Weds Satya"}
         </h3>

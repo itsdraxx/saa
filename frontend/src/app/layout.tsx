@@ -11,7 +11,12 @@ export const metadata: Metadata = {
   description:
     "Celebrating twenty-five extraordinary years of love, family, and togetherness for Bujji & Satya since 23 November 2001.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/logo.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/logo.svg",
   },
 };
 

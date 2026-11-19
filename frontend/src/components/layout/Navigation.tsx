@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Heart, Menu, X } from "lucide-react";
@@ -79,21 +80,33 @@ export default function Navigation() {
             "w-full max-w-6xl"
           )}
         >
-          {/* Brand */}
+          {/* Brand Logo & Monogram */}
           <a
             href="#"
             onClick={(e) => {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="flex items-center gap-2 group cursor-pointer"
+            className="flex items-center gap-2.5 group cursor-pointer"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-peach-100 text-burgundy shadow-2xs transition-transform duration-300 group-hover:scale-115 group-hover:bg-peach-200 group-hover:rotate-6">
-              <Heart className="h-4 w-4 fill-burgundy text-burgundy transition-transform duration-300 group-hover:scale-110" />
+            <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-peach-100 to-champagne/80 p-0.5 shadow-xs ring-1 ring-gold/40 transition-all duration-300 group-hover:scale-110 group-hover:ring-gold group-hover:shadow-[0_4px_16px_rgba(218,165,32,0.35)]">
+              <Image
+                src="/logo.svg"
+                alt="Bujji & Satya 25th Anniversary Crest"
+                width={36}
+                height={36}
+                className="h-full w-full object-contain transition-transform duration-300 group-hover:rotate-6"
+                priority
+              />
             </div>
-            <span className="font-heading text-lg sm:text-xl font-bold tracking-tight text-burgundy transition-colors duration-300 group-hover:text-deep-burgundy">
-              Bujji & Satya
-            </span>
+            <div className="flex flex-col">
+              <span className="font-heading text-base sm:text-lg font-bold tracking-tight text-burgundy transition-colors duration-300 group-hover:text-deep-burgundy leading-tight">
+                {isTelugu ? "బుజ్జి & సత్య" : "Bujji & Satya"}
+              </span>
+              <span className="text-[9px] font-bold tracking-wider text-soft-brown/80 uppercase font-body -mt-0.5 hidden sm:inline-block">
+                {isTelugu ? "25 వ వార్షికోత్సవం" : "25 Years • Silver Jubilee"}
+              </span>
+            </div>
           </a>
 
           {/* Desktop Nav Links */}
@@ -197,11 +210,24 @@ export default function Navigation() {
               <div className="flex h-full flex-col">
                 {/* Drawer Header */}
                 <div className="flex items-center justify-between border-b border-warm-beige/50 px-6 py-5">
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-burgundy fill-burgundy" />
-                    <span className="font-heading text-lg font-bold text-burgundy">
-                      Bujji & Satya
-                    </span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-peach-100 to-champagne/80 p-0.5 shadow-2xs ring-1 ring-gold/40">
+                      <Image
+                        src="/logo.svg"
+                        alt="Bujji & Satya"
+                        width={32}
+                        height={32}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-heading text-base font-bold text-burgundy leading-tight">
+                        {isTelugu ? "బుజ్జి & సత్య" : "Bujji & Satya"}
+                      </span>
+                      <span className="text-[9px] font-bold tracking-wider text-soft-brown/80 uppercase">
+                        25 Years of Love
+                      </span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setIsMobileOpen(false)}
