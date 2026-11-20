@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { Heart } from "lucide-react";
+import AppleHeart from "@/components/ui/AppleHeart";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 
 export default function Footer() {
-  const { language } = useLanguage();
+  const { language, isTelugu } = useLanguage();
   const t = translations[language].footer;
 
   return (
@@ -28,8 +29,9 @@ export default function Footer() {
           {t.title || "Bujji Weds Satya"}
         </h3>
 
-        <p className="mt-2 font-heading text-xl italic tracking-wide text-burgundy">
-          {t.subtitle || "25 Years of Love ❤️"}
+        <p className="mt-2 font-heading text-xl italic tracking-wide text-burgundy flex items-center justify-center gap-1.5">
+          <span>{isTelugu ? "25 సంవత్సరాల అనురాగం" : "25 Years of Love"}</span>
+          <AppleHeart size={18} className="inline-block" />
         </p>
         <p className="mt-1 text-xs font-semibold tracking-widest text-soft-brown uppercase">
           {t.jubilee || "23 November 2001 • Silver Jubilee"}

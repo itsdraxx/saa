@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import PetalShower from "@/components/ui/PetalShower";
+import AppleHeart from "@/components/ui/AppleHeart";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/data/translations";
 
@@ -35,7 +36,7 @@ export default function HeroSection() {
           TOP CENTER: Wedding Card Invitation Typography
           Positioned elegantly in the upper warm golden mandap wall
           ========================================================= */}
-      <div className="relative z-20 flex flex-col items-center text-center mt-2 sm:mt-4 px-4 max-w-2xl">
+      <div className="relative z-20 flex flex-col items-center text-center mt-2 sm:mt-4 px-2 sm:px-4 max-w-2xl w-full">
         {/* Invitation Eyebrow */}
         <motion.p
           initial={{ opacity: 0, y: -6 }}
@@ -58,12 +59,12 @@ export default function HeroSection() {
           <span className="h-[1px] w-8 sm:w-16 bg-gradient-to-l from-transparent to-[#C68A2C]" />
         </motion.div>
 
-        {/* Grand Centered Title: Bujji Weds Satya */}
+        {/* Grand Centered Title: Bujji Weds Satya (strictly single line on all mobile screens) */}
         <motion.h1
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="font-heading text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#6D121B] leading-tight drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)]"
+          className="font-heading text-[clamp(1.5rem,7.2vw,3.75rem)] sm:text-5xl md:text-6xl font-bold tracking-tight text-[#6D121B] leading-tight whitespace-nowrap py-0.5 drop-shadow-[0_2px_12px_rgba(255,255,255,0.7)]"
         >
           {isTelugu ? `${t.titleBride} వెడ్స్ ${t.titleGroom}` : "Bujji Weds Satya"}
         </motion.h1>
@@ -80,15 +81,15 @@ export default function HeroSection() {
           <span className="h-[1px] w-8 sm:w-16 bg-gradient-to-l from-transparent to-[#C68A2C]" />
         </motion.div>
 
-        {/* Centered Subtitle: 25 Years of Love ❤️ */}
+        {/* Centered Subtitle: 25 Years of Love with Apple-style Heart */}
         <motion.h2
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="font-heading text-xl xs:text-2xl sm:text-3xl md:text-4xl italic text-[#8B1E28] font-medium drop-shadow-[0_1px_6px_rgba(255,255,255,0.7)]"
+          className="font-heading text-xl xs:text-2xl sm:text-3xl md:text-4xl italic text-[#8B1E28] font-medium whitespace-nowrap drop-shadow-[0_1px_6px_rgba(255,255,255,0.7)] flex items-center justify-center gap-1.5"
         >
-          {isTelugu ? "25 సంవత్సరాల ప్రేమ" : "25 Years of Love"}{" "}
-          <span className="inline-block text-red-600 not-italic">❤️</span>
+          <span>{isTelugu ? "25 సంవత్సరాల ప్రేమ" : "25 Years of Love"}</span>
+          <AppleHeart size="1.05em" className="inline-block shrink-0 -translate-y-[1px]" />
         </motion.h2>
       </div>
 
