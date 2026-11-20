@@ -238,13 +238,15 @@ export default function MemoryMap() {
       // Update markers to bloom selected photo callout
       refreshMarkers(loc);
 
-      // Scroll card in the in-map slider into view
+      // Scroll horizontal slider to the selected card WITHOUT scrolling the window/page
       const cardEl = cardRefs.current[loc.id];
-      if (cardEl && sliderRef.current) {
-        cardEl.scrollIntoView({
+      const slider = sliderRef.current;
+      if (cardEl && slider) {
+        const targetLeft =
+          cardEl.offsetLeft - slider.clientWidth / 2 + cardEl.clientWidth / 2;
+        slider.scrollTo({
+          left: Math.max(0, targetLeft),
           behavior: "smooth",
-          block: "nearest",
-          inline: "center",
         });
       }
     },
@@ -285,16 +287,9 @@ export default function MemoryMap() {
         if (!isSubscribed) return;
         setIsMapLoaded(true);
         refreshMarkers(mapLocations[0]);
-        setTimeout(() => {
-          const firstCard = cardRefs.current[mapLocations[0].id];
-          if (firstCard && sliderRef.current) {
-            firstCard.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-              inline: "center",
-            });
-          }
-        }, 150);
+        if (sliderRef.current) {
+          sliderRef.current.scrollLeft = 0;
+        }
       });
     });
 
