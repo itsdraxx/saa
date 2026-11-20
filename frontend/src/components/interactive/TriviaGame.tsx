@@ -27,10 +27,15 @@ import type { TriviaLeaderboardEntry } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations, triviaTelugu } from "@/data/translations";
 
-export default function TriviaGame() {
+interface TriviaGameProps {
+  autoStart?: boolean;
+  embedded?: boolean;
+}
+
+export default function TriviaGame({ autoStart = true, embedded = false }: TriviaGameProps) {
   const { language, isTelugu } = useLanguage();
   const t = translations[language].trivia;
-  const [gameState, setGameState] = useState<"intro" | "playing" | "results">("intro");
+  const [gameState, setGameState] = useState<"intro" | "playing" | "results">(autoStart ? "playing" : "intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -55,6 +60,7 @@ export default function TriviaGame() {
       try {
         const savedName = localStorage.getItem("saa_user_name");
         if (savedName) setPlayerName(savedName);
+        setStartTime((prev) => (prev > 0 ? prev : Date.now()));
 
         // 1. Check if already completed locally
         const completed = localStorage.getItem("saa_trivia_completed") === "true";
@@ -217,6 +223,11 @@ export default function TriviaGame() {
           })
         );
       } catch {}
+
+      if (embedded) {
+        const el = document.getElementById("trivia");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } else {
       // Completed all questions — lock in results permanently!
       setGameState("results");
@@ -302,7 +313,7 @@ export default function TriviaGame() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div id="trivia-card" className={`mx-auto w-full ${embedded ? "max-w-4xl" : "max-w-2xl"}`}>
       {/* INTRO SCREEN */}
       {gameState === "intro" && (
         <motion.div
@@ -350,7 +361,7 @@ export default function TriviaGame() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.4 }}
-          className="rounded-3xl border-2 border-gold/40 bg-warm-white p-6 shadow-xl sm:p-10"
+          className="rounded-3xl border-2 border-gold/40 bg-warm-white p-6 shadow-xl sm:p-10 text-left"
         >
           {/* Progress Header */}
           <div className="mb-6">
@@ -390,7 +401,7 @@ export default function TriviaGame() {
           </h3>
 
           {/* Options */}
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             {currentQ.options.map((opt, idx) => {
               const isSelected = selectedOption === idx;
               const optText = (isTelugu && triviaTelugu[currentQ.id]?.options?.[idx])
@@ -713,13 +724,15 @@ export default function TriviaGame() {
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <span>{t.triviaCompletedPill || "Trivia Completed • Scores Locked"}</span>
                   </div>
-                  <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-charcoal shadow-2xs transition-all hover:bg-champagne/30 active:scale-95"
-                  >
-                    <Home className="h-4 w-4" />
-                    <span>{t.backHome || "Back to Anniversary Home"}</span>
-                  </Link>
+                  {!embedded && (
+                    <Link
+                      href="/"
+                      className="inline-flex items-center gap-2 rounded-full border border-warm-beige bg-warm-white px-7 py-3 text-sm font-medium text-charcoal shadow-2xs transition-all hover:bg-champagne/30 active:scale-95"
+                    >
+                      <Home className="h-4 w-4" />
+                      <span>{t.backHome || "Back to Anniversary Home"}</span>
+                    </Link>
+                  )}
                 </div>
               </>
             );
