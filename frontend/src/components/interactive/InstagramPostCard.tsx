@@ -36,6 +36,25 @@ interface InstagramPostCardProps {
   post: InstagramPost;
 }
 
+const getAspectRatioClass = (ratio?: string) => {
+  switch (ratio) {
+    case "portrait":
+    case "4:5":
+      return "aspect-[4/5]";
+    case "square":
+    case "1:1":
+      return "aspect-square";
+    case "16:9":
+      return "aspect-[16/9]";
+    case "4:3":
+      return "aspect-[4/3]";
+    case "landscape":
+    case "3:2":
+    default:
+      return "aspect-[3/2]";
+  }
+};
+
 export default function InstagramPostCard({ post }: InstagramPostCardProps) {
   // Carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -413,6 +432,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
   };
 
   const hasMultipleImages = post.images.length > 1;
+  const aspectRatioClass = getAspectRatioClass(post.aspectRatio);
 
   return (
     <>
@@ -468,12 +488,16 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
         {/* =========================================================
             2. POST MEDIA / PHOTO CAROUSEL (Horizontal Slide Track)
-            - Horizontal sliding track with smooth CSS transition
+            - Dynamically adapts to Instagram Allowed Aspect Ratios:
+              * Portrait (4:5)
+              * Landscape (3:2 / 16:9 / 4:3)
+              * Square (1:1)
             - Touch swipe support on mobile (left/right)
+            - Prominent desktop navigation arrows for next/previous image
             - Double-tap anywhere to LIKE & trigger heart burst
             ========================================================= */}
         <div
-          className="relative aspect-4/3 sm:aspect-square w-full select-none overflow-hidden bg-gradient-to-br from-[#1A0B0E] via-[#2E0F13] to-[#1F0A0E] cursor-pointer group touch-pan-y"
+          className={`relative ${aspectRatioClass} w-full select-none overflow-hidden bg-gradient-to-br from-[#1A0B0E] via-[#2E0F13] to-[#1F0A0E] cursor-pointer group touch-pan-y`}
           onClick={handleMediaDoubleTap}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -549,24 +573,24 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
             </div>
           )}
 
-          {/* Carousel Navigation Arrows */}
+          {/* Carousel Navigation Arrows - Prominently visible on desktop & mobile */}
           {hasMultipleImages && (
             <>
               <button
                 type="button"
                 onClick={handlePrevSlide}
                 aria-label="Previous photo"
-                className="absolute left-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/85 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 z-20 flex h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white/95 text-charcoal shadow-[0_4px_14px_rgba(0,0,0,0.22)] backdrop-blur-md transition-all hover:bg-white hover:scale-110 active:scale-90 cursor-pointer"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-charcoal stroke-[2.5]" />
               </button>
               <button
                 type="button"
                 onClick={handleNextSlide}
                 aria-label="Next photo"
-                className="absolute right-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/85 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex h-7.5 w-7.5 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-white/95 text-charcoal shadow-[0_4px_14px_rgba(0,0,0,0.22)] backdrop-blur-md transition-all hover:bg-white hover:scale-110 active:scale-90 cursor-pointer"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-charcoal stroke-[2.5]" />
               </button>
             </>
           )}
