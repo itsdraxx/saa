@@ -6,8 +6,48 @@ import type {
   AdminInstagramPost,
 } from "./types";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:3001";
+const CONFIGURED_API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+
+// Automatically prioritize 8080 if running on localhost dev
+let activeApiBase =
+  CONFIGURED_API && !CONFIGURED_API.includes("3001")
+    ? CONFIGURED_API
+    : "http://localhost:8080";
+
+export function getApiBase(): string {
+  return activeApiBase;
+}
+
+/**
+ * Resilient fetch that tries activeApiBase first, and automatically falls back
+ * between port 8080 and 3001 if the configured server isn't answering.
+ */
+async function apiFetch(endpoint: string, init?: RequestInit): Promise<Response> {
+  const cleanPath = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+  try {
+    const res = await fetch(`${activeApiBase}${cleanPath}`, init);
+    return res;
+  } catch (err) {
+    // If connection refused, try alternate local port (8080 <-> 3001)
+    const candidates = [
+      "http://localhost:8080",
+      "http://localhost:3001",
+      "http://127.0.0.1:8080",
+      "http://127.0.0.1:3001",
+    ].filter((base) => base !== activeApiBase);
+
+    for (const altBase of candidates) {
+      try {
+        const altRes = await fetch(`${altBase}${cleanPath}`, init);
+        activeApiBase = altBase; // remember working host
+        return altRes;
+      } catch {}
+    }
+
+    throw err;
+  }
+}
 
 // ============================================
 // Admin Username/Password Authentication
@@ -18,7 +58,7 @@ export async function adminLogin(
   password: string
 ): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/login`, {
+    const res = await apiFetch(`/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -28,7 +68,10 @@ export async function adminLogin(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Connection failed to backend API",
+      error:
+        err instanceof Error
+          ? `${err.message} (Tried connecting to ${activeApiBase})`
+          : "Connection failed to backend API",
     };
   }
 }
@@ -37,7 +80,7 @@ export async function verifyAdminToken(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/verify`, {
+    const res = await apiFetch(`/admin/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,7 +102,7 @@ export async function adminGetStats(
   token: string
 ): Promise<{ success: boolean; stats?: AdminStats; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/stats`, {
+    const res = await apiFetch(`/admin/stats`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "x-admin-token": token,
@@ -80,7 +123,7 @@ export async function adminGetComments(
   limit: number = 200
 ): Promise<{ success: boolean; comments: BackendComment[]; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/comments?limit=${limit}`, {
+    const res = await apiFetch(`/admin/comments?limit=${limit}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "x-admin-token": token,
@@ -106,7 +149,7 @@ export async function adminDeleteComment(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/comments/${commentId}`, {
+    const res = await apiFetch(`/admin/comments/${commentId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -128,7 +171,7 @@ export async function adminGetWishes(
   limit: number = 200
 ): Promise<{ success: boolean; wishes: GuestWish[]; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/wishes?limit=${limit}`, {
+    const res = await apiFetch(`/admin/wishes?limit=${limit}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "x-admin-token": token,
@@ -154,7 +197,7 @@ export async function adminDeleteWish(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/wishes/${wishId}`, {
+    const res = await apiFetch(`/admin/wishes/${wishId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -176,7 +219,7 @@ export async function adminGetTrivia(
   limit: number = 200
 ): Promise<{ success: boolean; scores: TriviaLeaderboardEntry[]; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/trivia?limit=${limit}`, {
+    const res = await apiFetch(`/admin/trivia?limit=${limit}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "x-admin-token": token,
@@ -202,7 +245,7 @@ export async function adminDeleteTrivia(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/admin/trivia/${scoreId}`, {
+    const res = await apiFetch(`/admin/trivia/${scoreId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -227,7 +270,7 @@ export async function adminGetPosts(
   token: string
 ): Promise<{ success: boolean; posts: AdminInstagramPost[]; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/posts`, {
+    const res = await apiFetch(`/posts`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "x-admin-token": token,
@@ -253,7 +296,7 @@ export async function adminCreatePost(
   token: string
 ): Promise<{ success: boolean; post?: AdminInstagramPost; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/posts`, {
+    const res = await apiFetch(`/posts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -278,7 +321,7 @@ export async function adminUpdatePost(
   token: string
 ): Promise<{ success: boolean; post?: AdminInstagramPost; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/posts/${postId}`, {
+    const res = await apiFetch(`/posts/${postId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -302,7 +345,7 @@ export async function adminDeletePost(
   token: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/posts/${postId}`, {
+    const res = await apiFetch(`/posts/${postId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -326,7 +369,7 @@ export async function adminUploadImage(
   try {
     const formData = new FormData();
     formData.append("image", file);
-    const res = await fetch(`${API_BASE}/posts/upload`, {
+    const res = await apiFetch(`/posts/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

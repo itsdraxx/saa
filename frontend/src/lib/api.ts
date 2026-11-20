@@ -7,7 +7,7 @@ import type {
 import { instagramPosts, type InstagramPost } from "@/data/instagramPosts";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/saa";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/saa";
 
 /**
  * Get or create an anonymous visitor UUID stored in localStorage.
