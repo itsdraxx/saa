@@ -21,6 +21,7 @@ import triviaRouter from "./routes/trivia.js";
 import wishesRouter from "./routes/wishes.js";
 import adminRouter from "./routes/admin.js";
 import healthRouter from "./routes/health.js";
+import postsRouter from "./routes/posts.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
@@ -43,14 +44,14 @@ app.use(
       if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error(`CORS: Origin ${origin} not allowed`));
     },
-    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "x-admin-key", "x-admin-token", "Authorization"],
     credentials: true,
   })
 );
 
-// Parse JSON body
-app.use(express.json({ limit: "10kb" }));
+// Parse JSON body (increased for post data with image metadata)
+app.use(express.json({ limit: "1mb" }));
 
 // Trust proxy (for rate limiter to get real IP behind Nginx)
 app.set("trust proxy", 1);
@@ -79,8 +80,14 @@ app.use("/wishes", wishesRouter);
 app.use("/api/saa/admin", adminRouter);
 app.use("/admin", adminRouter);
 
+app.use("/api/saa/posts", postsRouter);
+app.use("/posts", postsRouter);
+
 app.use("/api/saa/health", healthRouter);
 app.use("/health", healthRouter);
+
+// Static files for uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 // Root endpoint
 app.get("/", (_req, res) => {
@@ -93,6 +100,7 @@ app.get("/", (_req, res) => {
       likes: "/api/saa/likes",
       trivia: "/api/saa/trivia",
       wishes: "/api/saa/wishes",
+      posts: "/api/saa/posts",
       admin: "/api/saa/admin (protected)",
     },
   });

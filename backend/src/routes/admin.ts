@@ -48,6 +48,7 @@ router.get("/stats", (_req, res) => {
   const likes = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM likes");
   const trivia = dbGet<{ count: number }>("SELECT COUNT(DISTINCT player_name) as count FROM trivia_scores");
   const wishes = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM wishes");
+  const posts = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM instagram_posts");
 
   res.json({
     success: true,
@@ -56,6 +57,7 @@ router.get("/stats", (_req, res) => {
       total_likes: likes?.count ?? 0,
       total_trivia_players: trivia?.count ?? 0,
       total_wishes: wishes?.count ?? 0,
+      total_posts: posts?.count ?? 0,
     },
   });
 });

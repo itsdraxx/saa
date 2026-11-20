@@ -4,6 +4,7 @@ import type {
   TriviaLeaderboardEntry,
   AdminStats,
 } from "./types";
+import { instagramPosts, type InstagramPost } from "@/data/instagramPosts";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/saa";
@@ -451,4 +452,47 @@ export async function adminDeleteTrivia(
   } catch {
     return { success: false, error: "Failed to delete trivia score" };
   }
+}
+
+// ──────────────────────────────────────────────
+// 6. INSTAGRAM POSTS API
+// ──────────────────────────────────────────────
+
+export async function fetchInstagramPosts(): Promise<{
+  success: boolean;
+  posts: InstagramPost[];
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/posts`, {
+      headers: { Accept: "application/json" },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.posts) && data.posts.length > 0) {
+        return { success: true, posts: data.posts };
+      }
+    }
+  } catch (err) {
+    console.warn("[API] Primary fetch failed for Instagram posts:", err);
+  }
+
+  // Secondary dev fallback to localhost:8080 if running backend on default port
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname === "localhost" &&
+    !API_BASE.includes("8080")
+  ) {
+    try {
+      const res = await fetch("http://localhost:8080/api/saa/posts");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.posts) && data.posts.length > 0) {
+          return { success: true, posts: data.posts };
+        }
+      }
+    } catch {}
+  }
+
+  // Guaranteed fallback to static curated posts
+  return { success: false, posts: instagramPosts };
 }

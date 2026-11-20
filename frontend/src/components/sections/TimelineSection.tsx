@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import InstagramPostCard from "@/components/interactive/InstagramPostCard";
-import { instagramPosts } from "@/data/instagramPosts";
+import { instagramPosts, type InstagramPost } from "@/data/instagramPosts";
+import { fetchInstagramPosts } from "@/lib/api";
 import { Sparkles, Heart, Camera, Compass, Users, Flame } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations, storyHighlightsTelugu } from "@/data/translations";
@@ -12,14 +13,27 @@ import { translations, storyHighlightsTelugu } from "@/data/translations";
 type FilterCategory = "all" | "wedding" | "family" | "travel" | "celebration";
 
 export default function TimelineSection() {
+  const [posts, setPosts] = useState<InstagramPost[]>(instagramPosts);
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
   const { language, isTelugu } = useLanguage();
   const t = translations[language].timeline;
 
+  useEffect(() => {
+    let isMounted = true;
+    fetchInstagramPosts().then((res) => {
+      if (isMounted && res.posts && res.posts.length > 0) {
+        setPosts(res.posts);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const filteredPosts =
     activeCategory === "all"
-      ? instagramPosts
-      : instagramPosts.filter((post) => post.category === activeCategory);
+      ? posts
+      : posts.filter((post) => post.category === activeCategory);
 
   // Story highlights at the top
   const storyHighlights = [
@@ -82,30 +96,30 @@ export default function TimelineSection() {
             ========================================================= */}
         <div className="mt-8 flex justify-center flex-wrap gap-1.5 sm:gap-2">
           {[
-            { id: "all", label: t.filterAll, icon: Sparkles, count: instagramPosts.length },
+            { id: "all", label: t.filterAll, icon: Sparkles, count: posts.length },
             {
               id: "wedding",
               label: t.filterWedding,
               icon: Heart,
-              count: instagramPosts.filter((p) => p.category === "wedding").length,
+              count: posts.filter((p) => p.category === "wedding").length,
             },
             {
               id: "family",
               label: t.filterFamily,
               icon: Users,
-              count: instagramPosts.filter((p) => p.category === "family").length,
+              count: posts.filter((p) => p.category === "family").length,
             },
             {
               id: "travel",
               label: t.filterTravel,
               icon: Compass,
-              count: instagramPosts.filter((p) => p.category === "travel").length,
+              count: posts.filter((p) => p.category === "travel").length,
             },
             {
               id: "celebration",
               label: t.filterCelebration,
               icon: Flame,
-              count: instagramPosts.filter((p) => p.category === "celebration").length,
+              count: posts.filter((p) => p.category === "celebration").length,
             },
           ].map((tab) => {
             const isActive = activeCategory === tab.id;

@@ -3,6 +3,7 @@ import type {
   BackendComment,
   GuestWish,
   TriviaLeaderboardEntry,
+  AdminInstagramPost,
 } from "./types";
 
 const API_BASE =
@@ -214,6 +215,131 @@ export async function adminDeleteTrivia(
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to delete trivia score",
+    };
+  }
+}
+
+// ============================================
+// Instagram Posts Management
+// ============================================
+
+export async function adminGetPosts(
+  token: string
+): Promise<{ success: boolean; posts: AdminInstagramPost[]; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/posts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+    });
+    const data = await res.json();
+    return {
+      success: !!data.success,
+      posts: Array.isArray(data.posts) ? data.posts : [],
+      error: data.error,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      posts: [],
+      error: err instanceof Error ? err.message : "Failed to fetch posts",
+    };
+  }
+}
+
+export async function adminCreatePost(
+  post: Partial<AdminInstagramPost>,
+  token: string
+): Promise<{ success: boolean; post?: AdminInstagramPost; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/posts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify(post),
+    });
+    const data = await res.json();
+    return { success: !!data.success, post: data.post, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to create post",
+    };
+  }
+}
+
+export async function adminUpdatePost(
+  postId: string,
+  updates: Partial<AdminInstagramPost>,
+  token: string
+): Promise<{ success: boolean; post?: AdminInstagramPost; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/posts/${postId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    return { success: !!data.success, post: data.post, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to update post",
+    };
+  }
+}
+
+export async function adminDeletePost(
+  postId: string,
+  token: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/posts/${postId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+    });
+    const data = await res.json();
+    return { success: !!data.success, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to delete post",
+    };
+  }
+}
+
+export async function adminUploadImage(
+  file: File,
+  token: string
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+    const res = await fetch(`${API_BASE}/posts/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: formData,
+    });
+    const data = await res.json();
+    return { success: !!data.success, url: data.url, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to upload image",
     };
   }
 }

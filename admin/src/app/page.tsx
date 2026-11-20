@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   ShieldCheck,
   User,
@@ -17,8 +17,21 @@ import {
   CheckCircle2,
   AlertCircle,
   Filter,
+  Camera,
+  Plus,
+  Edit3,
+  X,
+  Upload,
+  GripVertical,
+  Image as ImageIcon,
+  MapPin,
+  Calendar,
+  Tag,
+  Hash,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { instagramPosts } from "@/data/instagramPosts";
 import {
   adminLogin,
   verifyAdminToken,
@@ -29,16 +42,55 @@ import {
   adminDeleteWish,
   adminGetTrivia,
   adminDeleteTrivia,
+  adminGetPosts,
+  adminCreatePost,
+  adminUpdatePost,
+  adminDeletePost,
+  adminUploadImage,
 } from "@/lib/api";
 import type {
   AdminStats,
   BackendComment,
   GuestWish,
   TriviaLeaderboardEntry,
+  AdminInstagramPost,
+  InstagramMedia,
+  InstagramAspectRatio,
 } from "@/lib/types";
 
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/$/, "") || "http://localhost:3000";
+
+type TabId = "comments" | "wishes" | "trivia" | "instagram";
+
+const CATEGORIES = [
+  { value: "wedding", label: "Wedding", emoji: "💍" },
+  { value: "family", label: "Family", emoji: "👨‍👩‍👧‍👦" },
+  { value: "milestone", label: "Milestone", emoji: "🏆" },
+  { value: "travel", label: "Travel", emoji: "✈️" },
+  { value: "celebration", label: "Celebration", emoji: "🎉" },
+];
+
+const ASPECT_RATIOS: { value: InstagramAspectRatio; label: string; ratio: string }[] = [
+  { value: "landscape", label: "Landscape", ratio: "3:2" },
+  { value: "portrait", label: "Portrait", ratio: "4:5" },
+  { value: "square", label: "Square", ratio: "1:1" },
+];
+
+function emptyPost(): Partial<AdminInstagramPost> {
+  return {
+    id: "",
+    year: new Date().getFullYear(),
+    dateStr: "",
+    title: "",
+    location: "",
+    aspectRatio: "landscape",
+    category: "milestone",
+    caption: "",
+    hashtags: [],
+    images: [],
+  };
+}
 
 export default function AdminPage() {
   const [username, setUsername] = useState("");
@@ -50,7 +102,7 @@ export default function AdminPage() {
 
   // Dashboard state
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [activeTab, setActiveTab] = useState<"comments" | "wishes" | "trivia">("comments");
+  const [activeTab, setActiveTab] = useState<TabId>("comments");
   const [searchQuery, setSearchQuery] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -58,7 +110,16 @@ export default function AdminPage() {
   const [comments, setComments] = useState<BackendComment[]>([]);
   const [wishes, setWishes] = useState<GuestWish[]>([]);
   const [triviaScores, setTriviaScores] = useState<TriviaLeaderboardEntry[]>([]);
+  const [instagramPosts, setInstagramPosts] = useState<AdminInstagramPost[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Instagram modal state
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<Partial<AdminInstagramPost> | null>(null);
+  const [isSavingPost, setIsSavingPost] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [hashtagInput, setHashtagInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -69,17 +130,19 @@ export default function AdminPage() {
     if (!token) return;
     setIsLoadingData(true);
     try {
-      const [statsRes, commentsRes, wishesRes, triviaRes] = await Promise.all([
+      const [statsRes, commentsRes, wishesRes, triviaRes, postsRes] = await Promise.all([
         adminGetStats(token),
         adminGetComments(token, 200),
         adminGetWishes(token, 200),
         adminGetTrivia(token, 200),
+        adminGetPosts(token),
       ]);
 
       if (statsRes.success && statsRes.stats) setStats(statsRes.stats);
       if (commentsRes.success) setComments(commentsRes.comments);
       if (wishesRes.success) setWishes(wishesRes.wishes);
       if (triviaRes.success) setTriviaScores(triviaRes.scores);
+      if (postsRes.success) setInstagramPosts(postsRes.posts);
     } catch (err) {
       console.warn("Error refreshing admin data:", err);
     }
@@ -180,6 +243,126 @@ export default function AdminPage() {
     }
   };
 
+  // ═══════════════════════════════════════
+  // INSTAGRAM POST CRUD
+  // ═══════════════════════════════════════
+
+  const openCreateModal = () => {
+    setEditingPost(emptyPost());
+    setHashtagInput("");
+    setIsPostModalOpen(true);
+  };
+
+  const openEditModal = (post: AdminInstagramPost) => {
+    setEditingPost({ ...post });
+    setHashtagInput("");
+    setIsPostModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsPostModalOpen(false);
+    setEditingPost(null);
+    setHashtagInput("");
+  };
+
+  const handleSavePost = async () => {
+    if (!editingPost) return;
+    if (!editingPost.id?.trim() || !editingPost.title?.trim() || !editingPost.caption?.trim()) {
+      alert("Please fill in the required fields: ID, Title, and Caption");
+      return;
+    }
+
+    setIsSavingPost(true);
+    const isEditing = instagramPosts.some((p) => p.id === editingPost.id);
+
+    let res;
+    if (isEditing) {
+      res = await adminUpdatePost(editingPost.id!, editingPost, adminToken);
+    } else {
+      res = await adminCreatePost(editingPost, adminToken);
+    }
+
+    if (res.success) {
+      showToast(isEditing ? `Post "${editingPost.title}" updated` : `Post "${editingPost.title}" created`);
+      closeModal();
+      refreshAllData();
+    } else {
+      alert(res.error || "Failed to save post");
+    }
+    setIsSavingPost(false);
+  };
+
+  const handleDeletePost = async (postId: string, title: string) => {
+    if (!confirm(`Are you sure you want to permanently delete the post "${title}"?`)) return;
+
+    const res = await adminDeletePost(postId, adminToken);
+    if (res.success) {
+      setInstagramPosts((prev) => prev.filter((p) => p.id !== postId));
+      showToast(`Post "${title}" deleted`);
+      refreshAllData();
+    } else {
+      alert(res.error || "Failed to delete post");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !editingPost) return;
+
+    setIsUploadingImage(true);
+    const newImages = [...(editingPost.images || [])];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const res = await adminUploadImage(file, adminToken);
+      if (res.success && res.url) {
+        newImages.push({
+          src: res.url,
+          alt: file.name.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
+          caption: "",
+          tag: "",
+        });
+      } else {
+        alert(`Failed to upload ${file.name}: ${res.error}`);
+      }
+    }
+
+    setEditingPost({ ...editingPost, images: newImages });
+    setIsUploadingImage(false);
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    if (!editingPost) return;
+    const updated = [...(editingPost.images || [])];
+    updated.splice(index, 1);
+    setEditingPost({ ...editingPost, images: updated });
+  };
+
+  const updateImageField = (index: number, field: keyof InstagramMedia, value: string) => {
+    if (!editingPost) return;
+    const updated = [...(editingPost.images || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditingPost({ ...editingPost, images: updated });
+  };
+
+  const addHashtag = () => {
+    if (!editingPost || !hashtagInput.trim()) return;
+    let tag = hashtagInput.trim();
+    if (!tag.startsWith("#")) tag = "#" + tag;
+    const updated = [...(editingPost.hashtags || []), tag];
+    setEditingPost({ ...editingPost, hashtags: updated });
+    setHashtagInput("");
+  };
+
+  const removeHashtag = (index: number) => {
+    if (!editingPost) return;
+    const updated = [...(editingPost.hashtags || [])];
+    updated.splice(index, 1);
+    setEditingPost({ ...editingPost, hashtags: updated });
+  };
+
   // Filtered lists based on search
   const [selectedPostFilter, setSelectedPostFilter] = useState<string>("all");
 
@@ -204,7 +387,7 @@ export default function AdminPage() {
         comments: postComments,
       };
     });
-  }, [selectedPostFilter, filteredComments]);
+  }, [selectedPostFilter, filteredComments, instagramPosts]);
 
   const filteredWishes = wishes.filter(
     (w) =>
@@ -215,6 +398,14 @@ export default function AdminPage() {
 
   const filteredTrivia = triviaScores.filter((t) =>
     t.player_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredInstagramPosts = instagramPosts.filter(
+    (p) =>
+      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(p.year).includes(searchQuery)
   );
 
   // ──────────────────────────────────────────────
@@ -336,7 +527,7 @@ export default function AdminPage() {
               Admin Moderation Portal
             </h1>
             <span className="text-[10px] text-soft-brown font-medium">
-              Bujji & Satya — 25 Years of Us
+              Bujji &amp; Satya — 25 Years of Us
             </span>
           </div>
         </div>
@@ -374,7 +565,7 @@ export default function AdminPage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
               <span className="text-xs font-semibold uppercase tracking-wider">Comments</span>
@@ -414,43 +605,39 @@ export default function AdminPage() {
               {stats?.total_trivia_players ?? triviaScores.length}
             </p>
           </div>
+
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+            <div className="flex items-center justify-between text-burgundy mb-1">
+              <span className="text-xs font-semibold uppercase tracking-wider">IG Posts</span>
+              <Camera className="h-4 w-4 text-purple-500" />
+            </div>
+            <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
+              {stats?.total_posts ?? instagramPosts.length}
+            </p>
+          </div>
         </div>
 
         {/* Tab Controls & Search Bar */}
         <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-b border-warm-beige/70 pb-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveTab("comments")}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === "comments"
-                  ? "bg-burgundy text-warm-white shadow-xs"
-                  : "bg-warm-white text-soft-brown hover:bg-champagne/60 border border-warm-beige"
-              }`}
-            >
-              Post Comments ({comments.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab("wishes")}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === "wishes"
-                  ? "bg-burgundy text-warm-white shadow-xs"
-                  : "bg-warm-white text-soft-brown hover:bg-champagne/60 border border-warm-beige"
-              }`}
-            >
-              Guest Wishes ({wishes.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab("trivia")}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === "trivia"
-                  ? "bg-burgundy text-warm-white shadow-xs"
-                  : "bg-warm-white text-soft-brown hover:bg-champagne/60 border border-warm-beige"
-              }`}
-            >
-              Trivia Leaderboard ({triviaScores.length})
-            </button>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {([
+              { id: "comments" as TabId, label: `Comments (${comments.length})` },
+              { id: "wishes" as TabId, label: `Wishes (${wishes.length})` },
+              { id: "trivia" as TabId, label: `Trivia (${triviaScores.length})` },
+              { id: "instagram" as TabId, label: `📸 IG Posts (${instagramPosts.length})` },
+            ]).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "bg-burgundy text-warm-white shadow-xs"
+                    : "bg-warm-white text-soft-brown hover:bg-champagne/60 border border-warm-beige"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Search Box */}
@@ -682,7 +869,476 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {/* TAB 4: INSTAGRAM POSTS MANAGEMENT */}
+        {activeTab === "instagram" && (
+          <div className="mt-6 space-y-6">
+            {/* Create New Post Button */}
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
+                <Camera className="h-5 w-5 text-burgundy" />
+                Memory Posts
+              </h2>
+              <button
+                type="button"
+                onClick={openCreateModal}
+                className="flex items-center gap-2 rounded-xl bg-burgundy text-warm-white px-4 py-2 text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                New Memory Post
+              </button>
+            </div>
+
+            {/* Posts Grid */}
+            {filteredInstagramPosts.length === 0 ? (
+              <div className="rounded-2xl border border-warm-beige bg-warm-white p-12 text-center text-soft-brown">
+                <Camera className="mx-auto h-8 w-8 text-gold mb-2 opacity-50" />
+                <p className="font-heading text-lg font-semibold">No posts found</p>
+                <p className="text-xs mt-1">Create your first memory post to get started!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredInstagramPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="rounded-2xl border border-warm-beige bg-warm-white shadow-xs overflow-hidden hover:border-gold/50 hover:shadow-md transition-all group"
+                  >
+                    {/* Post Image Preview */}
+                    <div className="relative h-40 bg-champagne/40 overflow-hidden">
+                      {post.images && post.images.length > 0 && post.images[0].src ? (
+                        <div className="relative w-full h-full">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={post.images[0].src}
+                            alt={post.images[0].alt || post.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = "none";
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-rose-50">
+                          <ImageIcon className="h-10 w-10 text-soft-brown/30" />
+                        </div>
+                      )}
+                      {/* Year Badge */}
+                      <div className="absolute top-2 left-2 rounded-lg bg-burgundy text-white px-2 py-0.5 text-xs font-bold shadow">
+                        {post.year}
+                      </div>
+                      {/* Category Badge */}
+                      <div className="absolute top-2 right-2 rounded-lg bg-warm-white/90 text-charcoal px-2 py-0.5 text-[10px] font-semibold shadow border border-warm-beige">
+                        {CATEGORIES.find((c) => c.value === post.category)?.emoji}{" "}
+                        {post.category}
+                      </div>
+                      {/* Aspect Ratio Badge */}
+                      <div className="absolute bottom-2 left-2 rounded-md bg-charcoal/70 text-white px-1.5 py-0.5 text-[10px] font-medium">
+                        {post.aspectRatio}
+                      </div>
+                    </div>
+
+                    {/* Post Details */}
+                    <div className="p-4">
+                      <h3 className="font-heading text-sm font-bold text-charcoal line-clamp-1">
+                        {post.title}
+                      </h3>
+                      {post.location && (
+                        <p className="mt-0.5 text-[10px] text-soft-brown/70 flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {post.location}
+                        </p>
+                      )}
+                      <p className="mt-1.5 text-[11px] text-charcoal/70 line-clamp-2 leading-relaxed">
+                        {post.caption}
+                      </p>
+
+                      {/* Hashtags */}
+                      {post.hashtags && post.hashtags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {post.hashtags.slice(0, 3).map((tag, i) => (
+                            <span
+                              key={i}
+                              className="text-[9px] text-blue-600/70 font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {post.hashtags.length > 3 && (
+                            <span className="text-[9px] text-soft-brown/50">
+                              +{post.hashtags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="mt-3 pt-3 border-t border-warm-beige/50 flex items-center justify-between">
+                        <span className="text-[10px] text-soft-brown/50 font-medium">
+                          ID: {post.id}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(post)}
+                            className="flex items-center gap-1 rounded-lg bg-champagne/60 text-charcoal border border-warm-beige px-2.5 py-1 text-[10px] font-semibold hover:bg-champagne transition-colors cursor-pointer"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id, post.title)}
+                            className="flex items-center gap-1 rounded-lg bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 text-[10px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
+
+      {/* ═══════════════════════════════════════
+          CREATE / EDIT POST MODAL
+          ═══════════════════════════════════════ */}
+      {isPostModalOpen && editingPost && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-charcoal/60 backdrop-blur-sm overflow-y-auto py-8 px-4">
+          <div className="w-full max-w-3xl bg-warm-white rounded-3xl border-2 border-warm-beige shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 bg-warm-white rounded-t-3xl border-b border-warm-beige px-6 py-4 flex items-center justify-between">
+              <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
+                <Camera className="h-5 w-5 text-burgundy" />
+                {instagramPosts.some((p) => p.id === editingPost.id) ? "Edit Memory Post" : "Create Memory Post"}
+              </h2>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="p-1.5 rounded-full hover:bg-champagne/60 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5 text-soft-brown" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {/* Row 1: ID & Year */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                    <Tag className="h-3 w-3" /> Post ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.id || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, id: e.target.value })}
+                    placeholder="e.g. post-2025"
+                    disabled={instagramPosts.some((p) => p.id === editingPost.id)}
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> Year *
+                  </label>
+                  <input
+                    type="number"
+                    value={editingPost.year || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, year: Number(e.target.value) })}
+                    placeholder="2001"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Title & Date */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.title || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, title: e.target.value })}
+                    placeholder="Our Wedding Day"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1">
+                    Display Date
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.dateStr || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, dateStr: e.target.value })}
+                    placeholder="23 November 2001"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Location */}
+              <div>
+                <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> Location
+                </label>
+                <input
+                  type="text"
+                  value={editingPost.location || ""}
+                  onChange={(e) => setEditingPost({ ...editingPost, location: e.target.value })}
+                  placeholder="Hyderabad, India"
+                  className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                />
+              </div>
+
+              {/* Row 4: Category & Aspect Ratio */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1">
+                    Category
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        onClick={() => setEditingPost({ ...editingPost, category: cat.value })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          editingPost.category === cat.value
+                            ? "bg-burgundy text-white shadow-sm"
+                            : "bg-champagne/50 text-charcoal border border-warm-beige hover:bg-champagne"
+                        }`}
+                      >
+                        {cat.emoji} {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1">
+                    Aspect Ratio
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {ASPECT_RATIOS.map((ar) => (
+                      <button
+                        key={ar.value}
+                        type="button"
+                        onClick={() => setEditingPost({ ...editingPost, aspectRatio: ar.value })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          editingPost.aspectRatio === ar.value
+                            ? "bg-burgundy text-white shadow-sm"
+                            : "bg-champagne/50 text-charcoal border border-warm-beige hover:bg-champagne"
+                        }`}
+                      >
+                        {ar.label} ({ar.ratio})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Caption */}
+              <div>
+                <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                  <FileText className="h-3 w-3" /> Caption *
+                </label>
+                <textarea
+                  value={editingPost.caption || ""}
+                  onChange={(e) => setEditingPost({ ...editingPost, caption: e.target.value })}
+                  placeholder="Tell the story of this memory..."
+                  rows={3}
+                  className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden resize-none"
+                />
+              </div>
+
+              {/* Hashtags */}
+              <div>
+                <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                  <Hash className="h-3 w-3" /> Hashtags
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {(editingPost.hashtags || []).map((tag, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeHashtag(i)}
+                        className="hover:text-red-600 cursor-pointer"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={hashtagInput}
+                    onChange={(e) => setHashtagInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addHashtag(); } }}
+                    placeholder="#YourHashtag"
+                    className="flex-1 rounded-xl border border-warm-beige bg-champagne/20 px-3 py-1.5 text-xs text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={addHashtag}
+                    className="px-3 py-1.5 rounded-xl bg-champagne text-charcoal border border-warm-beige text-xs font-semibold hover:bg-warm-beige cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Images Section */}
+              <div>
+                <label className="block text-xs font-semibold text-soft-brown mb-2 flex items-center gap-1">
+                  <ImageIcon className="h-3 w-3" /> Images ({(editingPost.images || []).length})
+                </label>
+
+                {/* Image Upload Area */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-warm-beige rounded-xl p-6 text-center hover:border-burgundy hover:bg-champagne/20 transition-all cursor-pointer mb-4"
+                >
+                  <Upload className="h-8 w-8 text-soft-brown/40 mx-auto mb-2" />
+                  <p className="text-xs text-soft-brown/70 font-medium">
+                    {isUploadingImage ? "Uploading..." : "Click to upload images (JPEG, PNG, WebP)"}
+                  </p>
+                  <p className="text-[10px] text-soft-brown/40 mt-1">Max 10 MB per file</p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Image List */}
+                {(editingPost.images || []).length > 0 && (
+                  <div className="space-y-3">
+                    {(editingPost.images || []).map((img, index) => (
+                      <div
+                        key={index}
+                        className="rounded-xl border border-warm-beige bg-champagne/20 p-3"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex items-center gap-2 shrink-0">
+                            <GripVertical className="h-4 w-4 text-soft-brown/30" />
+                            <div className="w-16 h-16 rounded-lg bg-warm-beige/50 flex items-center justify-center overflow-hidden border border-warm-beige">
+                              {img.src ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                  src={img.src}
+                                  alt={img.alt || "preview"}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = "none";
+                                  }}
+                                />
+                              ) : (
+                                <ImageIcon className="h-6 w-6 text-soft-brown/30" />
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-soft-brown/60">
+                                Image {index + 1}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="text-red-500 hover:text-red-700 cursor-pointer"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              value={img.src}
+                              onChange={(e) => updateImageField(index, "src", e.target.value)}
+                              placeholder="Image URL or /path/to/image.png"
+                              className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={img.alt || ""}
+                                onChange={(e) => updateImageField(index, "alt", e.target.value)}
+                                placeholder="Alt text"
+                                className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                              />
+                              <input
+                                type="text"
+                                value={img.tag || ""}
+                                onChange={(e) => updateImageField(index, "tag", e.target.value)}
+                                placeholder="Tag label"
+                                className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={img.caption || ""}
+                              onChange={(e) => updateImageField(index, "caption", e.target.value)}
+                              placeholder="Image caption"
+                              className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Image by URL */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...(editingPost.images || []), { src: "", alt: "", caption: "", tag: "" }];
+                    setEditingPost({ ...editingPost, images: updated });
+                  }}
+                  className="mt-3 flex items-center gap-1.5 text-xs text-burgundy font-semibold hover:text-deep-burgundy cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add image by URL
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-warm-white rounded-b-3xl border-t border-warm-beige px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-5 py-2 rounded-xl border border-warm-beige text-xs font-semibold text-soft-brown hover:bg-champagne/60 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePost}
+                disabled={isSavingPost || !editingPost.id?.trim() || !editingPost.title?.trim()}
+                className="px-5 py-2 rounded-xl bg-burgundy text-warm-white text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isSavingPost ? "Saving..." : instagramPosts.some((p) => p.id === editingPost.id) ? "Update Post" : "Create Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

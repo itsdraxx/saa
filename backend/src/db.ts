@@ -91,6 +91,27 @@ export async function initDb(): Promise<void> {
   `);
   db.run("CREATE INDEX IF NOT EXISTS idx_wishes_created_at ON wishes(created_at DESC);");
 
+  // Instagram posts table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS instagram_posts (
+      id            TEXT PRIMARY KEY,
+      year          INTEGER NOT NULL,
+      date_str      TEXT NOT NULL DEFAULT '',
+      title         TEXT NOT NULL,
+      location      TEXT NOT NULL DEFAULT '',
+      aspect_ratio  TEXT NOT NULL DEFAULT 'landscape',
+      category      TEXT NOT NULL DEFAULT 'milestone',
+      caption       TEXT NOT NULL DEFAULT '',
+      hashtags      TEXT NOT NULL DEFAULT '[]',
+      images        TEXT NOT NULL DEFAULT '[]',
+      likes_count   INTEGER NOT NULL DEFAULT 0,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Auto-seed instagram posts from curated data if table is empty
+  await seedInstagramPosts();
+
   // Auto-save to disk every 10 seconds (sql.js is in-memory, we persist periodically)
   saveTimer = setInterval(() => saveDb(), 10_000);
 
@@ -99,6 +120,166 @@ export async function initDb(): Promise<void> {
   process.on("SIGTERM", () => { saveDb(); process.exit(0); });
 
   console.log(`  📦 SQLite database initialized at ${dbPath}`);
+}
+
+// ─── Auto-seed the 12 curated Instagram posts ─
+async function seedInstagramPosts(): Promise<void> {
+  const count = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM instagram_posts");
+  if (count && count.count > 0) return; // Already seeded
+
+  console.log("  🌱 Seeding curated Instagram posts...");
+
+  const seeds = [
+    {
+      id: "post-1999", year: 1999, date_str: "14 February 1999",
+      title: "The Day We Met", location: "Banjara Hills, Hyderabad",
+      aspect_ratio: "landscape", category: "milestone",
+      caption: "A chance encounter at a friend's gathering in Hyderabad changed everything. Two strangers, nervous smiles, one endless conversation, and a spark that set 25 years into motion.",
+      hashtags: JSON.stringify(["#FirstMeeting","#Fate","#WhereItAllBegan","#BujjiAndSatya"]),
+      images: JSON.stringify([
+        { src: "/instagram/first_sight.png", alt: "The fateful day Bujji and Satya first crossed paths", caption: "A chance meeting that changed our destinies forever", tag: "First Glance", themeGradient: "from-amber-200 via-rose-100 to-amber-100", iconName: "heart" },
+        { src: "/instagram/first_sight_2.png", alt: "Endless conversation under the evening twilight", caption: "Two nervous smiles, sweet conversation, and the start of a lifetime", tag: "Sweet Conversations", themeGradient: "from-rose-100 via-peach-100 to-amber-100", iconName: "sparkles" },
+      ]),
+    },
+    {
+      id: "post-2001", year: 2001, date_str: "23 November 2001",
+      title: "Our Wedding Day • Sacred Mandap", location: "Tirumala Tirupati Mandap, Andhra Pradesh",
+      aspect_ratio: "landscape", category: "wedding",
+      caption: "On 23 November 2001, surrounded by family, sacred Vedic mantras, and the divine fragrance of jasmine, Bujji and Satya became one. 25 years later, every promise made under this mandap stands stronger than ever.",
+      hashtags: JSON.stringify(["#BujjiWedsSatya","#23Nov2001","#SilverJubilee","#SouthIndianWedding","#SacredVows"]),
+      images: JSON.stringify([
+        { src: "/images/art/golden_mandap_bg.png", alt: "The Grand Golden Wedding Mandap", caption: "The sacred mandap where eternal vows were sealed", tag: "The Mandap", themeGradient: "from-amber-300 via-rose-400 to-amber-200", iconName: "ring" },
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya seated in traditional wedding attire", caption: "Bujji & Satya welcoming loved ones with sacred folded hands 🙏", tag: "Bujji Weds Satya", themeGradient: "from-rose-200 via-amber-100 to-rose-300", iconName: "heart" },
+        { src: "/images/art/mandap_backdrop_2.png", alt: "Wedding Jaimala garland exchange ceremony", caption: "Jaimala exchange surrounded by Vedic chants and rose petal showers", tag: "Jaimala Ceremony", themeGradient: "from-amber-200 via-rose-300 to-amber-100", iconName: "sparkles" },
+        { src: "/Golden South Indian Mandap Setting.png", alt: "Grand Golden South Indian Wedding Mandap", caption: "Sacred South Indian temple mandap adorned in royal gold and fresh blooms", tag: "Divine Mandap", themeGradient: "from-amber-400 via-yellow-200 to-rose-300", iconName: "ring" },
+      ]),
+    },
+    {
+      id: "post-2000", year: 2000, date_str: "10 August 2000",
+      title: "Our First Cozy Apartment", location: "Begumpet, Hyderabad",
+      aspect_ratio: "portrait", category: "milestone",
+      caption: "Our very first little flat that became our whole world. We painted the walls together, argued for two hours over curtain colours, and filled every corner with the scent of fresh cardamom chai.",
+      hashtags: JSON.stringify(["#FirstHome","#ChaiAndMemories","#BuildingALife","#YoungLove"]),
+      images: JSON.stringify([
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "A cozy first home flat", caption: "Our very first 2BHK flat — painting walls and sipping sweet chai", tag: "First Nest", themeGradient: "from-amber-100 via-orange-100 to-amber-200", iconName: "home" },
+        { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bujji and Satya smiling in their first apartment", caption: "Balcony evenings sipping cardamom chai and dreaming of the future", tag: "Sweet Chai Moments", themeGradient: "from-rose-100 via-amber-100 to-orange-100", iconName: "heart" },
+      ]),
+    },
+    {
+      id: "post-2002", year: 2002, date_str: "18 August 2002",
+      title: "Welcome, Little One • First Child", location: "Rainbow Children's Hospital, Hyderabad",
+      aspect_ratio: "landscape", category: "family",
+      caption: "Our first child arrived, turning our universe upside down in the most beautiful way. Sleepless nights became our sweetest memories, and our family of two blossomed into three.",
+      hashtags: JSON.stringify(["#FirstChild","#ParentsAtLast","#Parenthood","#OurWorld"]),
+      images: JSON.stringify([
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya stepping into parenthood", caption: "The day our hearts learned to beat outside our bodies", tag: "Bundle of Joy", themeGradient: "from-rose-100 via-pink-100 to-peach-100", iconName: "heart" },
+        { src: "/instagram/landscape/botanical_frame_landscape.jpg", alt: "Sweet beginnings of parenthood", caption: "Tiny fingers wrapped around ours — our world changed forever", tag: "New Parents", themeGradient: "from-peach-100 via-rose-100 to-amber-100", iconName: "sparkles" },
+      ]),
+    },
+    {
+      id: "post-2005", year: 2005, date_str: "5 May 2005",
+      title: "Growing Family • Two Little Treasures", location: "Hyderabad, India",
+      aspect_ratio: "portrait", category: "family",
+      caption: "Our second bundle of joy completed our circle of love. The house grew louder, messier, and infinitely more joyful.",
+      hashtags: JSON.stringify(["#FamilyOfFour","#DoubleTrouble","#JoyUnfiltered","#Blessed"]),
+      images: JSON.stringify([
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "The family grows complete", caption: "Double the laughter, double the joy, double the love", tag: "Family Complete", themeGradient: "from-peach-100 via-amber-100 to-rose-100", iconName: "sparkles" },
+        { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bujji and Satya rejoicing as parents of two", caption: "Tiny footsteps echoing through the hallway and happy bedtime tales", tag: "Double Blessing", themeGradient: "from-amber-100 via-rose-100 to-pink-100", iconName: "heart" },
+      ]),
+    },
+    {
+      id: "post-2008", year: 2008, date_str: "12 October 2008",
+      title: "Our Forever Dream Home", location: "Jubilee Hills, Hyderabad",
+      aspect_ratio: "landscape", category: "milestone",
+      caption: "After years of patient dreaming and working hand-in-hand, we opened the doors to our forever home.",
+      hashtags: JSON.stringify(["#DreamHome","#GrihaPravesh","#SacredBlessings","#HomeIsWhereTheHeartIs"]),
+      images: JSON.stringify([
+        { src: "/South Indian Wedding Mandap Backdrop.png", alt: "Traditional flower decorations for Griha Pravesh", caption: "Auspicious Griha Pravesh ceremonies surrounded by blessing elders", tag: "Griha Pravesh", themeGradient: "from-amber-300 via-rose-200 to-amber-100", iconName: "sparkles" },
+        { src: "/instagram/landscape/botanical_frame_landscape.jpg", alt: "The dream forever home", caption: "Housewarming pooja and warm blessings in our forever home", tag: "Forever Home", themeGradient: "from-amber-200 via-yellow-100 to-amber-100", iconName: "home" },
+      ]),
+    },
+    {
+      id: "post-2010", year: 2010, date_str: "20 May 2010",
+      title: "Goa Getaway • First Family Beach Holiday", location: "Calangute & Candolim Beach, Goa",
+      aspect_ratio: "landscape", category: "travel",
+      caption: "Our very first family trip to the coast! Warm sand between our toes, sunset strolls along the waves, and the kids touching the sea for the first time.",
+      hashtags: JSON.stringify(["#GoaDiaries","#BeachVacation","#SunsetLovers","#FamilyFirsts"]),
+      images: JSON.stringify([
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya laughing together", caption: "Seaside breeze, tender smiles, and 100% unplugged joy", tag: "Pure Joy", themeGradient: "from-cyan-100 via-blue-100 to-amber-100", iconName: "heart" },
+        { src: "/instagram/landscape/botanical_frame_landscape.jpg", alt: "Golden hour sunset walks", caption: "Golden hour skies and waves kissing our bare feet", tag: "Goa Sunset", themeGradient: "from-amber-300 via-rose-300 to-indigo-200", iconName: "camera" },
+        { src: "/Golden South Indian Mandap Setting.png", alt: "Family celebration moments", caption: "Building sandcastles that the tide washed away with laughter", tag: "Sandcastles", themeGradient: "from-amber-100 via-sky-200 to-amber-200", iconName: "plane" },
+      ]),
+    },
+    {
+      id: "post-2014", year: 2014, date_str: "23 November 2014",
+      title: "15 Years of Togetherness • Crystal Milestone", location: "Secunderabad Club, Hyderabad",
+      aspect_ratio: "landscape", category: "celebration",
+      caption: "Fifteen years together! The kids planned an unforgettable surprise party.",
+      hashtags: JSON.stringify(["#15YearsStrong","#CrystalAnniversary","#SurpriseParty","#FamilyLove"]),
+      images: JSON.stringify([
+        { src: "/images/art/golden_mandap_bg.png", alt: "15th Anniversary surprise party", caption: "15 years of smiles, secrets, and unconditional love", tag: "15th Anniversary", themeGradient: "from-rose-200 via-amber-200 to-rose-100", iconName: "sparkles" },
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya cutting the anniversary cake", caption: "Fifteen years hand in hand — each year sweeter than the last", tag: "Crystal Milestone", themeGradient: "from-amber-200 via-rose-100 to-peach-100", iconName: "heart" },
+      ]),
+    },
+    {
+      id: "post-2017", year: 2017, date_str: "15 January 2017",
+      title: "Shimla Winter Wonderland • First Snow", location: "Mall Road & Kufri, Shimla, Himachal Pradesh",
+      aspect_ratio: "portrait", category: "travel",
+      caption: "Packed the car and headed straight for the Himalayas! We witnessed snow for the very first time.",
+      hashtags: JSON.stringify(["#ShimlaSnow","#WinterInHimalayas","#SnowmanMakers","#MountainAir"]),
+      images: JSON.stringify([
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "Dancing in snowfall in Shimla", caption: "Dancing in our very first mountain snowfall together", tag: "First Snowfall", themeGradient: "from-sky-200 via-indigo-100 to-amber-100", iconName: "plane" },
+        { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bundled up in woolen mufflers", caption: "Warm hearts in cold weather — sharing one hot cocoa", tag: "Mountain Warmth", themeGradient: "from-blue-100 via-indigo-100 to-rose-100", iconName: "heart" },
+        { src: "/instagram/portrait/mandap_backdrop_portrait.png", alt: "Family snowman memories", caption: "Our questionable snowman that barely survived an hour!", tag: "Snowman Fun", themeGradient: "from-cyan-200 via-blue-100 to-slate-100", iconName: "sparkles" },
+      ]),
+    },
+    {
+      id: "post-2019", year: 2019, date_str: "23 November 2019",
+      title: "20 Years of Us • Renewing Our Vows", location: "Home Sanctuary, Hyderabad",
+      aspect_ratio: "landscape", category: "celebration",
+      caption: "Two decades of growth, partnership, and laughter. We renewed our sacred vows in a cozy ceremony at home.",
+      hashtags: JSON.stringify(["#20YearsOfLove","#TwoDecades","#VowRenewal","#ForeverLove"]),
+      images: JSON.stringify([
+        { src: "/images/art/mandap_backdrop_2.png", alt: "A cozy vow renewal at home", caption: "Two decades of loving each other more with each passing dawn", tag: "20 Years Strong", themeGradient: "from-amber-200 via-rose-200 to-amber-100", iconName: "ring" },
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya smiling warmly", caption: "Surrounded by our children, reaffirming our lifelong devotion", tag: "Vows Renewed", themeGradient: "from-rose-200 via-amber-100 to-peach-100", iconName: "heart" },
+      ]),
+    },
+    {
+      id: "post-2022", year: 2022, date_str: "1 September 2022",
+      title: "Empty Nest, Full Hearts", location: "Hyderabad, India",
+      aspect_ratio: "portrait", category: "milestone",
+      caption: "The kids stepped out into the world for college, and our home grew quiet. But in that stillness, we rediscovered the rhythms of our early courtship.",
+      hashtags: JSON.stringify(["#EmptyNest","#SecondCourtship","#LifelongPartners","#Soulmates"]),
+      images: JSON.stringify([
+        { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Enjoying sunset dates and peaceful morning walks", caption: "Rediscovering each other all over again in our quiet home", tag: "Second Honeymoon", themeGradient: "from-rose-100 via-amber-100 to-rose-200", iconName: "heart" },
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "Peaceful evening walks and coffee dates", caption: "Hand-in-hand evening strolls, reminiscing about the early days", tag: "Quiet Romance", themeGradient: "from-peach-100 via-amber-100 to-rose-100", iconName: "sparkles" },
+      ]),
+    },
+    {
+      id: "post-2024", year: 2024, date_str: "23 November 2024",
+      title: "25 Years — Silver Wedding Jubilee! 🥂", location: "The Royal Kanjeevaram Mandap, Hyderabad",
+      aspect_ratio: "landscape", category: "celebration",
+      caption: "A quarter-century of unwavering love, deep laughter, and beautiful sacrifices. Here is to Bujji & Satya — 25 Years of Love, and forever more to come! 🥂👑❤️",
+      hashtags: JSON.stringify(["#BujjiWedsSatya","#SilverJubilee","#25YearsOfLove","#QuarterCentury","#CoupleGoals","#TogetherForever"]),
+      images: JSON.stringify([
+        { src: "/images/art/couple_sittinga_and_welcoming.png", alt: "Bujji and Satya in radiant wedding attire", caption: "Bujji Weds Satya — Celebrating 25 Years of Divine Love ❤️", tag: "Silver Jubilee", themeGradient: "from-amber-300 via-rose-300 to-amber-200", iconName: "sparkles" },
+        { src: "/images/art/golden_mandap_bg.png", alt: "The Grand Mandap decorated with golden temple pillars", caption: "Under the golden mandap once more, blessed by 25 years of memories", tag: "Golden Mandap", themeGradient: "from-amber-400 via-yellow-200 to-rose-300", iconName: "ring" },
+        { src: "/images/art/mandap_backdrop_2.png", alt: "Cutting the grand 25th Silver Jubilee cake", caption: "Cutting the anniversary cake surrounded by 3 generations of family", tag: "Celebration Feast", themeGradient: "from-rose-200 via-amber-200 to-rose-300", iconName: "heart" },
+        { src: "/Golden South Indian Mandap Setting.png", alt: "Family portrait with children, elders, and lifelong friends", caption: "To the next 25 years and beyond — together forever!", tag: "Generations of Love", themeGradient: "from-amber-200 via-peach-200 to-amber-100", iconName: "sparkles" },
+      ]),
+    },
+  ];
+
+  for (const seed of seeds) {
+    dbRun(
+      `INSERT OR IGNORE INTO instagram_posts (id, year, date_str, title, location, aspect_ratio, category, caption, hashtags, images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [seed.id, seed.year, seed.date_str, seed.title, seed.location, seed.aspect_ratio, seed.category, seed.caption, seed.hashtags, seed.images]
+    );
+  }
+
+  saveDb();
+  console.log("  ✅ Seeded 12 curated Instagram posts");
 }
 
 // ─── Persist in-memory DB to disk ─────────────────────

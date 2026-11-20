@@ -36,4 +36,35 @@ export interface AdminStats {
   total_likes: number;
   total_trivia_players: number;
   total_wishes: number;
+  total_posts: number;
+}
+
+// ============================================
+// Instagram Post Types
+// ============================================
+
+export type InstagramAspectRatio = "landscape" | "portrait" | "square";
+
+export interface InstagramMedia {
+  src: string;
+  alt: string;
+  caption?: string;
+  tag?: string;
+  themeGradient?: string;
+  iconName?: string;
+}
+
+export interface AdminInstagramPost {
+  id: string;
+  year: number;
+  dateStr: string;
+  title: string;
+  location: string;
+  aspectRatio: InstagramAspectRatio;
+  category: string;
+  caption: string;
+  hashtags: string[];
+  images: InstagramMedia[];
+  likesCount: number;
+  createdAt?: string;
 }
