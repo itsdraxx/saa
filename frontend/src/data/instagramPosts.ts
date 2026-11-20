@@ -32,7 +32,7 @@ export interface InstagramPost {
 }
 
 export const instagramPosts: InstagramPost[] = [
-  // 1. The Day We Met (1999) - Single Post
+  // 1. The Day We Met (1999) - Multi-Image Slide Carousel
   {
     id: "post-1999",
     year: 1999,
@@ -48,6 +48,14 @@ export const instagramPosts: InstagramPost[] = [
         themeGradient: "from-amber-200 via-rose-100 to-amber-100",
         iconName: "heart",
       },
+      {
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
+        alt: "Endless conversation under the evening twilight",
+        caption: "Two nervous smiles, sweet conversation, and the start of a lifetime",
+        tag: "Sweet Conversations",
+        themeGradient: "from-rose-100 via-peach-100 to-amber-100",
+        iconName: "sparkles",
+      },
     ],
     likesCount: 0,
     caption:
@@ -57,7 +65,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 2. Our Wedding Day (2001) - MULTI-IMAGE CAROUSEL (3 images)
+  // 2. Our Wedding Day (2001) - MULTI-IMAGE CAROUSEL (4 images)
   {
     id: "post-2001",
     year: 2001,
@@ -89,6 +97,14 @@ export const instagramPosts: InstagramPost[] = [
         themeGradient: "from-amber-200 via-rose-300 to-amber-100",
         iconName: "sparkles",
       },
+      {
+        src: "/Golden South Indian Mandap Setting.png",
+        alt: "Grand Golden South Indian Wedding Mandap Setting",
+        caption: "Sacred South Indian temple mandap adorned in royal gold and fresh blooms",
+        tag: "Divine Mandap",
+        themeGradient: "from-amber-400 via-yellow-200 to-rose-300",
+        iconName: "ring",
+      },
     ],
     likesCount: 0,
     caption:
@@ -104,7 +120,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 3. Our First Home (2000) - Single Post
+  // 3. Our First Home (2000) - Multi-Image Slide Carousel
   {
     id: "post-2000",
     year: 2000,
@@ -113,12 +129,20 @@ export const instagramPosts: InstagramPost[] = [
     location: "Begumpet, Hyderabad",
     images: [
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "A cozy first home flat filled with wedding memories",
         caption: "Our very first 2BHK flat — painting walls and sipping sweet chai",
         tag: "First Nest",
         themeGradient: "from-amber-100 via-orange-100 to-amber-200",
         iconName: "home",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya laughing together in their first apartment balcony",
+        caption: "Balcony evenings sipping cardamom chai and dreaming of the future",
+        tag: "Sweet Chai Moments",
+        themeGradient: "from-rose-100 via-amber-100 to-orange-100",
+        iconName: "heart",
       },
     ],
     likesCount: 0,
@@ -129,7 +153,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 4. Welcome, Little One (2002) - Single Post
+  // 4. Welcome, Little One (2002) - Multi-Image Slide Carousel
   {
     id: "post-2002",
     year: 2002,
@@ -145,6 +169,14 @@ export const instagramPosts: InstagramPost[] = [
         themeGradient: "from-rose-100 via-pink-100 to-peach-100",
         iconName: "heart",
       },
+      {
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
+        alt: "Sweet beginnings of parenthood and sleepless joyful nights",
+        caption: "Tiny fingers wrapped around ours — our world changed forever",
+        tag: "New Parents",
+        themeGradient: "from-peach-100 via-rose-100 to-amber-100",
+        iconName: "sparkles",
+      },
     ],
     likesCount: 0,
     caption:
@@ -154,7 +186,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 5. Growing Family (2005) - Single Post
+  // 5. Growing Family (2005) - Multi-Image Slide Carousel
   {
     id: "post-2005",
     year: 2005,
@@ -163,12 +195,20 @@ export const instagramPosts: InstagramPost[] = [
     location: "Hyderabad, India",
     images: [
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "The family grows complete with laughter and giggles",
         caption: "Double the laughter, double the joy, double the love",
         tag: "Family Complete",
         themeGradient: "from-peach-100 via-amber-100 to-rose-100",
         iconName: "sparkles",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya rejoicing as parents of two",
+        caption: "Tiny footsteps echoing through the hallway and happy bedtime tales",
+        tag: "Double Blessing",
+        themeGradient: "from-amber-100 via-rose-100 to-pink-100",
+        iconName: "heart",
       },
     ],
     likesCount: 0,
@@ -179,7 +219,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 6. Dream Home (2008) - Single Post
+  // 6. Dream Home (2008) - Multi-Image Slide Carousel
   {
     id: "post-2008",
     year: 2008,
@@ -188,12 +228,20 @@ export const instagramPosts: InstagramPost[] = [
     location: "Jubilee Hills, Hyderabad",
     images: [
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "The dream forever home with garden and spacious balcony",
         caption: "Housewarming pooja and warm blessings in our forever home",
         tag: "Forever Home",
         themeGradient: "from-amber-200 via-yellow-100 to-amber-100",
         iconName: "home",
+      },
+      {
+        src: "/South Indian Wedding Mandap Backdrop.png",
+        alt: "Traditional flower decorations for Griha Pravesh",
+        caption: "Auspicious Griha Pravesh ceremonies surrounded by blessing elders",
+        tag: "Griha Pravesh",
+        themeGradient: "from-amber-300 via-rose-200 to-amber-100",
+        iconName: "sparkles",
       },
     ],
     likesCount: 0,
@@ -213,7 +261,7 @@ export const instagramPosts: InstagramPost[] = [
     location: "Calangute & Candolim Beach, Goa",
     images: [
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "Golden hour sunset walks hand-in-hand on the sandy beach",
         caption: "Golden hour skies and waves kissing our bare feet",
         tag: "Goa Sunset",
@@ -229,7 +277,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "Kids building sandcastles while parents watch with love",
         caption: "Building sandcastles that the tide washed away with laughter",
         tag: "Sandcastles",
@@ -245,7 +293,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 8. Silver Streak — 15th Anniversary (2014) - Single Post
+  // 8. Silver Streak — 15th Anniversary (2014) - Multi-Image Slide Carousel
   {
     id: "post-2014",
     year: 2014,
@@ -260,6 +308,14 @@ export const instagramPosts: InstagramPost[] = [
         tag: "15th Anniversary",
         themeGradient: "from-rose-200 via-amber-200 to-rose-100",
         iconName: "sparkles",
+      },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya cutting the anniversary cake",
+        caption: "Fifteen years hand in hand — each year sweeter than the last",
+        tag: "Crystal Milestone",
+        themeGradient: "from-amber-200 via-rose-100 to-peach-100",
+        iconName: "heart",
       },
     ],
     likesCount: 0,
@@ -279,7 +335,7 @@ export const instagramPosts: InstagramPost[] = [
     location: "Mall Road & Kufri, Shimla, Himachal Pradesh",
     images: [
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "Snow-covered pine trees and fresh winter snowfall in Shimla",
         caption: "Dancing in our very first mountain snowfall together",
         tag: "First Snowfall",
@@ -295,7 +351,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "The questionable family snowman with a funny carrot nose",
         caption: "Our questionable snowman that barely survived an hour!",
         tag: "Snowman Fun",
@@ -311,7 +367,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 10. 20 Years of Us (2019) - Single Post
+  // 10. 20 Years of Us (2019) - Multi-Image Slide Carousel
   {
     id: "post-2019",
     year: 2019,
@@ -327,6 +383,14 @@ export const instagramPosts: InstagramPost[] = [
         themeGradient: "from-amber-200 via-rose-200 to-amber-100",
         iconName: "ring",
       },
+      {
+        src: "/images/art/couple_sittinga_and_welcoming.png",
+        alt: "Bujji and Satya smiling warmly renewing eternal vows",
+        caption: "Surrounded by our children, reaffirming our lifelong devotion",
+        tag: "Vows Renewed",
+        themeGradient: "from-rose-200 via-amber-100 to-peach-100",
+        iconName: "heart",
+      },
     ],
     likesCount: 0,
     caption:
@@ -336,7 +400,7 @@ export const instagramPosts: InstagramPost[] = [
     comments: [],
   },
 
-  // 11. Empty Nest, Full Hearts (2022) - Single Post
+  // 11. Empty Nest, Full Hearts (2022) - Multi-Image Slide Carousel
   {
     id: "post-2022",
     year: 2022,
@@ -351,6 +415,14 @@ export const instagramPosts: InstagramPost[] = [
         tag: "Second Honeymoon",
         themeGradient: "from-rose-100 via-amber-100 to-rose-200",
         iconName: "heart",
+      },
+      {
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
+        alt: "Peaceful evening walks and coffee dates together",
+        caption: "Hand-in-hand evening strolls, reminiscing about the early days",
+        tag: "Quiet Romance",
+        themeGradient: "from-peach-100 via-amber-100 to-rose-100",
+        iconName: "sparkles",
       },
     ],
     likesCount: 0,
@@ -394,7 +466,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
       {
-        src: "/images/art/wedding-botanical-frame.jpg",
+        src: "/images/aesthetic/wedding-botanical-frame.jpg",
         alt: "Family portrait with children, elders, and lifelong friends",
         caption: "To the next 25 years and beyond — together forever!",
         tag: "Generations of Love",

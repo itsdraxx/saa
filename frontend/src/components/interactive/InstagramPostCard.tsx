@@ -78,6 +78,9 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
   const displayCategory = isTelugu ? (categoryMapTelugu[post.category] || post.category) : post.category;
 
   const lastTapRef = useRef<number>(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const isSwipingRef = useRef<boolean>(false);
 
   // Hydration-safe client-side sync from localStorage & Backend API + Auto-refresh every 2 minutes
   useEffect(() => {
@@ -195,8 +198,9 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     setIsCommentsSheetOpen(true);
   };
 
-  // Toggle Like
-  const handleToggleLike = () => {
+  // Toggle Like (from Heart button click)
+  const handleToggleLike = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     const nextState = !isLiked;
     setIsLiked(nextState);
     const newCount = nextState ? likesCount + 1 : Math.max(0, likesCount - 1);
@@ -212,7 +216,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
 
     // Call backend API to sync shared like count
     toggleLike(post.id, getVisitorId()).then((res) => {
-      if (res.success && typeof res.count === "number") {
+      if (res && res.success && typeof res.count === "number") {
         setLikesCount(res.count);
       }
     }).catch(() => {});
@@ -260,9 +264,11 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     setTimeout(() => setShowHeartAnim(false), 900);
   };
 
+  // Media double tap handler - ALWAYS likes the post & bursts heart (never unlikes)
   const handleMediaDoubleTap = () => {
+    if (isSwipingRef.current) return;
     const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
+    const DOUBLE_TAP_DELAY = 360;
     if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
       if (!isLiked) {
         setIsLiked(true);
@@ -271,14 +277,55 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
           localStorage.setItem(`saa_insta_like_${post.id}`, "true");
         } catch {}
         toggleLike(post.id, getVisitorId()).then((res) => {
-          if (res.success && typeof res.count === "number") {
+          if (res && res.success && typeof res.count === "number") {
             setLikesCount(res.count);
           }
         }).catch(() => {});
       }
       triggerHeartAnimation();
+      lastTapRef.current = 0;
+      return;
     }
     lastTapRef.current = now;
+  };
+
+  // Touch gesture handlers for mobile horizontal sliding
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+    isSwipingRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const diffX = Math.abs(e.touches[0].clientX - touchStartXRef.current);
+    const diffY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+    if (diffX > 10 || diffY > 10) {
+      isSwipingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchStartXRef.current - touchEndX;
+    const diffY = touchStartYRef.current - touchEndY;
+
+    // Horizontal swipe threshold: 35px and more horizontal than vertical
+    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0 && currentSlide < post.images.length - 1) {
+        setCurrentSlide((prev) => prev + 1);
+      } else if (diffX < 0 && currentSlide > 0) {
+        setCurrentSlide((prev) => prev - 1);
+      }
+    }
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    setTimeout(() => {
+      isSwipingRef.current = false;
+    }, 120);
   };
 
   // Carousel controls
@@ -365,7 +412,6 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     }
   };
 
-  const currentMedia = post.images[currentSlide] || post.images[0];
   const hasMultipleImages = post.images.length > 1;
 
   return (
@@ -421,88 +467,104 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         </header>
 
         {/* =========================================================
-            2. POST MEDIA / PHOTO CAROUSEL
-            Double click / double tap anywhere to trigger Heart burst!
+            2. POST MEDIA / PHOTO CAROUSEL (Horizontal Slide Track)
+            - Horizontal sliding track with smooth CSS transition
+            - Touch swipe support on mobile (left/right)
+            - Double-tap anywhere to LIKE & trigger heart burst
             ========================================================= */}
         <div
-          className="relative aspect-4/3 sm:aspect-square w-full select-none overflow-hidden bg-gradient-to-br from-[#1A0B0E] via-[#2E0F13] to-[#1F0A0E] flex items-center justify-center cursor-pointer group"
+          className="relative aspect-4/3 sm:aspect-square w-full select-none overflow-hidden bg-gradient-to-br from-[#1A0B0E] via-[#2E0F13] to-[#1F0A0E] cursor-pointer group touch-pan-y"
           onClick={handleMediaDoubleTap}
-          onDoubleClick={handleToggleLike}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          {/* Render Image or Rich Photographic Keepsake */}
-          <div className="relative h-full w-full overflow-hidden flex items-center justify-center">
-            {currentMedia.src &&
-            (currentMedia.src.includes(".png") ||
-              currentMedia.src.includes(".jpg") ||
-              currentMedia.src.includes(".jpeg")) ? (
-              <div className="relative h-full w-full">
-                <Image
-                  src={currentMedia.src}
-                  alt={currentMedia.alt || post.title}
-                  fill
-                  priority={post.year === 2001 || post.year === 2024}
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
-                />
-                {/* Subtle Warm Photographic Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
-              </div>
-            ) : (
-              // Aesthetic Visual Keepsake Card
+          {/* Horizontal Sliding Track */}
+          <div
+            className="flex h-full w-full transition-transform duration-300 ease-out will-change-transform"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {post.images.map((img, idx) => (
               <div
-                className={`relative h-full w-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br ${
-                  currentMedia.themeGradient || "from-amber-200 via-rose-100 to-amber-100"
-                }`}
+                key={idx}
+                className="relative h-full w-full min-w-full shrink-0 overflow-hidden flex items-center justify-center"
               >
-                <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/85 text-burgundy shadow-lg mb-3">
-                  {currentMedia.iconName === "ring" ? (
-                    <Sparkles className="h-8 w-8 text-gold" />
-                  ) : currentMedia.iconName === "plane" ? (
-                    <Plane className="h-8 w-8 text-burgundy" />
-                  ) : currentMedia.iconName === "home" ? (
-                    <Home className="h-8 w-8 text-amber-700" />
-                  ) : (
-                    <Camera className="h-8 w-8 text-burgundy" />
-                  )}
-                </div>
-                <h4 className="font-heading text-xl sm:text-2xl font-bold text-charcoal">
-                  {post.title}
-                </h4>
-                <p className="mt-1 font-body text-xs sm:text-sm text-soft-brown max-w-sm italic">
-                  {currentMedia.caption || post.caption}
-                </p>
-              </div>
-            )}
+                {img.src &&
+                (img.src.includes(".png") ||
+                  img.src.includes(".jpg") ||
+                  img.src.includes(".jpeg")) ? (
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={img.src}
+                      alt={img.alt || post.title}
+                      fill
+                      priority={idx === 0 && (post.year === 2001 || post.year === 2024)}
+                      className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
+                    />
+                    {/* Subtle Warm Photographic Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
+                  </div>
+                ) : (
+                  // Aesthetic Visual Keepsake Card
+                  <div
+                    className={`relative h-full w-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br ${
+                      img.themeGradient || "from-amber-200 via-rose-100 to-amber-100"
+                    }`}
+                  >
+                    <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/85 text-burgundy shadow-lg mb-3">
+                      {img.iconName === "ring" ? (
+                        <Sparkles className="h-8 w-8 text-gold" />
+                      ) : img.iconName === "plane" ? (
+                        <Plane className="h-8 w-8 text-burgundy" />
+                      ) : img.iconName === "home" ? (
+                        <Home className="h-8 w-8 text-amber-700" />
+                      ) : (
+                        <Camera className="h-8 w-8 text-burgundy" />
+                      )}
+                    </div>
+                    <h4 className="font-heading text-xl sm:text-2xl font-bold text-charcoal">
+                      {post.title}
+                    </h4>
+                    <p className="mt-1 font-body text-xs sm:text-sm text-soft-brown max-w-sm italic">
+                      {img.caption || post.caption}
+                    </p>
+                  </div>
+                )}
 
-            {/* Top-Right Carousel Counter Badge (e.g. "1/3") */}
-            {hasMultipleImages && (
-              <div className="absolute top-3 right-3 z-10 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md shadow-md">
-                {currentSlide + 1}/{post.images.length}
+                {/* Bottom Caption Tag Pill in Image */}
+                {img.tag && (
+                  <div className="absolute bottom-3 left-3 z-10 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white/95 backdrop-blur-md shadow-sm pointer-events-none">
+                    {img.tag}
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Bottom Caption Pill in Image */}
-            {currentMedia.tag && (
-              <div className="absolute bottom-3 left-3 z-10 rounded-full bg-black/55 px-3 py-1 text-[11px] font-medium text-white/95 backdrop-blur-md">
-                {currentMedia.tag}
-              </div>
-            )}
+            ))}
           </div>
+
+          {/* Top-Right Carousel Counter Badge (e.g. "1/3") */}
+          {hasMultipleImages && (
+            <div className="absolute top-3 right-3 z-10 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md shadow-md pointer-events-none">
+              {currentSlide + 1}/{post.images.length}
+            </div>
+          )}
 
           {/* Carousel Navigation Arrows */}
           {hasMultipleImages && (
             <>
               <button
+                type="button"
                 onClick={handlePrevSlide}
                 aria-label="Previous photo"
-                className="absolute left-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/80 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                className="absolute left-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/85 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
+                type="button"
                 onClick={handleNextSlide}
                 aria-label="Next photo"
-                className="absolute right-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/80 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                className="absolute right-2.5 z-20 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-warm-white/85 text-charcoal shadow-md backdrop-blur-md transition-all hover:bg-warm-white hover:scale-110 active:scale-95 cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
