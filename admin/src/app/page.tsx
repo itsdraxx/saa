@@ -61,6 +61,21 @@ import type {
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/saa\/?$/, "").replace(/\/$/, "") ||
+  "https://68.233.104.235.sslip.io";
+
+function resolveMediaUrl(src?: string): string {
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) {
+    return src;
+  }
+  if (src.startsWith("/uploads/")) {
+    return `${BACKEND_URL}${src}`;
+  }
+  return src;
+}
+
 type TabId = "comments" | "wishes" | "trivia" | "instagram";
 
 const CATEGORIES = [
@@ -909,11 +924,17 @@ export default function AdminPage() {
                         <div className="relative w-full h-full">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={post.images[0].src}
+                            src={resolveMediaUrl(post.images[0].src)}
                             alt={post.images[0].alt || post.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              (e.currentTarget as HTMLElement).style.display = "none";
+                              // If image fails locally, try frontend URL fallback
+                              const target = e.currentTarget as HTMLImageElement;
+                              if (!target.src.startsWith("http") && FRONTEND_URL) {
+                                target.src = `${FRONTEND_URL}${post.images[0].src}`;
+                              } else {
+                                target.style.display = "none";
+                              }
                             }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
@@ -1241,11 +1262,16 @@ export default function AdminPage() {
                               {img.src ? (
                                 /* eslint-disable-next-line @next/next/no-img-element */
                                 <img
-                                  src={img.src}
+                                  src={resolveMediaUrl(img.src)}
                                   alt={img.alt || "preview"}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    (e.currentTarget as HTMLElement).style.display = "none";
+                                    const target = e.currentTarget as HTMLImageElement;
+                                    if (!target.src.startsWith("http") && FRONTEND_URL) {
+                                      target.src = `${FRONTEND_URL}${img.src}`;
+                                    } else {
+                                      target.style.display = "none";
+                                    }
                                   }}
                                 />
                               ) : (

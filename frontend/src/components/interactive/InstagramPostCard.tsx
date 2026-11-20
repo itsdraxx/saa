@@ -36,6 +36,21 @@ interface InstagramPostCardProps {
   post: InstagramPost;
 }
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/saa\/?$/, "").replace(/\/$/, "") ||
+  "https://68.233.104.235.sslip.io";
+
+function resolveMediaUrl(src?: string): string {
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) {
+    return src;
+  }
+  if (src.startsWith("/uploads/")) {
+    return `${BACKEND_URL}${src}`;
+  }
+  return src;
+}
+
 const getAspectRatioClass = (ratio?: string) => {
   switch (ratio) {
     case "portrait":
@@ -516,12 +531,15 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                 {img.src &&
                 (img.src.includes(".png") ||
                   img.src.includes(".jpg") ||
-                  img.src.includes(".jpeg")) ? (
+                  img.src.includes(".jpeg") ||
+                  img.src.includes(".webp") ||
+                  img.src.startsWith("/uploads/")) ? (
                   <div className="relative h-full w-full">
                     <Image
-                      src={img.src}
+                      src={resolveMediaUrl(img.src)}
                       alt={img.alt || post.title}
                       fill
+                      unoptimized={resolveMediaUrl(img.src).startsWith("http")}
                       priority={idx === 0 && (post.year === 2001 || post.year === 2024)}
                       className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
