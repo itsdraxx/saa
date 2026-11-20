@@ -41,7 +41,7 @@ export const instagramPosts: InstagramPost[] = [
     location: "Banjara Hills, Hyderabad",
     images: [
       {
-        src: "/images/art/couple_sittinga_and_welcoming.png",
+        src: "/instagram/first_sight.png",
         alt: "The fateful day Bujji and Satya first crossed paths",
         caption: "A chance meeting that changed our destinies forever",
         tag: "First Glance",
@@ -49,7 +49,7 @@ export const instagramPosts: InstagramPost[] = [
         iconName: "heart",
       },
       {
-        src: "/images/aesthetic/wedding-botanical-frame.jpg",
+        src: "/instagram/first_sight_2.png",
         alt: "Endless conversation under the evening twilight",
         caption: "Two nervous smiles, sweet conversation, and the start of a lifetime",
         tag: "Sweet Conversations",
