@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { dbAll, dbGet, dbRun, saveDb } from "../db.js";
-import { writeLimiter } from "../middleware/rateLimiter.js";
+import { generalLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
@@ -79,27 +79,22 @@ router.get("/status", (req, res) => {
 });
 
 // ─── POST /trivia/score ───────────────────────────────
-router.post("/score", writeLimiter, (req, res) => {
+router.post("/score", generalLimiter, (req, res) => {
   const { player_name, score, total, percentage, time_taken, visitor_id } = req.body;
 
-  if (!player_name || typeof player_name !== "string" || player_name.trim().length < 2 || player_name.trim().length > 40) {
-    res.status(400).json({ success: false, error: "player_name must be 2-40 characters" });
+  if (!player_name || typeof player_name !== "string" || player_name.trim().length < 1 || player_name.trim().length > 60) {
+    res.status(400).json({ success: false, error: "player_name must be between 1 and 60 characters" });
     return;
   }
   if (typeof score !== "number" || score < 0) {
     res.status(400).json({ success: false, error: "score must be a non-negative number" });
     return;
   }
-  if (typeof total !== "number" || total < 1) {
-    res.status(400).json({ success: false, error: "total must be a positive number" });
-    return;
-  }
-  if (typeof percentage !== "number" || percentage < 0 || percentage > 100) {
-    res.status(400).json({ success: false, error: "percentage must be 0-100" });
-    return;
-  }
+  const safeTotal = typeof total === "number" && total > 0 ? total : 6;
+  const safePercentage = typeof percentage === "number" ? Math.min(Math.max(percentage, 0), 100) : Math.round((score / safeTotal) * 100);
+  const cleanName = sanitize(player_name).slice(0, 50);
 
-  // Prevent multiple re-answers / duplicate submissions for the same visitor
+  // If visitor already submitted before, update their name and best score seamlessly
   if (visitor_id && typeof visitor_id === "string") {
     const existing = dbGet<{
       id: number;
@@ -115,29 +110,41 @@ router.post("/score", writeLimiter, (req, res) => {
     );
 
     if (existing) {
+      const bestScore = Math.max(existing.score, score);
+      const bestPercentage = Math.max(existing.percentage, safePercentage);
+      const bestTime = time_taken ?? existing.time_taken;
+
+      dbRun(
+        "UPDATE trivia_scores SET player_name = ?, score = ?, total = ?, percentage = ?, time_taken = ? WHERE id = ?",
+        [cleanName, bestScore, safeTotal, bestPercentage, bestTime ?? null, existing.id]
+      );
+      saveDb();
+
       const rankRow = dbGet<{ rank: number }>(
         `SELECT COUNT(*) + 1 as rank
          FROM trivia_scores
          WHERE percentage > ? OR (percentage = ? AND (time_taken IS NOT NULL AND time_taken < ?))`,
-        [existing.percentage, existing.percentage, existing.time_taken ?? 999999]
+        [bestPercentage, bestPercentage, bestTime ?? 999999]
+      );
+
+      const updated = dbGet(
+        "SELECT id, player_name, score, total, percentage, time_taken, created_at FROM trivia_scores WHERE id = ?",
+        [existing.id]
       );
 
       res.status(200).json({
         success: true,
-        already_submitted: true,
         rank: rankRow?.rank ?? 1,
-        entry: existing,
-        message: "You have already submitted your score for this trivia!",
+        entry: updated,
+        message: "Your score and name were updated successfully!",
       });
       return;
     }
   }
 
-  const cleanName = sanitize(player_name).slice(0, 40);
-
   const { lastId } = dbRun(
     "INSERT INTO trivia_scores (player_name, score, total, percentage, time_taken, visitor_id) VALUES (?, ?, ?, ?, ?, ?)",
-    [cleanName, score, total, percentage, time_taken ?? null, visitor_id ?? null]
+    [cleanName, score, safeTotal, safePercentage, time_taken ?? null, visitor_id ?? null]
   );
 
   saveDb();
@@ -147,7 +154,7 @@ router.post("/score", writeLimiter, (req, res) => {
     `SELECT COUNT(*) + 1 as rank
      FROM trivia_scores
      WHERE percentage > ? OR (percentage = ? AND (time_taken IS NOT NULL AND time_taken < ?))`,
-    [percentage, percentage, time_taken ?? 999999]
+    [safePercentage, safePercentage, time_taken ?? 999999]
   );
 
   const entry = dbGet(
