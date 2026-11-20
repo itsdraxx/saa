@@ -106,6 +106,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
   // Name & Leaderboard state
   const [playerName, setPlayerName] = useState("");
   const [isScoreSubmitted, setIsScoreSubmitted] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [userRank, setUserRank] = useState<number | null>(null);
@@ -203,6 +204,84 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
     }
   }, [gameState, isSoundEnabled]);
 
+  const scrollToCardTop = () => {
+    try {
+      const card = document.getElementById("trivia-card");
+      if (card) {
+        const yOffset = -75; // Account for fixed navigation bar
+        const y = card.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+      }
+    } catch {}
+  };
+
+  const submitScoreWithName = async (rawName: string, customScore?: number) => {
+    const cleanName = rawName.trim();
+    if (!cleanName || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+    setSubmitSuccessMsg("");
+
+    try {
+      localStorage.setItem("saa_user_name", cleanName);
+    } catch {}
+
+    const effectiveScore = typeof customScore === "number" ? customScore : score;
+    const timeTaken = startTime > 0 ? Math.round((Date.now() - startTime) / 1000) : 45;
+    const percentage = Math.round((effectiveScore / triviaQuestions.length) * 100);
+
+    try {
+      const res = await submitTriviaScore({
+        player_name: cleanName,
+        score: effectiveScore,
+        total: triviaQuestions.length,
+        percentage,
+        time_taken: timeTaken,
+        visitor_id: getVisitorId(),
+      });
+
+      if (res && res.success) {
+        setIsScoreSubmitted(true);
+        setIsEditingName(false);
+        const assignedRank = res.rank || 1;
+        setUserRank(assignedRank);
+        setSubmitSuccessMsg(
+          isTelugu
+            ? `🎉 అద్భుతం ${cleanName}! మీ స్కోరు నమోదైంది. మీ ర్యాంక్: #${assignedRank}`
+            : `🎉 Great job ${cleanName}! Your score is locked on the board at Rank #${assignedRank}!`
+        );
+
+        try {
+          localStorage.setItem("saa_trivia_rank", String(assignedRank));
+          localStorage.setItem("saa_trivia_submitted", "true");
+        } catch {}
+
+        // Immediately refresh leaderboard
+        const lbRes = await fetchTriviaLeaderboard();
+        if (lbRes.success) {
+          setLeaderboard(lbRes.leaderboard);
+          setTotalPlayers(lbRes.total_players);
+        }
+      } else {
+        setSubmitError(
+          res?.error ||
+            (isTelugu
+              ? "స్కోరు నమోదు చేయడంలో సమస్య వచ్చింది. దయచేసి మళ్లీ ప్రయత్నించండి."
+              : "Failed to submit. Please try again.")
+        );
+      }
+    } catch {
+      setSubmitError(
+        isTelugu
+          ? "కనెక్షన్ సమస్య. దయచేసి మళ్లీ ప్రయత్నించండి."
+          : "Connection error. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const toggleSound = () => {
     const nextVal = !isSoundEnabled;
     setIsSoundEnabled(nextVal);
@@ -242,6 +321,8 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         })
       );
     } catch {}
+
+    scrollToCardTop();
   };
 
   const handleSelectOption = (index: number) => {
@@ -275,6 +356,16 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         })
       );
     } catch {}
+
+    // Smoothly scroll down slightly on mobile so the explanation & next action are visible
+    setTimeout(() => {
+      try {
+        const nextAction = document.getElementById("trivia-next-action");
+        if (nextAction) {
+          nextAction.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      } catch {}
+    }, 100);
   };
 
   const handleNext = () => {
@@ -302,10 +393,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         );
       } catch {}
 
-      if (embedded) {
-        const el = document.getElementById("trivia");
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      scrollToCardTop();
     } else {
       // Completed all questions — lock in results permanently!
       setGameState("results");
@@ -315,67 +403,24 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         localStorage.setItem("saa_trivia_answers", JSON.stringify(userAnswers));
         localStorage.removeItem("saa_trivia_in_progress");
       } catch {}
+
+      scrollToCardTop();
+
+      // If name was already given (e.g. from wishes, comments or earlier), auto-submit immediately!
+      const existingName =
+        playerName.trim() ||
+        (typeof window !== "undefined" ? localStorage.getItem("saa_user_name")?.trim() : "");
+      if (existingName && existingName.length >= 1) {
+        if (!playerName) setPlayerName(existingName);
+        submitScoreWithName(existingName, score);
+      }
     }
   };
 
   const handleSubmitScore = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerName.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setSubmitError("");
-    setSubmitSuccessMsg("");
-
-    const cleanName = playerName.trim();
-    try {
-      localStorage.setItem("saa_user_name", cleanName);
-    } catch {}
-
-    const timeTaken = startTime > 0 ? Math.round((Date.now() - startTime) / 1000) : 45;
-    const percentage = Math.round((score / triviaQuestions.length) * 100);
-
-    try {
-      const res = await submitTriviaScore({
-        player_name: cleanName,
-        score,
-        total: triviaQuestions.length,
-        percentage,
-        time_taken: timeTaken,
-        visitor_id: getVisitorId(),
-      });
-
-      if (res && res.success) {
-        setIsScoreSubmitted(true);
-        const assignedRank = res.rank || 1;
-        setUserRank(assignedRank);
-        setSubmitSuccessMsg(
-          isTelugu
-            ? `🎉 అద్భుతం ${cleanName}! మీ స్కోరు నమోదైంది. మీ ర్యాంక్: #${assignedRank}`
-            : `🎉 Great job ${cleanName}! Your score is locked on the board at Rank #${assignedRank}!`
-        );
-
-        try {
-          localStorage.setItem("saa_trivia_rank", String(assignedRank));
-          localStorage.setItem("saa_trivia_submitted", "true");
-        } catch {}
-
-        // Immediately refresh leaderboard
-        const lbRes = await fetchTriviaLeaderboard();
-        if (lbRes.success) {
-          setLeaderboard(lbRes.leaderboard);
-          setTotalPlayers(lbRes.total_players);
-        }
-      } else {
-        setSubmitError(
-          res.error ||
-            (isTelugu ? "స్కోరు నమోదు చేయడంలో సమస్య వచ్చింది. దయచేసి మళ్లీ ప్రయత్నించండి." : "Failed to submit. Please try again.")
-        );
-      }
-    } catch {
-      setSubmitError(isTelugu ? "కనెక్షన్ సమస్య. దయచేసి మళ్లీ ప్రయత్నించండి." : "Connection error. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitScoreWithName(playerName);
   };
 
   const getResultsFeedback = () => {
@@ -626,27 +671,43 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                 transition={{ duration: 0.35 }}
                 className="mt-6 overflow-hidden rounded-2xl border-2 border-gold/40 bg-gradient-to-r from-champagne/40 via-peach-50/50 to-champagne/30 p-4 sm:p-5 shadow-xs"
               >
-                <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-2.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">
                       {currentQ.options[selectedOption!]?.isCorrect ? "🎉" : "💡"}
                     </span>
-                    <p className="font-heading text-base sm:text-lg font-bold text-burgundy">
-                      {currentQ.options[selectedOption!]?.isCorrect
-                        ? t.correctBanner
-                        : t.incorrectBanner}
-                    </p>
+                    <div>
+                      <p className="font-heading text-base sm:text-lg font-bold text-burgundy">
+                        {currentQ.options[selectedOption!]?.isCorrect
+                          ? t.correctBanner
+                          : t.incorrectBanner}
+                      </p>
+                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-soft-brown">
+                        <Lock className="h-2.5 w-2.5" />
+                        <span>{t.answerLocked}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Locked Notice */}
-                  <div className="inline-flex items-center gap-1 rounded-full border border-warm-beige/80 bg-warm-white/80 px-2.5 py-0.5 text-[10px] font-bold text-soft-brown">
-                    <Lock className="h-2.5 w-2.5" />
-                    <span>{t.answerLocked}</span>
-                  </div>
+                  {/* Top "Next Memory →" button placed immediately under options for instant advance */}
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide text-warm-white shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ring-2 ring-gold/40"
+                  >
+                    <span>
+                      {currentIndex + 1 === triviaQuestions.length
+                        ? t.seeFinalScore
+                        : isTelugu
+                        ? "తదుపరి జ్ఞాపకం →"
+                        : "Next Memory →"}
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
 
                 {/* The Memory Story */}
-                <div className="mt-2.5 flex items-start gap-2.5 bg-warm-white/70 rounded-xl p-3 border border-warm-beige/50">
+                <div className="mt-3 flex items-start gap-2.5 bg-warm-white/80 rounded-xl p-3 sm:p-3.5 border border-warm-beige/50">
                   <BookOpen className="h-4 w-4 text-gold shrink-0 mt-0.5" />
                   <p className="font-body text-xs sm:text-sm leading-relaxed text-charcoal/90 italic">
                     {isTelugu && triviaTelugu[currentQ.id]?.explanation
@@ -655,12 +716,12 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                   </p>
                 </div>
 
-                {/* "Next Memory →" Button */}
-                <div className="mt-4 flex justify-end">
+                {/* Bottom Action Anchor for auto-scroll and secondary click */}
+                <div id="trivia-next-action" className="mt-3 flex justify-end sm:hidden">
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-7 py-3 text-xs sm:text-sm font-bold tracking-wide text-warm-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer ring-2 ring-gold/40"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-6 py-2.5 text-xs font-bold text-warm-white shadow-md active:scale-95 cursor-pointer ring-2 ring-gold/30"
                   >
                     <span>
                       {currentIndex + 1 === triviaQuestions.length
@@ -731,17 +792,35 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                 </p>
 
                 {/* ─────────────────────────────────────────────────────────────
-                    SCORE SUBMISSION FORM (Rock-solid & Guaranteed)
+                    SCORE SUBMISSION FORM (Automatic if name known, prompted otherwise)
                     ───────────────────────────────────────────────────────────── */}
                 <div className="mt-6 mx-auto max-w-md">
-                  {!isScoreSubmitted ? (
+                  {isSubmitting ? (
+                    <div className="rounded-2xl border-2 border-gold/40 bg-champagne/40 p-4 text-center shadow-xs flex items-center justify-center gap-2.5">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-burgundy border-t-transparent" />
+                      <span className="text-xs sm:text-sm font-bold text-burgundy">
+                        {isTelugu ? "మీ స్కోరు లీడర్‌బోర్డ్‌లో భద్రపరుస్తోంది..." : "Locking your score on the leaderboard..."}
+                      </span>
+                    </div>
+                  ) : !isScoreSubmitted || isEditingName ? (
                     <form
                       onSubmit={handleSubmitScore}
                       className="rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-champagne/40 to-peach-50/50 p-4 sm:p-5 text-left shadow-xs"
                     >
-                      <div className="flex items-center gap-2 text-burgundy font-bold text-xs sm:text-sm">
-                        <Trophy className="h-4 w-4 text-gold shrink-0" />
-                        <span>{t.addNameToLeaderboard}</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-burgundy font-bold text-xs sm:text-sm">
+                          <Trophy className="h-4 w-4 text-gold shrink-0" />
+                          <span>{isEditingName ? (isTelugu ? "పేరు మార్చండి" : "Update Your Name") : t.addNameToLeaderboard}</span>
+                        </div>
+                        {isEditingName && (
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingName(false)}
+                            className="text-[11px] font-semibold text-soft-brown hover:text-charcoal cursor-pointer"
+                          >
+                            {isTelugu ? "రద్దు" : "Cancel"}
+                          </button>
+                        )}
                       </div>
 
                       <p className="text-[11px] text-soft-brown mt-1">
@@ -762,6 +841,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                             placeholder={t.playerNamePlaceholder || "Your name (e.g. Rahul, Priya)..."}
                             maxLength={40}
                             required
+                            autoFocus={isEditingName}
                             className="w-full rounded-xl border border-warm-beige bg-warm-white px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/50 focus:border-burgundy focus:ring-1 focus:ring-burgundy focus:outline-hidden"
                           />
                           <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-soft-brown/40 pointer-events-none" />
@@ -773,6 +853,8 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                         >
                           {isSubmitting
                             ? t.savingRank || "Saving..."
+                            : isEditingName
+                            ? (isTelugu ? "సేవ్ చేయండి" : "Update")
                             : t.submitRank || "Submit Rank"}
                         </button>
                       </div>
@@ -794,6 +876,13 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                             ? `మీ స్కోరు '${playerName}' పేరుతో నమోదైంది!`
                             : `Your score is locked in as ${playerName}!`)}
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingName(true)}
+                        className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 underline hover:text-emerald-900 cursor-pointer transition-colors"
+                      >
+                        <span>{isTelugu ? "పేరు మార్చుకోండి (Edit Name)" : "Edit Name on Leaderboard"}</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1002,6 +1091,42 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
           })()}
         </motion.div>
       )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          Sticky Floating Mobile "Next Question" Pill
+          (Instantly visible at screen bottom on mobile - zero scrolling required!)
+          ───────────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isAnswered && gameState === "playing" && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-4 inset-x-3 z-40 sm:hidden flex justify-center pointer-events-none"
+          >
+            <button
+              type="button"
+              onClick={handleNext}
+              className="pointer-events-auto w-full max-w-sm flex items-center justify-between rounded-full bg-gradient-to-r from-burgundy via-deep-burgundy to-burgundy px-5 py-3.5 text-xs font-bold text-warm-white shadow-2xl ring-2 ring-gold/80 active:scale-95 transition-all cursor-pointer backdrop-blur-md"
+            >
+              <span className="flex items-center gap-1.5 truncate">
+                <span>{currentQ.options[selectedOption!]?.isCorrect ? "🎉" : "💡"}</span>
+                <span className="truncate">
+                  {currentQ.options[selectedOption!]?.isCorrect
+                    ? (isTelugu ? "సరైన సమాధానం!" : "Spot On!")
+                    : (isTelugu ? "సమాధానం లాక్ చేయబడింది" : "Memory Locked")}
+                </span>
+              </span>
+              <span className="flex items-center gap-1 font-extrabold text-champagne shrink-0 ml-2">
+                {currentIndex + 1 === triviaQuestions.length
+                  ? (isTelugu ? "ఫలితాలు చూడండి →" : "See Final Score →")
+                  : (isTelugu ? "తదుపరి జ్ఞాపకం →" : "Next Memory →")}
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
