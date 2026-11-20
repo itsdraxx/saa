@@ -10,7 +10,7 @@ export default function TriviaPreview() {
   const t = translations[language].trivia;
 
   return (
-    <section id="trivia" className="w-full bg-champagne/30 py-20 px-4 sm:px-6 lg:px-8">
+    <section id="trivia" className="w-full bg-champagne/30 py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl text-center">
         <SectionHeading
           title={t.previewHeading}
@@ -21,7 +21,7 @@ export default function TriviaPreview() {
           }
         />
 
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-6 sm:mt-8">
           <TriviaGame autoStart={true} embedded={true} />
         </div>
       </div>

@@ -20,7 +20,6 @@ import {
   VolumeX,
   Flame,
   Sparkles,
-  BookOpen,
 } from "lucide-react";
 import {
   fetchTriviaLeaderboard,
@@ -357,15 +356,15 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
       );
     } catch {}
 
-    // Smoothly scroll down slightly on mobile so the explanation & next action are visible
+    // Smoothly ensure the action area is in view if on an extra small screen
     setTimeout(() => {
       try {
-        const nextAction = document.getElementById("trivia-next-action");
+        const nextAction = document.getElementById("trivia-inline-action");
         if (nextAction) {
           nextAction.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       } catch {}
-    }, 100);
+    }, 80);
   };
 
   const handleNext = () => {
@@ -458,7 +457,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
     <div
       ref={cardRef}
       id="trivia-card"
-      className={`mx-auto w-full ${embedded ? "max-w-4xl" : "max-w-3xl"}`}
+      className="mx-auto w-full max-w-2xl"
     >
       {/* ─────────────────────────────────────────────────────────────
           1. INTRO SCREEN (Optional, if autoStart=false)
@@ -500,24 +499,21 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          2. PLAYING SCREEN (Interactive Question Card)
+          2. PLAYING SCREEN (Compact, Refined, Unified Question Card)
           ───────────────────────────────────────────────────────────── */}
       {gameState === "playing" && (
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.35 }}
-          className="relative overflow-hidden rounded-3xl border-2 border-gold/50 bg-gradient-to-b from-warm-white via-warm-white to-peach-50/30 p-6 sm:p-8 shadow-2xl text-left"
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+          className="relative overflow-hidden rounded-2xl border border-gold/40 bg-gradient-to-b from-warm-white via-warm-white to-peach-50/20 p-4 sm:p-5 shadow-lg text-left"
         >
-          {/* Subtle Decorative Golden Border Glow */}
-          <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-radial from-gold/20 via-transparent to-transparent blur-2xl" />
-
-          {/* Top Control Bar: Milestone Diamonds & Score Meter */}
-          <div className="flex items-center justify-between border-b border-warm-beige/60 pb-4 flex-wrap gap-3">
-            {/* Milestone Diamond Pearls */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Top Control Bar: Milestone Pearls & Status Badges */}
+          <div className="flex items-center justify-between border-b border-warm-beige/50 pb-2.5 flex-wrap gap-2">
+            {/* Milestone Diamond Pearls (Compact) */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {triviaQuestions.map((q, idx) => {
                 const isPast = idx < currentIndex;
                 const isCurrent = idx === currentIndex;
@@ -528,14 +524,14 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                   <div
                     key={q.id}
                     title={`Question ${idx + 1}`}
-                    className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
+                    className={`flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-[10px] sm:text-xs font-bold transition-all duration-200 ${
                       isPast
                         ? wasCorrect
-                          ? "bg-emerald-500 text-white shadow-xs scale-100 ring-1 ring-emerald-300"
-                          : "bg-rose-500 text-white shadow-xs scale-100 ring-1 ring-rose-300"
+                          ? "bg-emerald-500 text-white shadow-2xs scale-95"
+                          : "bg-rose-500 text-white shadow-2xs scale-95"
                         : isCurrent
-                        ? "border-2 border-gold bg-gradient-to-br from-champagne to-peach-100 text-burgundy shadow-sm ring-2 ring-gold/50 scale-110 font-extrabold"
-                        : "border border-warm-beige/80 bg-warm-white/80 text-soft-brown/40"
+                        ? "border-2 border-gold bg-gradient-to-br from-champagne to-peach-100 text-burgundy shadow-xs ring-1 ring-gold/40 font-extrabold scale-105"
+                        : "border border-warm-beige/70 bg-warm-white/70 text-soft-brown/40"
                     }`}
                   >
                     {isPast ? (wasCorrect ? "✓" : "✗") : idx + 1}
@@ -544,63 +540,58 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
               })}
             </div>
 
-            {/* Right Status Controls */}
-            <div className="flex items-center gap-2">
-              {/* Streak Badge (Shows when user has 2+ in a row!) */}
+            {/* Right Status Badges */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {streak >= 2 && (
-                <div className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs animate-bounce">
-                  <Flame className="h-3 w-3 fill-white" />
-                  <span>
-                    {isTelugu ? `వరుసగా ${streak} సరైనవి!` : `${streak} Streak!`}
-                  </span>
+                <div className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
+                  <Flame className="h-2.5 w-2.5 fill-white" />
+                  <span>{streak} Streak!</span>
                 </div>
               )}
 
-              {/* Real-time Score Badge */}
-              <div className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-champagne/60 px-3 py-1 text-xs font-bold text-burgundy">
+              <div className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-champagne/60 px-2.5 py-0.5 text-[11px] font-bold text-burgundy">
                 <Sparkles className="h-3 w-3 text-gold" />
                 <span>
                   {t.scoreLabel}: {score}
                 </span>
               </div>
 
-              {/* Sound Toggle */}
               <button
                 type="button"
                 onClick={toggleSound}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-warm-beige bg-warm-white text-soft-brown hover:text-burgundy hover:bg-champagne/40 transition-colors cursor-pointer"
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-warm-beige bg-warm-white text-soft-brown hover:text-burgundy hover:bg-champagne/40 transition-colors cursor-pointer"
                 title={isSoundEnabled ? "Mute Game Sound" : "Enable Game Sound"}
                 aria-label="Toggle game audio"
               >
-                {isSoundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                {isSoundEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
               </button>
             </div>
           </div>
 
           {/* Question Tag & Number */}
-          <div className="mt-5 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-warm-beige bg-peach-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-burgundy">
+          <div className="mt-3 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1 rounded-full border border-warm-beige/80 bg-peach-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-burgundy">
               {isTelugu && triviaTelugu[currentQ.id]?.category
                 ? triviaTelugu[currentQ.id].category
                 : currentQ.category}
             </span>
 
-            <span className="text-xs font-bold uppercase tracking-wider text-soft-brown/80">
+            <span className="text-[11px] font-semibold text-soft-brown/80">
               {isTelugu
                 ? `${t.questionLabel} ${currentIndex + 1} / ${triviaQuestions.length}`
                 : `Question ${currentIndex + 1} of ${triviaQuestions.length}`}
             </span>
           </div>
 
-          {/* Question Heading */}
-          <h3 className="mt-3 font-heading text-xl sm:text-2xl md:text-3xl font-bold text-charcoal leading-snug">
+          {/* Compact Question Heading */}
+          <h3 className="mt-1.5 mb-3 font-heading text-sm sm:text-base md:text-lg font-bold text-charcoal leading-snug">
             {isTelugu && triviaTelugu[currentQ.id]?.question
               ? triviaTelugu[currentQ.id].question
               : currentQ.question}
           </h3>
 
-          {/* 4 Interactive 3D Options */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* 4 Compact Interactive Options */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
             {currentQ.options.map((opt, idx) => {
               const isSelected = selectedOption === idx;
               const letter = optionLetters[idx] || "•";
@@ -610,22 +601,22 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                   : opt.text;
 
               let cardStyle =
-                "border-warm-beige/90 bg-warm-white hover:border-gold hover:bg-champagne/20 hover:scale-[1.01] hover:shadow-md cursor-pointer text-charcoal";
+                "border-warm-beige/80 bg-warm-white hover:border-gold hover:bg-champagne/20 cursor-pointer text-charcoal";
               let badgeStyle = "border-warm-beige bg-peach-50 text-burgundy";
 
               if (isAnswered) {
                 if (opt.isCorrect) {
                   cardStyle =
-                    "border-emerald-500 bg-emerald-50/90 text-emerald-950 shadow-md ring-2 ring-emerald-400/50 cursor-not-allowed";
+                    "border-emerald-500 bg-emerald-50/90 text-emerald-950 font-semibold shadow-2xs ring-1 ring-emerald-400/50 cursor-default";
                   badgeStyle = "border-emerald-500 bg-emerald-600 text-white";
                 } else if (isSelected && !opt.isCorrect) {
                   cardStyle =
-                    "border-rose-400 bg-rose-50/90 text-rose-950 shadow-xs cursor-not-allowed";
+                    "border-rose-400 bg-rose-50/90 text-rose-950 shadow-2xs cursor-default";
                   badgeStyle = "border-rose-400 bg-rose-500 text-white";
                 } else {
                   cardStyle =
-                    "border-warm-beige/40 bg-warm-white/40 text-charcoal/40 cursor-not-allowed opacity-60";
-                  badgeStyle = "border-warm-beige/40 bg-warm-beige/30 text-charcoal/40";
+                    "border-warm-beige/30 bg-warm-white/40 text-charcoal/40 cursor-default opacity-50";
+                  badgeStyle = "border-warm-beige/30 bg-warm-beige/20 text-charcoal/40";
                 }
               }
 
@@ -635,23 +626,21 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                   type="button"
                   onClick={() => handleSelectOption(idx)}
                   disabled={isAnswered}
-                  className={`group relative flex items-center gap-3.5 rounded-2xl border-2 p-3.5 sm:p-4 text-left font-body text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95 ${cardStyle}`}
+                  className={`group relative flex items-center gap-2.5 rounded-xl border p-2.5 sm:p-3 text-left font-body text-xs sm:text-sm font-medium transition-all duration-150 active:scale-98 ${cardStyle}`}
                 >
-                  {/* Option Letter Badge */}
                   <div
-                    className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all duration-200 ${badgeStyle}`}
+                    className={`flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-md border text-[10px] sm:text-xs font-bold transition-all ${badgeStyle}`}
                   >
                     {letter}
                   </div>
 
                   <span className="flex-1 leading-snug">{optText}</span>
 
-                  {/* Feedback Status Icons */}
                   {isAnswered && opt.isCorrect && (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 animate-scale" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                   )}
                   {isAnswered && isSelected && !opt.isCorrect && (
-                    <XCircle className="h-5 w-5 text-rose-500 shrink-0" />
+                    <XCircle className="h-4 w-4 text-rose-500 shrink-0" />
                   )}
                 </button>
               );
@@ -659,78 +648,56 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
           </div>
 
           {/* ─────────────────────────────────────────────────────────────
-              3. "THE INSIDE MEMORY" DRAWER
-              Revealed immediately after guessing!
+              3. COMPACT INLINE MEMORY & SINGLE "NEXT MEMORY" ACTION
+              (Only ONE single, elegant Next button! Clean, unified & compact)
               ───────────────────────────────────────────────────────────── */}
           <AnimatePresence>
             {isAnswered && (
               <motion.div
-                initial={{ opacity: 0, y: 10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.35 }}
-                className="mt-6 overflow-hidden rounded-2xl border-2 border-gold/40 bg-gradient-to-r from-champagne/40 via-peach-50/50 to-champagne/30 p-4 sm:p-5 shadow-xs"
+                id="trivia-inline-action"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.25 }}
+                className="mt-3 rounded-xl border border-gold/40 bg-gradient-to-r from-champagne/40 via-peach-50/50 to-champagne/30 p-3 sm:p-3.5 shadow-2xs"
               >
-                <div className="flex items-center justify-between flex-wrap gap-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">
-                      {currentQ.options[selectedOption!]?.isCorrect ? "🎉" : "💡"}
-                    </span>
-                    <div>
-                      <p className="font-heading text-base sm:text-lg font-bold text-burgundy">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  {/* Left: Memory Story / Explanation */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-sm">
+                        {currentQ.options[selectedOption!]?.isCorrect ? "🎉" : "💡"}
+                      </span>
+                      <span className="font-heading text-xs font-bold text-burgundy">
                         {currentQ.options[selectedOption!]?.isCorrect
                           ? t.correctBanner
                           : t.incorrectBanner}
-                      </p>
-                      <div className="inline-flex items-center gap-1 text-[10px] font-bold text-soft-brown">
-                        <Lock className="h-2.5 w-2.5" />
-                        <span>{t.answerLocked}</span>
-                      </div>
+                      </span>
+                      <span className="text-[10px] text-soft-brown/70 font-medium">
+                        • {t.answerLocked}
+                      </span>
                     </div>
+                    <p className="font-body text-[11px] sm:text-xs leading-relaxed text-charcoal/85 italic">
+                      {isTelugu && triviaTelugu[currentQ.id]?.explanation
+                        ? triviaTelugu[currentQ.id].explanation
+                        : currentQ.explanation}
+                    </p>
                   </div>
 
-                  {/* Top "Next Memory →" button placed immediately under options for instant advance */}
+                  {/* Right: The ONLY Next Button */}
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide text-warm-white shadow-md transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ring-2 ring-gold/40"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-5 py-2 text-xs sm:text-sm font-bold text-warm-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer ring-1 ring-gold/40 shrink-0"
                   >
                     <span>
                       {currentIndex + 1 === triviaQuestions.length
                         ? t.seeFinalScore
                         : isTelugu
-                        ? "తదుపరి జ్ఞాపకం →"
+                        ? "తర్వాతి జ్ఞాపకం →"
                         : "Next Memory →"}
                     </span>
                     <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                {/* The Memory Story */}
-                <div className="mt-3 flex items-start gap-2.5 bg-warm-white/80 rounded-xl p-3 sm:p-3.5 border border-warm-beige/50">
-                  <BookOpen className="h-4 w-4 text-gold shrink-0 mt-0.5" />
-                  <p className="font-body text-xs sm:text-sm leading-relaxed text-charcoal/90 italic">
-                    {isTelugu && triviaTelugu[currentQ.id]?.explanation
-                      ? triviaTelugu[currentQ.id].explanation
-                      : currentQ.explanation}
-                  </p>
-                </div>
-
-                {/* Bottom Action Anchor for auto-scroll and secondary click */}
-                <div id="trivia-next-action" className="mt-3 flex justify-end sm:hidden">
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-6 py-2.5 text-xs font-bold text-warm-white shadow-md active:scale-95 cursor-pointer ring-2 ring-gold/30"
-                  >
-                    <span>
-                      {currentIndex + 1 === triviaQuestions.length
-                        ? t.seeFinalScore
-                        : isTelugu
-                        ? "తదుపరి జ్ఞాపకం →"
-                        : "Next Memory →"}
-                    </span>
-                    <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </motion.div>
@@ -1091,42 +1058,6 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
           })()}
         </motion.div>
       )}
-
-      {/* ─────────────────────────────────────────────────────────────
-          Sticky Floating Mobile "Next Question" Pill
-          (Instantly visible at screen bottom on mobile - zero scrolling required!)
-          ───────────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {isAnswered && gameState === "playing" && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-4 inset-x-3 z-40 sm:hidden flex justify-center pointer-events-none"
-          >
-            <button
-              type="button"
-              onClick={handleNext}
-              className="pointer-events-auto w-full max-w-sm flex items-center justify-between rounded-full bg-gradient-to-r from-burgundy via-deep-burgundy to-burgundy px-5 py-3.5 text-xs font-bold text-warm-white shadow-2xl ring-2 ring-gold/80 active:scale-95 transition-all cursor-pointer backdrop-blur-md"
-            >
-              <span className="flex items-center gap-1.5 truncate">
-                <span>{currentQ.options[selectedOption!]?.isCorrect ? "🎉" : "💡"}</span>
-                <span className="truncate">
-                  {currentQ.options[selectedOption!]?.isCorrect
-                    ? (isTelugu ? "సరైన సమాధానం!" : "Spot On!")
-                    : (isTelugu ? "సమాధానం లాక్ చేయబడింది" : "Memory Locked")}
-                </span>
-              </span>
-              <span className="flex items-center gap-1 font-extrabold text-champagne shrink-0 ml-2">
-                {currentIndex + 1 === triviaQuestions.length
-                  ? (isTelugu ? "ఫలితాలు చూడండి →" : "See Final Score →")
-                  : (isTelugu ? "తదుపరి జ్ఞాపకం →" : "Next Memory →")}
-              </span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

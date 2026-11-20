@@ -9,8 +9,8 @@ export default function TriviaPage() {
   const { isTelugu } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-ivory py-16 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen bg-ivory py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl">
         {/* Back Link */}
         <div className="mb-8">
           <Link
