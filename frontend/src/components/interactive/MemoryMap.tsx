@@ -61,9 +61,10 @@ export default function MemoryMap() {
             width: 184px;
             background: rgba(255, 255, 255, 0.98);
             border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 2px solid #D49A32;
+            outline: 1.5px solid rgba(153, 31, 43, 0.45);
             overflow: hidden;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(212, 154, 50, 0.2);
           ">
             <!-- Small Image Popup -->
             <div style="
@@ -220,14 +221,16 @@ export default function MemoryMap() {
       const current3D = is3DRef.current;
 
       // Smoothly fly camera to pinned destination with close-up zoom (level 13)
-      // Preserves 3D perspective pitch if 3D mode is active
+      // Uses pixel offset so marker pin sits exactly in the vertical middle of visible map
       if (mapInstanceRef.current) {
+        const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
         mapInstanceRef.current.flyTo({
-          center: [loc.lng, loc.lat - (current3D ? 0.012 : 0.008)],
+          center: [loc.lng, loc.lat],
+          offset: [0, isMobile ? -42 : -32],
           zoom: 13,
-          pitch: current3D ? 58 : 0,
-          bearing: current3D ? -20 : 0,
-          duration: 1400,
+          pitch: current3D ? (isMobile ? 45 : 55) : 0,
+          bearing: current3D ? (isMobile ? -10 : -20) : 0,
+          duration: 1200,
           essential: true,
         });
       }
@@ -265,13 +268,14 @@ export default function MemoryMap() {
       }
 
       // OpenFreeMap Bright vector style URL (100% free, no API keys)
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: "https://tiles.openfreemap.org/styles/bright",
-        center: [mapLocations[0].lng, mapLocations[0].lat - 0.012],
+        center: [mapLocations[0].lng, mapLocations[0].lat],
         zoom: 13,
-        pitch: 58,
-        bearing: -20,
+        pitch: isMobile ? 45 : 55,
+        bearing: isMobile ? -10 : -20,
         attributionControl: false,
       });
 
@@ -281,6 +285,16 @@ export default function MemoryMap() {
         if (!isSubscribed) return;
         setIsMapLoaded(true);
         refreshMarkers(mapLocations[0]);
+        setTimeout(() => {
+          const firstCard = cardRefs.current[mapLocations[0].id];
+          if (firstCard && sliderRef.current) {
+            firstCard.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+              inline: "center",
+            });
+          }
+        }, 150);
       });
     });
 
@@ -363,10 +377,25 @@ export default function MemoryMap() {
           </div>
         )}
 
-        {/* ─── 2. Apple Maps Floating Top Controls ─── */}
-        <div className="pointer-events-none absolute top-4 left-4 right-4 z-10 flex items-start justify-between">
-          {/* Left: Apple Search-Style POI Indicator */}
-          <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-3.5 py-2.5 shadow-xl backdrop-blur-xl transition-all">
+        {/* ─── 2. Floating Top Controls: Sleek, Unobtrusive & Responsive ─── */}
+        <div className="pointer-events-none absolute top-2.5 sm:top-4 left-2.5 sm:left-4 right-2.5 sm:right-4 z-10 flex items-start justify-between gap-2">
+          {/* Left: Mobile compact pill (sm:hidden) */}
+          <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-gold/40 bg-white/95 px-2.5 py-1 shadow-md backdrop-blur-md sm:hidden">
+            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-burgundy/10 text-burgundy">
+              <MapPin className="h-2.5 w-2.5" />
+            </div>
+            <span className="text-[10px] font-bold text-burgundy">
+              {currentIndex + 1}/{mapLocations.length}
+            </span>
+            <span className="text-[10px] font-semibold text-charcoal truncate max-w-[110px]">
+              {(isTelugu && mapLocationsTelugu[selectedLocation.id]?.name)
+                ? mapLocationsTelugu[selectedLocation.id].name
+                : selectedLocation.name}
+            </span>
+          </div>
+
+          {/* Left: Desktop Apple Search-Style POI Indicator (hidden sm:flex) */}
+          <div className="pointer-events-auto hidden sm:flex items-center gap-3 rounded-2xl border border-white/70 bg-white/90 px-3.5 py-2.5 shadow-xl backdrop-blur-xl transition-all">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-burgundy/10 text-burgundy shadow-xs">
               <MapPin className="h-4 w-4" />
             </div>
@@ -391,8 +420,48 @@ export default function MemoryMap() {
             </div>
           </div>
 
-          {/* Right: Apple Maps Floating Glass Tool Stack (3D, +, -, Overview) */}
-          <div className="pointer-events-auto flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl backdrop-blur-xl">
+          {/* Right: Mobile Horizontal Mini-Controls (sm:hidden) */}
+          <div className="pointer-events-auto flex items-center rounded-full border border-gold/40 bg-white/95 p-0.5 shadow-md backdrop-blur-md sm:hidden">
+            <button
+              type="button"
+              onClick={toggle3D}
+              aria-label={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
+              title={is3D ? "Switch to 2D view" : "Switch to 3D perspective"}
+              className={`flex h-7 px-2 items-center justify-center rounded-full font-bold text-[10px] transition-all cursor-pointer ${
+                is3D ? "bg-burgundy text-white shadow-2xs font-extrabold" : "text-charcoal hover:bg-black/5"
+              }`}
+            >
+              {is3D ? "2D" : "3D"}
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomIn}
+              aria-label="Zoom in"
+              className="flex h-7 w-7 items-center justify-center text-charcoal hover:bg-black/5 active:bg-black/10 transition-colors cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleZoomOut}
+              aria-label="Zoom out"
+              className="flex h-7 w-7 items-center justify-center text-charcoal hover:bg-black/5 active:bg-black/10 transition-colors cursor-pointer"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleResetOverview}
+              aria-label="Reset overview"
+              title={t.allIndiaView || "All India View"}
+              className="flex h-7 w-7 items-center justify-center text-burgundy hover:bg-burgundy/10 active:bg-burgundy/20 transition-colors cursor-pointer"
+            >
+              <Compass className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Right: Desktop Vertical Tool Stack (hidden sm:flex) */}
+          <div className="pointer-events-auto hidden sm:flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl backdrop-blur-xl">
             {/* 3D / 2D Perspective Toggle Button */}
             <button
               type="button"
@@ -476,32 +545,32 @@ export default function MemoryMap() {
               </button>
             </div>
 
-            {/* Left Chevron Button (Visible on mobile & desktop) */}
+            {/* Left Chevron Button (Desktop only, avoiding mobile card overlap) */}
             <button
               type="button"
               onClick={() => handleNavigate("prev")}
               aria-label="Previous destination"
               title={t.prev}
-              className="pointer-events-auto absolute -left-1 sm:-left-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
+              className="pointer-events-auto hidden sm:flex absolute -left-3 md:-left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-gold/40 bg-white/95 text-burgundy shadow-xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
 
-            {/* Right Chevron Button (Visible on mobile & desktop) */}
+            {/* Right Chevron Button (Desktop only, avoiding mobile card overlap) */}
             <button
               type="button"
               onClick={() => handleNavigate("next")}
               aria-label="Next destination"
               title={t.next}
-              className="pointer-events-auto absolute -right-1 sm:-right-4 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/80 bg-white/95 text-burgundy shadow-2xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
+              className="pointer-events-auto hidden sm:flex absolute -right-3 md:-right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-11 md:w-11 items-center justify-center rounded-full border border-gold/40 bg-white/95 text-burgundy shadow-xl backdrop-blur-md transition-all hover:bg-white hover:scale-105 active:scale-90 cursor-pointer"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
 
-            {/* Slideable Cards Container */}
+            {/* Slideable Cards Container (Calculated padding ensures Card 1 and all cards center in mobile view) */}
             <div
               ref={sliderRef}
-              className="pointer-events-auto flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory py-1.5 px-6 sm:px-3 scroll-smooth"
+              className="pointer-events-auto flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory py-2 px-[calc(50%-135px)] sm:px-4 scroll-smooth"
             >
               {mapLocations.map((loc) => {
                 const isSelected = loc.id === selectedLocation.id;
@@ -516,10 +585,10 @@ export default function MemoryMap() {
                       cardRefs.current[loc.id] = el;
                     }}
                     onClick={() => handleSelectLocation(loc)}
-                    className={`shrink-0 snap-center w-[275px] sm:w-[320px] md:w-[340px] cursor-pointer rounded-2xl p-3 sm:p-3.5 transition-all duration-300 ${
+                    className={`shrink-0 snap-center w-[270px] sm:w-[320px] md:w-[340px] cursor-pointer rounded-2xl p-3 sm:p-3.5 transition-all duration-300 ${
                       isSelected
-                        ? "border-2 border-gold bg-white/95 shadow-[0_12px_36px_rgba(153,31,43,0.3)] ring-2 ring-gold/40 scale-[1.02] backdrop-blur-2xl"
-                        : "border border-white/70 bg-white/80 shadow-lg backdrop-blur-xl hover:bg-white/95 hover:border-gold/50 opacity-90 hover:opacity-100"
+                        ? "border-2 border-burgundy bg-white shadow-2xl ring-2 ring-gold/80 outline outline-2 outline-gold/50 scale-[1.02] backdrop-blur-2xl"
+                        : "border-2 border-warm-beige/90 bg-white/95 shadow-md ring-1 ring-gold/25 hover:border-gold/80 hover:ring-gold/40 opacity-95 hover:opacity-100"
                     }`}
                   >
                     {/* Top Row: Thumbnail + Title + Pill */}
