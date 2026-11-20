@@ -39,20 +39,18 @@ export default function LanguageSwitcher({ variant = "floating" }: LanguageSwitc
     );
   }
 
-  // Floating pill (bottom right)
+  // Ultra-compact, unobtrusive floating toggle (bottom-right)
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 pointer-events-auto">
       <button
         type="button"
         onClick={() => setLanguage(language === "en" ? "te" : "en")}
-        aria-label="Toggle language between English and Telugu"
-        className="group flex items-center gap-2 rounded-full border-2 border-gold/60 bg-warm-white/95 px-4 py-2.5 text-xs font-bold text-burgundy shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-burgundy hover:bg-warm-white hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-gold/20"
+        aria-label={language === "en" ? "Switch language to Telugu" : "Switch language to English"}
+        title={language === "en" ? "Switch to Telugu (తెలుగు)" : "Switch to English"}
+        className="group flex h-9 items-center gap-1.5 rounded-full border border-gold/70 bg-warm-white/90 px-3 text-xs font-bold text-burgundy shadow-lg backdrop-blur-md transition-all duration-200 hover:border-burgundy hover:bg-warm-white hover:scale-105 active:scale-95 cursor-pointer ring-2 ring-gold/20"
       >
-        <Globe className="h-4 w-4 text-gold group-hover:rotate-45 transition-transform duration-300" />
-        <span className="font-heading text-sm">
-          {language === "en" ? "తెలుగులోకి మార్చండి" : "Switch to English"}
-        </span>
-        <span className="rounded-full bg-champagne/80 px-2 py-0.5 text-[10px] uppercase font-bold text-soft-brown">
+        <Globe className="h-3.5 w-3.5 text-gold group-hover:rotate-45 transition-transform duration-300 shrink-0" />
+        <span className="font-heading text-xs font-bold tracking-wide">
           {language === "en" ? "తెలుగు" : "EN"}
         </span>
       </button>
