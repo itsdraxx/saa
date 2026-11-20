@@ -136,9 +136,9 @@ export default function TimelineSection() {
         </div>
 
         {/* =========================================================
-            INSTAGRAM FEED: 2-COLUMN DESKTOP / 1-COLUMN MOBILE
+            INSTAGRAM FEED: 3-COLUMN DESKTOP / 1-COLUMN MOBILE
             ========================================================= */}
-        <div className="mt-10 sm:mt-14 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 max-w-6xl mx-auto">
+        <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-6 xl:gap-8 max-w-7xl mx-auto">
           <AnimatePresence mode="popLayout">
             {filteredPosts.map((post) => (
               <motion.div

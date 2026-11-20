@@ -40,7 +40,7 @@ export const translations = {
     timeline: {
       chronicle: "Chronicle of Love",
       heading: "Our 25-Year Story",
-      subtitle: "Explore our family's photo feed — swipe through memories, double-tap to send love ❤️, and leave your blessings in the comments!",
+      subtitle: "Explore our family's photo feed swipe through memories, double tap to send love ❤️, and leave your blessings in the comments!",
       filterAll: "All Posts",
       filterWedding: "Wedding & Vows",
       filterEarly: "Early Years",

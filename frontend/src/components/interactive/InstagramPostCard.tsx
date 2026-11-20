@@ -372,7 +372,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
     <>
       <article
         id={post.id}
-        className="relative flex flex-col w-full max-w-xl mx-auto rounded-2xl sm:rounded-3xl border border-warm-beige/80 bg-warm-white shadow-[0_8px_30px_rgba(122,20,30,0.06)] overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(122,20,30,0.12)]"
+        className="relative flex flex-col w-full max-w-md lg:max-w-none mx-auto rounded-2xl sm:rounded-3xl border border-warm-beige/80 bg-warm-white shadow-[0_8px_30px_rgba(122,20,30,0.06)] overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(122,20,30,0.12)]"
       >
         {/* =========================================================
             1. INSTAGRAM POST HEADER
@@ -442,7 +442,7 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                   fill
                   priority={post.year === 2001 || post.year === 2024}
                   className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
-                  sizes="(max-width: 640px) 100vw, 600px"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
                 />
                 {/* Subtle Warm Photographic Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
