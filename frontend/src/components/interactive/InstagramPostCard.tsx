@@ -102,9 +102,15 @@ export default function InstagramPostCard({
 
   const { isTelugu } = useLanguage();
   const tePost = isTelugu ? instagramPostsTelugu[post.id] : undefined;
-  const displayTitle = tePost?.title || post.title;
-  const displayCaption = tePost?.caption || post.caption;
-  const displayLocation = tePost?.location || post.location;
+  const displayTitle = isTelugu
+    ? post.titleTe || tePost?.title || post.title
+    : post.title;
+  const displayCaption = isTelugu
+    ? post.captionTe || tePost?.caption || post.caption
+    : post.caption;
+  const displayLocation = isTelugu
+    ? post.locationTe || tePost?.location || post.location
+    : post.location;
 
   const categoryMapTelugu: Record<string, string> = {
     wedding: "వివాహం",

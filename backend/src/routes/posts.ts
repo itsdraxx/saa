@@ -63,10 +63,13 @@ interface PostRow {
   year: number;
   date_str: string;
   title: string;
+  title_te?: string;
   location: string;
+  location_te?: string;
   aspect_ratio: string;
   category: string;
   caption: string;
+  caption_te?: string;
   hashtags: string;
   images: string;
   likes_count: number;
@@ -79,10 +82,13 @@ function parsePostRow(row: PostRow) {
     year: row.year,
     dateStr: row.date_str,
     title: row.title,
+    titleTe: row.title_te || "",
     location: row.location,
+    locationTe: row.location_te || "",
     aspectRatio: row.aspect_ratio || "landscape",
     category: row.category,
     caption: row.caption,
+    captionTe: row.caption_te || "",
     hashtags: JSON.parse(row.hashtags || "[]"),
     images: JSON.parse(row.images || "[]"),
     likesCount: row.likes_count || 0,
@@ -179,7 +185,21 @@ router.post("/upload", requireAdmin, upload.single("image"), async (req, res) =>
 // POST /posts — create a new post
 router.post("/", requireAdmin, (req, res) => {
   try {
-    const { id, year, dateStr, title, location, aspectRatio, category, caption, hashtags, images } = req.body;
+    const {
+      id,
+      year,
+      dateStr,
+      title,
+      titleTe,
+      location,
+      locationTe,
+      aspectRatio,
+      category,
+      caption,
+      captionTe,
+      hashtags,
+      images,
+    } = req.body;
 
     if (!id || !year || !title || !category || !caption) {
       res.status(400).json({ success: false, error: "Missing required fields: id, year, title, category, caption" });
@@ -194,17 +214,20 @@ router.post("/", requireAdmin, (req, res) => {
     }
 
     dbRun(
-      `INSERT INTO instagram_posts (id, year, date_str, title, location, aspect_ratio, category, caption, hashtags, images, likes_count)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      `INSERT INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images, likes_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         id,
         Number(year),
         dateStr || "",
         title,
+        titleTe || "",
         location || "",
+        locationTe || "",
         aspectRatio || "landscape",
         category,
         caption,
+        captionTe || "",
         JSON.stringify(hashtags || []),
         JSON.stringify(images || []),
       ]
@@ -228,21 +251,37 @@ router.put("/:id", requireAdmin, (req, res) => {
       return;
     }
 
-    const { year, dateStr, title, location, aspectRatio, category, caption, hashtags, images } = req.body;
+    const {
+      year,
+      dateStr,
+      title,
+      titleTe,
+      location,
+      locationTe,
+      aspectRatio,
+      category,
+      caption,
+      captionTe,
+      hashtags,
+      images,
+    } = req.body;
 
     dbRun(
       `UPDATE instagram_posts SET
-        year = ?, date_str = ?, title = ?, location = ?, aspect_ratio = ?,
-        category = ?, caption = ?, hashtags = ?, images = ?
+        year = ?, date_str = ?, title = ?, title_te = ?, location = ?, location_te = ?, aspect_ratio = ?,
+        category = ?, caption = ?, caption_te = ?, hashtags = ?, images = ?
        WHERE id = ?`,
       [
         year !== undefined ? Number(year) : existing.year,
         dateStr !== undefined ? dateStr : existing.date_str,
         title !== undefined ? title : existing.title,
+        titleTe !== undefined ? titleTe : (existing.title_te || ""),
         location !== undefined ? location : existing.location,
+        locationTe !== undefined ? locationTe : (existing.location_te || ""),
         aspectRatio !== undefined ? aspectRatio : existing.aspect_ratio,
         category !== undefined ? category : existing.category,
         caption !== undefined ? caption : existing.caption,
+        captionTe !== undefined ? captionTe : (existing.caption_te || ""),
         hashtags !== undefined ? JSON.stringify(hashtags) : existing.hashtags,
         images !== undefined ? JSON.stringify(images) : existing.images,
         req.params.id,

@@ -98,10 +98,13 @@ function emptyPost(): Partial<AdminInstagramPost> {
     year: new Date().getFullYear(),
     dateStr: "",
     title: "",
+    titleTe: "",
     location: "",
+    locationTe: "",
     aspectRatio: "landscape",
     category: "milestone",
     caption: "",
+    captionTe: "",
     hashtags: [],
     images: [],
   };
@@ -963,16 +966,27 @@ export default function AdminPage() {
                     <div className="p-4">
                       <h3 className="font-heading text-sm font-bold text-charcoal line-clamp-1">
                         {post.title}
+                        {post.titleTe && (
+                          <span className="ml-1.5 text-xs font-normal text-burgundy font-serif">
+                            ({post.titleTe})
+                          </span>
+                        )}
                       </h3>
                       {post.location && (
                         <p className="mt-0.5 text-[10px] text-soft-brown/70 flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
                           {post.location}
+                          {post.locationTe && <span>• {post.locationTe}</span>}
                         </p>
                       )}
                       <p className="mt-1.5 text-[11px] text-charcoal/70 line-clamp-2 leading-relaxed">
                         {post.caption}
                       </p>
+                      {post.captionTe && (
+                        <p className="mt-1 text-[11px] text-burgundy/90 line-clamp-1 italic">
+                          🇮🇳 {post.captionTe}
+                        </p>
+                      )}
 
                       {/* Hashtags */}
                       {post.hashtags && post.hashtags.length > 0 && (
@@ -1078,11 +1092,12 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Row 2: Title & Date */}
+              {/* Row 2: Title (English & Telugu) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-soft-brown mb-1">
-                    Title *
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Title (English) *</span>
+                    <span className="text-[10px] text-soft-brown/60">🇬🇧 English</span>
                   </label>
                   <input
                     type="text"
@@ -1092,6 +1107,23 @@ export default function AdminPage() {
                     className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Title (Telugu / శీర్షిక)</span>
+                    <span className="text-[10px] text-burgundy font-medium">🇮🇳 తెలుగు</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.titleTe || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, titleTe: e.target.value })}
+                    placeholder="ఉదాహరణ: మన వివాహ మహోత్సవం"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Display Date & Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-soft-brown mb-1">
                     Display Date
@@ -1104,20 +1136,31 @@ export default function AdminPage() {
                     className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
                   />
                 </div>
-              </div>
-
-              {/* Row 3: Location */}
-              <div>
-                <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Location
-                </label>
-                <input
-                  type="text"
-                  value={editingPost.location || ""}
-                  onChange={(e) => setEditingPost({ ...editingPost, location: e.target.value })}
-                  placeholder="Hyderabad, India"
-                  className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
-                />
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Location (English)
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.location || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, location: e.target.value })}
+                    placeholder="Hyderabad, India"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Location (Telugu)</span>
+                    <span className="text-[10px] text-burgundy font-medium">🇮🇳 తెలుగు</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingPost.locationTe || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, locationTe: e.target.value })}
+                    placeholder="ఉదాహరణ: హైదరాబాద్"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
               </div>
 
               {/* Row 4: Category & Aspect Ratio */}
@@ -1166,18 +1209,41 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Caption */}
-              <div>
-                <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
-                  <FileText className="h-3 w-3" /> Caption *
-                </label>
-                <textarea
-                  value={editingPost.caption || ""}
-                  onChange={(e) => setEditingPost({ ...editingPost, caption: e.target.value })}
-                  placeholder="Tell the story of this memory..."
-                  rows={3}
-                  className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden resize-none"
-                />
+              {/* Dual Language Captions (English & Telugu) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* English Caption */}
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3 w-3" /> Caption (English) *
+                    </span>
+                    <span className="text-[10px] text-soft-brown/60">🇬🇧 English</span>
+                  </label>
+                  <textarea
+                    value={editingPost.caption || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, caption: e.target.value })}
+                    placeholder="Tell the story of this memory in English..."
+                    rows={4}
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden resize-none"
+                  />
+                </div>
+
+                {/* Telugu Caption */}
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3 w-3 text-burgundy" /> Caption (Telugu / తెలుగు వివరణ)
+                    </span>
+                    <span className="text-[10px] text-burgundy font-medium">🇮🇳 తెలుగు</span>
+                  </label>
+                  <textarea
+                    value={editingPost.captionTe || ""}
+                    onChange={(e) => setEditingPost({ ...editingPost, captionTe: e.target.value })}
+                    placeholder="ఈ జ్ఞాపకం వెనుక ఉన్న మధురమైన కథను తెలుగులో రాయండి..."
+                    rows={4}
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden resize-none"
+                  />
+                </div>
               </div>
 
               {/* Hashtags */}

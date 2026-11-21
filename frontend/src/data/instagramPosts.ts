@@ -32,11 +32,14 @@ export interface InstagramPost {
   year: number;
   dateStr: string;
   title: string;
+  titleTe?: string;
   location: string;
+  locationTe?: string;
   aspectRatio?: InstagramAspectRatio;
   images: InstagramMedia[];
   likesCount: number;
   caption: string;
+  captionTe?: string;
   category: "wedding" | "family" | "milestone" | "travel" | "celebration";
   hashtags: string[];
   comments: InstagramComment[];

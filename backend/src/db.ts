@@ -9,6 +9,70 @@ let db: SqlJsDatabase;
 let dbPath: string;
 let saveTimer: ReturnType<typeof setInterval> | null = null;
 
+// Master Telugu seeds for Instagram posts
+const teluguSeedMap: Record<string, { title: string; caption: string; location: string }> = {
+  "post-1999": {
+    title: "పరిణయ శుభవేళ — 23 నవంబర్ 2001",
+    caption: "హైదరాబాద్‌లో బంతిపూల పందిరి కింద పెద్దల ఆశీస్సులతో ఒక్కటైన పవిత్ర క్షణం. 25 ఏళ్ల మన ప్రయాణానికి పునాది పడిన రోజు.",
+    location: "కళ్యాణ మండపం, సికింద్రాబాద్",
+  },
+  "post-2000": {
+    title: "మన తొలి కాపురం — 2000",
+    caption: "రెండు గదుల చిన్న ఇల్లు, ఎన్నో పెద్ద కలలు. ఇద్దరం కలిసి జీవితాన్ని మొదలుపెట్టిన తొలి అడుగులు.",
+    location: "కూకట్‌పల్లి, హైదరాబాద్",
+  },
+  "post-2001": {
+    title: "మొదటి సంతానం — కుటుంబంలోకి కొత్త వెలుగు",
+    caption: "మన చేతుల్లోకి పసికందు రాకతో మన జీవితంలో సరికొత్త అధ్యాయం మొదలైంది.",
+    location: "హైదరాబాద్",
+  },
+  "post-2002": {
+    title: "తొలి అడుగులు — 2002",
+    caption: "ఇంటి నిండా చిన్నారి నవ్వులు, బోసినవ్వుల కేరింతలు.",
+    location: "మన ఇల్లు, హైదరాబాద్",
+  },
+  "post-2005": {
+    title: "నలుగురి సంసారం — 2005",
+    caption: "మన చిన్న గూడు మరింత సందడిగా మారింది. ఇద్దరు పిల్లలతో మన లోకం పరిపూర్ణమైంది.",
+    location: "హైదరాబాద్",
+  },
+  "post-2008": {
+    title: "సొంతింటి స్వప్నం నెరవేరిన వేళ — 2008",
+    caption: "మన స్వంత గడపపై అడుగుపెట్టిన ఆనందం. పిల్లల నవ్వులతో నిండిన కలల ఇల్లు.",
+    location: "మాదాపూర్, హైదరాబాద్",
+  },
+  "post-2010": {
+    title: "గోవా బీచ్‌లో సందడి — 2010",
+    caption: "సముద్రపు ఒడ్డున ఇసుక గూళ్లు, సూర్యాస్తమయపు వేళ కుటుంబంతో మధుర క్షణాలు.",
+    location: "బాగా బీచ్, గోవా",
+  },
+  "post-2014": {
+    title: "తాజ్ మహల్ సందర్శన — 2014",
+    caption: "ప్రేమకు చిహ్నమైన తాజ్ మహల్ ఎదుట మన ప్రేమకు 15 ఏళ్ల నిదర్శనం.",
+    location: "తాజ్ మహల్, ఆగ్రా",
+  },
+  "post-2017": {
+    title: "సిమ్లా మంచు కొండల్లో — 2017",
+    caption: "చల్లని మంచు కురుస్తున్న వేళ, కుటుంబ సభ్యుల వెచ్చని నవ్వులు.",
+    location: "మాల్ రోడ్, సిమ్లా",
+  },
+  "post-2019": {
+    title: "20 సంవత్సరాల మైలురాయి — 2019",
+    caption: "ఇరవై ఏళ్ల సహజీవనం. ఎన్నో ఎత్తుపల్లాలు, అంతకుమించిన తియ్యటి జ్ఞాపకాలు.",
+    location: "హైదరాబాద్",
+  },
+  "post-2022": {
+    title: "కేరళ బ్యాక్‌వాటర్స్ ప్రశాంతత — 2022",
+    caption: "హౌస్‌బోట్‌లో తేలుతూ పచ్చని ప్రకృతి నడుమ ఇద్దరం కలిసి గడిపిన ప్రశాంత క్షణాలు.",
+    location: "ఆలప్పుళ, కేరళ",
+  },
+  "post-2024": {
+    title: "25వ రజతోత్సవం వైపుగా — 2024",
+    caption: "అనంతమైన ప్రేమ, త్యాగాలు మరియు తరగని నవ్వుల 25 సంవత్సరాల వెండి పండుగ.",
+    location: "మన ఇల్లు, హైదరాబాద్",
+  },
+};
+
 // ─── Initialization (call once before app.listen) ─────
 export async function initDb(): Promise<void> {
   const SQL = await initSqlJs();
@@ -98,16 +162,46 @@ export async function initDb(): Promise<void> {
       year          INTEGER NOT NULL,
       date_str      TEXT NOT NULL DEFAULT '',
       title         TEXT NOT NULL,
+      title_te      TEXT NOT NULL DEFAULT '',
       location      TEXT NOT NULL DEFAULT '',
+      location_te   TEXT NOT NULL DEFAULT '',
       aspect_ratio  TEXT NOT NULL DEFAULT 'landscape',
       category      TEXT NOT NULL DEFAULT 'milestone',
       caption       TEXT NOT NULL DEFAULT '',
+      caption_te    TEXT NOT NULL DEFAULT '',
       hashtags      TEXT NOT NULL DEFAULT '[]',
       images        TEXT NOT NULL DEFAULT '[]',
       likes_count   INTEGER NOT NULL DEFAULT 0,
       created_at    TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // Migration: ensure title_te, caption_te, and location_te exist in instagram_posts
+  try {
+    const tableInfo = dbAll<{ name: string }>("PRAGMA table_info(instagram_posts)");
+    const colNames = tableInfo.map((c) => c.name);
+    if (!colNames.includes("title_te")) {
+      db.run("ALTER TABLE instagram_posts ADD COLUMN title_te TEXT NOT NULL DEFAULT ''");
+    }
+    if (!colNames.includes("caption_te")) {
+      db.run("ALTER TABLE instagram_posts ADD COLUMN caption_te TEXT NOT NULL DEFAULT ''");
+    }
+    if (!colNames.includes("location_te")) {
+      db.run("ALTER TABLE instagram_posts ADD COLUMN location_te TEXT NOT NULL DEFAULT ''");
+    }
+  } catch (err) {
+    console.warn("Migration notice for instagram_posts columns:", err);
+  }
+
+  // Populate Telugu defaults for existing seeded posts if caption_te is empty
+  for (const [id, val] of Object.entries(teluguSeedMap)) {
+    try {
+      db.run(
+        "UPDATE instagram_posts SET title_te = ?, caption_te = ?, location_te = ? WHERE id = ? AND (caption_te IS NULL OR caption_te = '')",
+        [val.title, val.caption, val.location, id]
+      );
+    } catch {}
+  }
 
   // Auto-seed instagram posts from curated data if table is empty
   await seedInstagramPosts();
@@ -271,10 +365,11 @@ async function seedInstagramPosts(): Promise<void> {
   ];
 
   for (const seed of seeds) {
+    const te = teluguSeedMap[seed.id] || { title: "", caption: "", location: "" };
     dbRun(
-      `INSERT OR IGNORE INTO instagram_posts (id, year, date_str, title, location, aspect_ratio, category, caption, hashtags, images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [seed.id, seed.year, seed.date_str, seed.title, seed.location, seed.aspect_ratio, seed.category, seed.caption, seed.hashtags, seed.images]
+      `INSERT OR IGNORE INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [seed.id, seed.year, seed.date_str, seed.title, te.title, seed.location, te.location, seed.aspect_ratio, seed.category, seed.caption, te.caption, seed.hashtags, seed.images]
     );
   }
 

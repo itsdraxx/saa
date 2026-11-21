@@ -59,10 +59,13 @@ export interface AdminInstagramPost {
   year: number;
   dateStr: string;
   title: string;
+  titleTe?: string;
   location: string;
+  locationTe?: string;
   aspectRatio: InstagramAspectRatio;
   category: string;
   caption: string;
+  captionTe?: string;
   hashtags: string[];
   images: InstagramMedia[];
   likesCount: number;
