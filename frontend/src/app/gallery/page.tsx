@@ -47,8 +47,8 @@ export default function GalleryPage() {
           title={isTelugu ? "మధుర జ్ఞాపకాల సంపూర్ణ గ్యాలరీ" : "The Complete Memory Gallery"}
           subtitle={
             isTelugu
-              ? "అమ్మ, నాన్నల 25 సంవత్సరాల జీవిత ప్రయాణంలోని అందమైన ఫోటోల సంకలనం."
-              : "Explore twenty-five years of cherished photographs, sorted across every major chapter of Mom and Dad's life together."
+              ? "ఆది, సత్యల 25 సంవత్సరాల జీవిత ప్రయాణంలోని అందమైన ఫోటోల సంకలనం."
+              : "Explore twenty-five years of cherished photographs, sorted across every major chapter of Adhi and Satya's life together."
           }
         />
 

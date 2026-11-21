@@ -28,7 +28,19 @@ const CONFETTI_COLORS = [
   "#FFFFFF", // Pearl Sparkle
 ];
 
-export default function ConfettiCelebration() {
+interface ConfettiCelebrationProps {
+  autoFire?: boolean;
+  buttonLabel?: string;
+  showButton?: boolean;
+  className?: string;
+}
+
+export default function ConfettiCelebration({
+  autoFire = false,
+  buttonLabel,
+  showButton = true,
+  className = "",
+}: ConfettiCelebrationProps = {}) {
   const { isTelugu } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isFiring, setIsFiring] = useState(false);
@@ -73,6 +85,15 @@ export default function ConfettiCelebration() {
 
     piecesRef.current = [...piecesRef.current, ...newPieces];
   }, []);
+
+  useEffect(() => {
+    if (autoFire) {
+      const timer = setTimeout(() => {
+        fire();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFire, fire]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -149,15 +170,17 @@ export default function ConfettiCelebration() {
         ref={canvasRef}
         className="pointer-events-none fixed inset-0 z-50 h-full w-full"
       />
-      <button
-        onClick={fire}
-        className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-gradient-to-r from-peach-500 via-burgundy to-peach-600 px-6 py-3 font-body text-sm font-semibold text-warm-white shadow-[0_10px_25px_-5px_rgba(196,87,67,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_30px_-5px_rgba(196,87,67,0.6)] active:scale-95 cursor-pointer"
-      >
-        <span className="absolute inset-0 bg-gradient-to-r from-warm-white/0 via-warm-white/25 to-warm-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <PartyPopper className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-        <span>{isTelugu ? "25 ఏళ్ల సంబరం జరుపుకోండి 🎉" : "Celebrate 25 Years 🎉"}</span>
-        <Sparkles className="h-3.5 w-3.5 text-peach-200" />
-      </button>
+      {showButton && (
+        <button
+          onClick={fire}
+          className={`group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-gradient-to-r from-peach-500 via-burgundy to-peach-600 px-6 py-3 font-body text-sm font-semibold text-warm-white shadow-[0_10px_25px_-5px_rgba(196,87,67,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_30px_-5px_rgba(196,87,67,0.6)] active:scale-95 cursor-pointer ${className}`}
+        >
+          <span className="absolute inset-0 bg-gradient-to-r from-warm-white/0 via-warm-white/25 to-warm-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <PartyPopper className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+          <span>{buttonLabel || (isTelugu ? "25 ఏళ్ల సంబరం జరుపుకోండి 🎉" : "Celebrate 25 Years 🎉")}</span>
+          <Sparkles className="h-3.5 w-3.5 text-peach-200" />
+        </button>
+      )}
     </>
   );
 }

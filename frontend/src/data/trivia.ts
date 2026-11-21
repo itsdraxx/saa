@@ -29,7 +29,7 @@ export const triviaQuestions: TriviaQuestion[] = [
   },
   {
     id: 3,
-    question: "What does Dad always order at a restaurant, no matter what?",
+    question: "What does Adhi always order at a restaurant, no matter what?",
     options: [
       { text: "Butter Chicken", isCorrect: false },
       { text: "Paneer Tikka", isCorrect: false },
@@ -37,12 +37,12 @@ export const triviaQuestions: TriviaQuestion[] = [
       { text: "Dal Makhani", isCorrect: false },
     ],
     explanation:
-      "No matter how fancy the restaurant, Dad's answer is always the same: 'Let me check if they have biryani.' Spoiler: he always checks.",
+      "No matter how fancy the restaurant, Adhi's answer is always the same: 'Let me check if they have biryani.' Spoiler: he always checks.",
     category: "habits",
   },
   {
     id: 4,
-    question: "What is Mom's signature dish that the whole family loves?",
+    question: "What is Satya's signature dish that the whole family loves?",
     options: [
       { text: "Rajma Chawal", isCorrect: false },
       { text: "Sunday Biryani", isCorrect: true },
@@ -50,7 +50,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       { text: "Aloo Paratha", isCorrect: false },
     ],
     explanation:
-      "Mom's Sunday Biryani is legendary. The neighbours can smell it, the kids plan their visits around it, and Dad claims it's better than any restaurant's.",
+      "Satya's Sunday Biryani is legendary. The neighbours can smell it, the kids plan their visits around it, and Adhi claims it's better than any restaurant's.",
     category: "favourites",
   },
   {
@@ -76,7 +76,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       { text: "3 Idiots", isCorrect: false },
     ],
     explanation:
-      "DDLJ is the undisputed champion. Dad still does the Raj pose with the outstretched arms, and Mom still pretends to be embarrassed (she's not).",
+      "DDLJ is the undisputed champion. Adhi still does the Raj pose with the outstretched arms, and Satya still pretends to be embarrassed (she's not).",
     category: "favourites",
   },
   {
@@ -84,9 +84,9 @@ export const triviaQuestions: TriviaQuestion[] = [
     question:
       "What embarrassing thing happened at their 15th anniversary party?",
     options: [
-      { text: "Dad forgot the anniversary date", isCorrect: false },
+      { text: "Adhi forgot the anniversary date", isCorrect: false },
       { text: "The cake was lopsided", isCorrect: true },
-      { text: "Mom wore mismatched shoes", isCorrect: false },
+      { text: "Satya wore mismatched shoes", isCorrect: false },
       { text: "The DJ played the wrong song", isCorrect: false },
     ],
     explanation:
@@ -95,7 +95,7 @@ export const triviaQuestions: TriviaQuestion[] = [
   },
   {
     id: 8,
-    question: "What does Mom always say when Dad is running late?",
+    question: "What does Satya always say when Adhi is running late?",
     options: [
       { text: "'Typical!'", isCorrect: false },
       { text: "'Five more minutes means thirty!'", isCorrect: true },
@@ -103,7 +103,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       { text: "'Call me when you're ready.'", isCorrect: false },
     ],
     explanation:
-      "It's become a family catchphrase. Dad's 'five minutes' is a unit of time that exists nowhere in physics — it could mean anything from ten minutes to an hour.",
+      "It's become a family catchphrase. Adhi's 'five minutes' is a unit of time that exists nowhere in physics — it could mean anything from ten minutes to an hour.",
     category: "funny",
   },
   {
@@ -134,7 +134,7 @@ export const triviaQuestions: TriviaQuestion[] = [
   },
   {
     id: 11,
-    question: "What quirky habit does Dad have every morning?",
+    question: "What quirky habit does Adhi have every morning?",
     options: [
       { text: "Reads the newspaper back to front", isCorrect: true },
       { text: "Does yoga in the garden", isCorrect: false },
@@ -142,7 +142,7 @@ export const triviaQuestions: TriviaQuestion[] = [
       { text: "Makes the bed military-style", isCorrect: false },
     ],
     explanation:
-      "Sports section first, then entertainment, then headlines. The family has tried to understand the logic. There is none. It's just Dad being Dad.",
+      "Sports section first, then entertainment, then headlines. The family has tried to understand the logic. There is none. It's just Adhi being Adhi.",
     category: "habits",
   },
   {

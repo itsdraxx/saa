@@ -161,8 +161,8 @@ async function seedInstagramPosts(): Promise<void> {
       caption: "Our very first little flat that became our whole world. We painted the walls together, argued for two hours over curtain colours, and filled every corner with the scent of fresh cardamom chai.",
       hashtags: JSON.stringify(["#FirstHome","#ChaiAndMemories","#BuildingALife","#YoungLove"]),
       images: JSON.stringify([
-        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "A cozy first home flat", caption: "Our very first 2BHK flat — painting walls and sipping sweet chai", tag: "First Nest", themeGradient: "from-amber-100 via-orange-100 to-amber-200", iconName: "home" },
         { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bujji and Satya smiling in their first apartment", caption: "Balcony evenings sipping cardamom chai and dreaming of the future", tag: "Sweet Chai Moments", themeGradient: "from-rose-100 via-amber-100 to-orange-100", iconName: "heart" },
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "A cozy first home flat", caption: "Our very first 2BHK flat — painting walls and sipping sweet chai", tag: "First Nest", themeGradient: "from-amber-100 via-orange-100 to-amber-200", iconName: "home" },
       ]),
     },
     {
@@ -183,8 +183,8 @@ async function seedInstagramPosts(): Promise<void> {
       caption: "Our second bundle of joy completed our circle of love. The house grew louder, messier, and infinitely more joyful.",
       hashtags: JSON.stringify(["#FamilyOfFour","#DoubleTrouble","#JoyUnfiltered","#Blessed"]),
       images: JSON.stringify([
-        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "The family grows complete", caption: "Double the laughter, double the joy, double the love", tag: "Family Complete", themeGradient: "from-peach-100 via-amber-100 to-rose-100", iconName: "sparkles" },
         { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bujji and Satya rejoicing as parents of two", caption: "Tiny footsteps echoing through the hallway and happy bedtime tales", tag: "Double Blessing", themeGradient: "from-amber-100 via-rose-100 to-pink-100", iconName: "heart" },
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "The family grows complete", caption: "Double the laughter, double the joy, double the love", tag: "Family Complete", themeGradient: "from-peach-100 via-amber-100 to-rose-100", iconName: "sparkles" },
       ]),
     },
     {
@@ -228,8 +228,8 @@ async function seedInstagramPosts(): Promise<void> {
       caption: "Packed the car and headed straight for the Himalayas! We witnessed snow for the very first time.",
       hashtags: JSON.stringify(["#ShimlaSnow","#WinterInHimalayas","#SnowmanMakers","#MountainAir"]),
       images: JSON.stringify([
-        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "Dancing in snowfall in Shimla", caption: "Dancing in our very first mountain snowfall together", tag: "First Snowfall", themeGradient: "from-sky-200 via-indigo-100 to-amber-100", iconName: "plane" },
         { src: "/instagram/portrait/couple_welcoming_portrait.png", alt: "Bundled up in woolen mufflers", caption: "Warm hearts in cold weather — sharing one hot cocoa", tag: "Mountain Warmth", themeGradient: "from-blue-100 via-indigo-100 to-rose-100", iconName: "heart" },
+        { src: "/instagram/portrait/botanical_frame_portrait.jpg", alt: "Dancing in snowfall in Shimla", caption: "Dancing in our very first mountain snowfall together", tag: "First Snowfall", themeGradient: "from-sky-200 via-indigo-100 to-amber-100", iconName: "plane" },
         { src: "/instagram/portrait/mandap_backdrop_portrait.png", alt: "Family snowman memories", caption: "Our questionable snowman that barely survived an hour!", tag: "Snowman Fun", themeGradient: "from-cyan-200 via-blue-100 to-slate-100", iconName: "sparkles" },
       ]),
     },

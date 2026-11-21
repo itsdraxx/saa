@@ -34,6 +34,7 @@ import {
 
 interface InstagramPostCardProps {
   post: InstagramPost;
+  viewMode?: "grid" | "masonry" | "feed";
 }
 
 const BACKEND_URL =
@@ -51,7 +52,7 @@ function resolveMediaUrl(src?: string): string {
   return src;
 }
 
-const getAspectRatioClass = (ratio?: string) => {
+export const getAspectRatioClass = (ratio?: string) => {
   switch (ratio) {
     case "portrait":
     case "4:5":
@@ -70,7 +71,10 @@ const getAspectRatioClass = (ratio?: string) => {
   }
 };
 
-export default function InstagramPostCard({ post }: InstagramPostCardProps) {
+export default function InstagramPostCard({
+  post,
+  viewMode = "grid",
+}: InstagramPostCardProps) {
   // Carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -455,9 +459,10 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
         id={post.id}
         className="relative flex flex-col w-full max-w-md lg:max-w-none mx-auto rounded-2xl sm:rounded-3xl border border-warm-beige/80 bg-warm-white shadow-[0_8px_30px_rgba(122,20,30,0.06)] overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_rgba(122,20,30,0.12)]"
       >
-        {/* =========================================================
-            1. INSTAGRAM POST HEADER
-            ========================================================= */}
+        <div className="flex flex-col">
+          {/* =========================================================
+              1. INSTAGRAM POST HEADER
+              ========================================================= */}
         <header className="flex items-center justify-between px-3.5 py-3 sm:px-4 sm:py-3.5 border-b border-warm-beige/50 bg-warm-white/95">
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Instagram Story Gradient Ring Avatar */}
@@ -529,11 +534,15 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
                 className="relative h-full w-full min-w-full shrink-0 overflow-hidden flex items-center justify-center"
               >
                 {img.src &&
-                (img.src.includes(".png") ||
+                (img.src.startsWith("http://") ||
+                  img.src.startsWith("https://") ||
+                  img.src.startsWith("/uploads/") ||
+                  img.src.includes(".png") ||
                   img.src.includes(".jpg") ||
                   img.src.includes(".jpeg") ||
                   img.src.includes(".webp") ||
-                  img.src.startsWith("/uploads/")) ? (
+                  img.src.includes(".avif") ||
+                  img.src.includes(".gif")) ? (
                   <div className="relative h-full w-full">
                     <Image
                       src={resolveMediaUrl(img.src)}
@@ -713,108 +722,108 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
             />
           </button>
         </div>
+      </div>
 
         {/* =========================================================
-            4. LIKES COUNT & CAPTION DESCRIPTION
+            4. LIKES COUNT, CAPTION, COMMENTS & ALIGNED BOTTOM BAR
             ========================================================= */}
-        <div className="px-3.5 sm:px-4 text-left pb-3">
-          {/* Likes Count */}
-          <p className="font-sans text-xs sm:text-sm font-bold text-charcoal">
-            {likesCount === 1
-              ? (isTelugu ? "1 లైక్" : "1 like")
-              : (isTelugu ? `${likesCount.toLocaleString()} లైకులు` : `${likesCount.toLocaleString()} likes`)}
-          </p>
+        <div className="flex-1 flex flex-col justify-between px-3.5 sm:px-4 text-left pb-3.5 pt-1">
+          <div>
+            {/* Likes Count */}
+            <p className="font-sans text-xs sm:text-sm font-bold text-charcoal">
+              {likesCount === 1
+                ? (isTelugu ? "1 లైక్" : "1 like")
+                : (isTelugu ? `${likesCount.toLocaleString()} లైకులు` : `${likesCount.toLocaleString()} likes`)}
+            </p>
 
-          {/* Caption Description */}
-          <div className="mt-1 text-xs sm:text-sm text-charcoal font-sans leading-relaxed">
-            <span className="font-bold text-charcoal mr-1.5 cursor-pointer hover:underline">
-              bujji_weds_satya
-            </span>
-            <span className="font-semibold text-burgundy mr-1">
-              {displayTitle} —
-            </span>
-            <span>
-              {isCaptionExpanded
-                ? displayCaption
-                : displayCaption.slice(0, 115) + (displayCaption.length > 115 ? "..." : "")}
-            </span>
-
-            {displayCaption.length > 115 && (
-              <button
-                onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
-                className="ml-1 text-xs font-medium text-soft-brown/70 hover:text-burgundy cursor-pointer"
-              >
-                {isCaptionExpanded ? (isTelugu ? "తక్కువ" : "less") : (isTelugu ? "ఇంకా..." : "more")}
-              </button>
-            )}
-          </div>
-
-          {/* Hashtags */}
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {post.hashtags.map((tag) => (
-              <span
-                key={tag}
-                className="text-[11px] font-medium text-burgundy hover:underline cursor-pointer"
-              >
-                {tag}
+            {/* Caption Description */}
+            <div className="mt-1 text-xs sm:text-sm text-charcoal font-sans leading-relaxed">
+              <span className="font-bold text-charcoal mr-1.5 cursor-pointer hover:underline">
+                bujji_weds_satya
               </span>
-            ))}
+              <span className="font-semibold text-burgundy mr-1">
+                {displayTitle} —
+              </span>
+              <span>
+                {isCaptionExpanded
+                  ? displayCaption
+                  : displayCaption.slice(0, 115) + (displayCaption.length > 115 ? "..." : "")}
+              </span>
+
+              {displayCaption.length > 115 && (
+                <button
+                  onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                  className="ml-1 text-xs font-medium text-soft-brown/70 hover:text-burgundy cursor-pointer"
+                >
+                  {isCaptionExpanded ? (isTelugu ? "తక్కువ" : "less") : (isTelugu ? "ఇంకా..." : "more")}
+                </button>
+              )}
+            </div>
+
+            {/* Hashtags */}
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {post.hashtags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[11px] font-medium text-burgundy hover:underline cursor-pointer"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {/* Comments Preview */}
+            <div className="mt-2.5 pt-2 border-t border-warm-beige/40">
+              {comments.length > 0 ? (
+                <button
+                  onClick={handleOpenCommentsFlow}
+                  className="text-xs font-semibold text-soft-brown/70 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
+                >
+                  <span>
+                    {isTelugu
+                      ? `అన్ని ${comments.length} కామెంట్లు చూడండి`
+                      : `View all ${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleOpenCommentsFlow}
+                  className="text-xs font-medium text-soft-brown/60 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
+                >
+                  <span>
+                    {isTelugu
+                      ? "ఇంకా కామెంట్లు లేవు. మొదటి కామెంట్ మీరే రాయండి..."
+                      : "No comments yet. Be the first to comment..."}
+                  </span>
+                </button>
+              )}
+
+              {comments.length > 0 && (
+                <div className="space-y-1 mt-1">
+                  {comments.slice(-2).map((comment) => (
+                    <div
+                      key={comment.id}
+                      onClick={handleOpenCommentsFlow}
+                      className="flex items-start justify-between text-xs sm:text-sm leading-snug cursor-pointer group/comment hover:opacity-85"
+                    >
+                      <div className="flex-1 text-left">
+                        <span className="font-bold text-charcoal mr-1.5">
+                          {comment.username}
+                        </span>
+                        <span className="text-charcoal/90">{comment.text}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* =========================================================
-              5. COMMENTS PREVIEW & OPEN BUTTON (Instagram style)
-              ========================================================= */}
-          <div className="mt-2.5 pt-2 border-t border-warm-beige/40">
-            {/* View all comments button -> Opens Instagram Comments Sheet */}
-            {comments.length > 0 ? (
-              <button
-                onClick={handleOpenCommentsFlow}
-                className="text-xs font-semibold text-soft-brown/70 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
-              >
-                <span>
-                  {isTelugu
-                    ? `అన్ని ${comments.length} కామెంట్లు చూడండి`
-                    : `View all ${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
-                </span>
-              </button>
-            ) : (
-              <button
-                onClick={handleOpenCommentsFlow}
-                className="text-xs font-medium text-soft-brown/60 hover:text-burgundy transition-colors cursor-pointer py-0.5 flex items-center gap-1"
-              >
-                <span>
-                  {isTelugu
-                    ? "ఇంకా కామెంట్లు లేవు. మొదటి కామెంట్ మీరే రాయండి..."
-                    : "No comments yet. Be the first to comment..."}
-                </span>
-              </button>
-            )}
-
-            {/* Latest 1-2 comment previews */}
-            {comments.length > 0 && (
-              <div className="space-y-1 mt-1">
-                {comments.slice(-2).map((comment) => (
-                  <div
-                    key={comment.id}
-                    onClick={handleOpenCommentsFlow}
-                    className="flex items-start justify-between text-xs sm:text-sm leading-snug cursor-pointer group/comment hover:opacity-85"
-                  >
-                    <div className="flex-1 text-left">
-                      <span className="font-bold text-charcoal mr-1.5">
-                        {comment.username}
-                      </span>
-                      {/* USER COMMENT TEXT REMAINS STRICTLY UNTOUCHED AS REQUESTED */}
-                      <span className="text-charcoal/90">{comment.text}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Quick "Add a comment..." trigger row */}
+          {/* Bottom row: Add comment trigger & Date */}
+          <div className="mt-2.5 pt-1">
             <div
               onClick={handleOpenCommentsFlow}
-              className="mt-2.5 flex items-center justify-between rounded-full bg-champagne/40 border border-warm-beige/70 px-3.5 py-2 cursor-pointer hover:bg-champagne/70 transition-all text-soft-brown/60 text-xs"
+              className="flex items-center justify-between rounded-full bg-champagne/40 border border-warm-beige/70 px-3.5 py-2 cursor-pointer hover:bg-champagne/70 transition-all text-soft-brown/60 text-xs"
             >
               <span className="truncate">
                 {userName
@@ -823,12 +832,12 @@ export default function InstagramPostCard({ post }: InstagramPostCardProps) {
               </span>
               <span className="text-sm">❤️</span>
             </div>
-          </div>
 
-          {/* Date Timestamp at bottom */}
-          <p className="mt-2 text-[10px] font-semibold text-soft-brown/60 uppercase tracking-wider">
-            {post.dateStr}
-          </p>
+            {/* Date Timestamp at bottom */}
+            <p className="mt-2 text-[10px] font-semibold text-soft-brown/60 uppercase tracking-wider">
+              {post.dateStr}
+            </p>
+          </div>
         </div>
       </article>
 

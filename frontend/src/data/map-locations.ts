@@ -46,7 +46,7 @@ export const mapLocations: MapLocation[] = [
     lng: 74.124,
     year: 2010,
     story:
-      "Their first family beach holiday. The kids screamed when the waves touched their feet, Dad got sunburned, Mom found the perfect seaside café, and they all agreed: this is what happiness feels like. They've been back three times since.",
+      "Their first family beach holiday. The kids screamed when the waves touched their feet, Adhi got sunburned, Satya found the perfect seaside café, and they all agreed: this is what happiness feels like. They've been back three times since.",
     image:
       "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop&q=80",
     category: "holiday",
@@ -59,7 +59,7 @@ export const mapLocations: MapLocation[] = [
     lng: 77.209,
     year: 2013,
     story:
-      "They drove from Delhi to Agra to see the Taj Mahal at sunrise. Dad drove eight hours, the kids slept the whole way, and Mom navigated with a paper map (the GPS had given up). Worth every minute when they saw it glowing in the morning light.",
+      "They drove from Delhi to Agra to see the Taj Mahal at sunrise. Adhi drove eight hours, the kids slept the whole way, and Satya navigated with a paper map (the GPS had given up). Worth every minute when they saw it glowing in the morning light.",
     image:
       "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80",
     category: "holiday",
@@ -98,7 +98,7 @@ export const mapLocations: MapLocation[] = [
     lng: 78.3489,
     year: 2008,
     story:
-      "The home they'd been dreaming of for years. A garden where the kids could play, a kitchen big enough for Mom's legendary biryani operations, a balcony for evening chai, and walls that would eventually be covered in family photos and children's art.",
+      "The home they'd been dreaming of for years. A garden where the kids could play, a kitchen big enough for Satya's legendary biryani operations, a balcony for evening chai, and walls that would eventually be covered in family photos and children's art.",
     image:
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
     category: "home",

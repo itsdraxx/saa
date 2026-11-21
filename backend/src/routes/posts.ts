@@ -5,10 +5,29 @@ import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
+import { v2 as cloudinary } from "cloudinary";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const router = Router();
+
+// ─── Cloudinary Helper ─────────────────────────
+function getCloudinary() {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+  if (cloudName && apiKey && apiSecret) {
+    cloudinary.config({
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
+      secure: true,
+    });
+    return cloudinary;
+  }
+  return null;
+}
 
 // ─── Multer setup for image uploads ───────────
 const uploadsDir = path.join(__dirname, "..", "..", "uploads", "instagram");
@@ -112,11 +131,47 @@ router.get("/:id", (req, res) => {
 // ═══════════════════════════════════════════════
 
 // POST /posts/upload — upload an image
-router.post("/upload", requireAdmin, upload.single("image"), (req, res) => {
+router.post("/upload", requireAdmin, upload.single("image"), async (req, res) => {
   if (!req.file) {
     res.status(400).json({ success: false, error: "No image file provided" });
     return;
   }
+
+  const cld = getCloudinary();
+  if (cld) {
+    try {
+      const uploadResult = await cld.uploader.upload(req.file.path, {
+        folder: "saa/instagram",
+        resource_type: "image",
+        transformation: [
+          { quality: "auto:good", fetch_format: "auto" },
+        ],
+      });
+
+      // Remove the local temp file from disk to save 100% of VPS disk space
+      try {
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      } catch (cleanupErr) {
+        console.warn("Could not delete local temp uploaded file:", cleanupErr);
+      }
+
+      res.json({
+        success: true,
+        url: uploadResult.secure_url,
+        filename: uploadResult.public_id,
+        format: uploadResult.format,
+        width: uploadResult.width,
+        height: uploadResult.height,
+      });
+      return;
+    } catch (uploadErr) {
+      console.error("Cloudinary upload failed, using local storage fallback:", uploadErr);
+    }
+  }
+
+  // Local disk fallback
   const url = `/uploads/instagram/${req.file.filename}`;
   res.json({ success: true, url, filename: req.file.filename });
 });

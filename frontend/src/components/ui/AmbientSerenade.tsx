@@ -93,7 +93,7 @@ export default function AmbientSerenade() {
           />
           <div className="hidden flex-col text-left sm:flex">
             <span className="font-heading text-sm font-semibold text-burgundy leading-none">
-              {isPlaying ? "Mom & Dad's Waltz" : "Play Our Song"}
+              {isPlaying ? "Adhi & Satya's Waltz" : "Play Our Song"}
             </span>
             <span className="text-[10px] text-soft-brown">
               {isPlaying ? "Playing Romantic Melody" : "Tap for Music"}
