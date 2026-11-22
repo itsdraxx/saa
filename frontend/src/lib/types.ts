@@ -45,11 +45,11 @@ export interface ThenVsNowPair {
   id: string;
   thenImage: string;
   nowImage: string;
-  thenYear: number;
-  nowYear: number;
-  thenCaption: string;
-  nowCaption: string;
-  title: string;
+  thenYear?: number;
+  nowYear?: number;
+  thenCaption?: string;
+  nowCaption?: string;
+  title?: string;
 }
 
 // --- Family Messages ---

@@ -253,8 +253,15 @@ export default function MemoryMap() {
       if (mounted && res.success && res.locations.length > 0) {
         setLocations(res.locations);
         locationsRef.current = res.locations;
+        const initialItem = res.locations[0];
+        setSelectedLocation((prev) => {
+          if (!prev || prev.id === seedMapLocations[0]?.id) {
+            return initialItem;
+          }
+          return res.locations.find((l) => l.id === prev.id) || initialItem;
+        });
         if (mapInstanceRef.current && isMapLoaded) {
-          refreshMarkers(res.locations[0]);
+          refreshMarkers(initialItem);
         }
       }
     });

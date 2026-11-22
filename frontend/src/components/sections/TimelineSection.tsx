@@ -17,7 +17,7 @@ import {
   List,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations, storyHighlightsTelugu } from "@/data/translations";
+import { translations } from "@/data/translations";
 
 type FilterCategory = "all" | "wedding" | "family" | "travel" | "celebration";
 type ViewMode = "masonry" | "feed";
@@ -113,26 +113,6 @@ export default function TimelineSection() {
     [filteredPosts, colCount]
   );
 
-  // Story highlights at the top
-  const storyHighlights = [
-    { id: "post-2001", label: isTelugu ? storyHighlightsTelugu["post-2001"] : "Mandap 2001", emoji: "💍", category: "wedding" },
-    { id: "post-2002", label: isTelugu ? storyHighlightsTelugu["post-2002"] : "Baby Rahul", emoji: "👶", category: "family" },
-    { id: "post-2008", label: isTelugu ? storyHighlightsTelugu["post-2008"] : "Dream Home", emoji: "🏡", category: "milestone" },
-    { id: "post-2010", label: isTelugu ? storyHighlightsTelugu["post-2010"] : "Goa Beach", emoji: "🏖️", category: "travel" },
-    { id: "post-2017", label: isTelugu ? storyHighlightsTelugu["post-2017"] : "Shimla Snow", emoji: "❄️", category: "travel" },
-    { id: "post-2024", label: isTelugu ? storyHighlightsTelugu["post-2024"] : "Silver Jubilee", emoji: "🥂", category: "celebration" },
-  ];
-
-  const handleStoryClick = (postId: string) => {
-    setActiveCategory("all");
-    setTimeout(() => {
-      const element = document.getElementById(postId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
-  };
-
   return (
     <section id="story" className="relative w-full overflow-hidden bg-ivory pt-14 pb-8 sm:pt-20 sm:pb-10 px-3 sm:px-6 lg:px-8">
       {/* Background Soft Ambience */}
@@ -145,29 +125,6 @@ export default function TimelineSection() {
           title={t.heading}
           subtitle={t.subtitle}
         />
-
-        {/* =========================================================
-            INSTAGRAM STORY HIGHLIGHTS BAR
-            ========================================================= */}
-        <div className="mt-8 sm:mt-12 flex justify-start sm:justify-center overflow-x-auto no-scrollbar py-2 px-1 gap-4 sm:gap-6">
-          {storyHighlights.map((story) => (
-            <button
-              key={story.id}
-              onClick={() => handleStoryClick(story.id)}
-              className="flex flex-col items-center gap-1.5 shrink-0 group cursor-pointer focus:outline-hidden"
-            >
-              {/* Story Gradient Ring */}
-              <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] shadow-sm transition-transform duration-300 group-hover:scale-110 group-active:scale-95">
-                <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-warm-white border-2 border-warm-white text-xl sm:text-2xl shadow-inner">
-                  <span>{story.emoji}</span>
-                </div>
-              </div>
-              <span className="text-[11px] font-semibold text-charcoal group-hover:text-burgundy transition-colors tracking-tight">
-                {story.label}
-              </span>
-            </button>
-          ))}
-        </div>
 
         {/* =========================================================
             CATEGORY FILTER TABS

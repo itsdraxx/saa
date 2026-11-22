@@ -2,6 +2,19 @@ import type { MapLocation } from "@/lib/types";
 
 export const mapLocations: MapLocation[] = [
   {
+    id: "vizag-city",
+    name: "Visakhapatnam — City of Destiny",
+    lat: 17.7142,
+    lng: 83.3235,
+    year: 2001,
+    story:
+      "The beloved coastal city of Vizag, where Adhi and Satya spent their most cherished moments — strolling along RK Beach, enjoying sunsets at Tenneti Park & VUDA Park, and taking in panoramic ocean views from the heights of Kailasagiri.",
+    image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+    category: "home",
+    icon: "🌊",
+  },
+  {
     id: "first-meeting",
     name: "Where It All Began",
     lat: 17.385,
@@ -19,9 +32,9 @@ export const mapLocations: MapLocation[] = [
     name: "The Wedding Venue",
     lat: 17.4399,
     lng: 78.4983,
-    year: 1999,
+    year: 2001,
     story:
-      "The grand wedding hall in Secunderabad where they exchanged vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
+      "The grand kalyana mandap where they exchanged sacred vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
     image: "/Golden South Indian Mandap Setting.png",
     category: "wedding",
     icon: "💒",

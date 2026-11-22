@@ -120,9 +120,9 @@ const LOCATION_CATEGORIES: { value: MapLocationCategory; label: string; emoji: s
 ];
 
 const CITY_PRESETS = [
+  { name: "Visakhapatnam (Vizag)", nameTe: "విశాఖపట్నం (వైజాగ్)", lat: 17.7142, lng: 83.3235, emoji: "🌊" },
   { name: "Hyderabad", nameTe: "హైదరాబాద్", lat: 17.385, lng: 78.4867, emoji: "🏛️" },
   { name: "Secunderabad", nameTe: "సికింద్రాబాద్", lat: 17.4399, lng: 78.4983, emoji: "💒" },
-  { name: "Visakhapatnam (Vizag)", nameTe: "విశాఖపట్నం (వైజాగ్)", lat: 17.6868, lng: 83.2185, emoji: "🌊" },
   { name: "Goa", nameTe: "గోవా", lat: 15.2993, lng: 74.124, emoji: "🏖️" },
   { name: "Agra (Taj Mahal)", nameTe: "ఆగ్రా (తాజ్ మహల్)", lat: 27.1751, lng: 78.0421, emoji: "🕌" },
   { name: "Delhi", nameTe: "ఢిల్లీ", lat: 28.6139, lng: 77.209, emoji: "🏛️" },

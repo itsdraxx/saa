@@ -88,8 +88,8 @@ export const translations = {
     thenNow: {
       heading: "Then & Now",
       subtitle: "Twenty-five years of shared smiles, cherished memories, and growing together.",
-      thenBadge: "Then •",
-      nowBadge: "Now •",
+      thenBadge: "Then",
+      nowBadge: "Now",
       yearsApart: "25 Years Together",
     },
     trivia: {
@@ -297,8 +297,8 @@ export const translations = {
     thenNow: {
       heading: "అప్పుడు & ఇప్పుడు",
       subtitle: "ఇరవై ఐదు సంవత్సరాల నిరంతర ప్రేమ, నవ్వులు మరియు కాలంతో పాటు మరింత బలపడిన అనుబంధం.",
-      thenBadge: "అప్పుడు •",
-      nowBadge: "ఇప్పుడు •",
+      thenBadge: "అప్పుడు",
+      nowBadge: "ఇప్పుడు",
       yearsApart: "25 సంవత్సరాల అనుబంధం",
     },
     trivia: {
@@ -554,6 +554,11 @@ export const glassJarNotesTelugu: Record<number, { message: string; author: stri
 };
 
 export const mapLocationsTelugu: Record<string, { name: string; story: string; category: string }> = {
+  "vizag-city": {
+    name: "విశాఖపట్నం — సాగర తీర నగరం",
+    story: "ఆది, సత్యలకెంతో ఇష్టమైన సాగర నగరం వైజాగ్. తెన్నేటి పార్క్, కైలాసగిరి కొండలు, వుడా పార్క్ మరియు ఆర్కే బీచ్ ఒడ్డున కుటుంబంతో కలిసి పంచుకున్న తీపి సాయంత్రాలు, సముద్రపు అలల సాక్షిగా సాగిన అపురూప జ్ఞాపకాలు.",
+    category: "మా నగరం",
+  },
   "first-meeting": {
     name: "మన పరిచయం మొదలైన వేళ",
     story: "హైదరాబాద్‌లో స్నేహితుల కలయికలో జరిగిన చిన్న పరిచయం, ఆతిథ్యం ఇచ్చినవారు వెళ్ళమని చెప్పేంతవరకు సాగిన ముచ్చట్లు. అక్కడి నుండే మన ప్రేమ కథ మొదలైంది.",

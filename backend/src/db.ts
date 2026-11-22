@@ -245,6 +245,35 @@ export async function initDb(): Promise<void> {
   // Auto-seed memory map locations if table is empty
   await seedMapLocations();
 
+  // Migration: Ensure Vizag is present and placed at order_index 0
+  try {
+    const vizagExists = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM map_locations WHERE id = 'vizag-city'");
+    if (vizagExists && vizagExists.count === 0) {
+      dbRun("UPDATE map_locations SET order_index = order_index + 1");
+      dbRun(
+        `INSERT INTO map_locations (id, name, name_te, lat, lng, year, story, story_te, image, category, icon, order_index)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          "vizag-city",
+          "Visakhapatnam — City of Destiny",
+          "విశాఖపట్నం — సాగర తీర నగరం",
+          17.7142,
+          83.3235,
+          2001,
+          "The beloved coastal city of Vizag, where Adhi and Satya spent their most cherished moments — strolling along RK Beach, enjoying sunsets at Tenneti Park & VUDA Park, and the panoramic views from Kailasagiri overlooking the Bay of Bengal.",
+          "ఆది, సత్యలకెంతో ఇష్టమైన సాగర నగరం వైజాగ్. తెన్నేటి పార్క్, కైలాసగిరి కొండలు, వుడా పార్క్ మరియు ఆర్కే బీచ్ ఒడ్డున కుటుంబంతో కలిసి పంచుకున్న తీపి సాయంత్రాలు, సముద్రపు అలల సాక్షిగా సాగిన అపురూప జ్ఞాపకాలు.",
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+          "home",
+          "🌊",
+          0,
+        ]
+      );
+      saveDb();
+    }
+  } catch (err) {
+    console.warn("Migration notice for vizag-city in map_locations:", err);
+  }
+
   // Auto-save to disk every 10 seconds (sql.js is in-memory, we persist periodically)
   saveTimer = setInterval(() => saveDb(), 10_000);
 
@@ -425,6 +454,20 @@ async function seedMapLocations(): Promise<void> {
 
   const locationSeeds = [
     {
+      id: "vizag-city",
+      name: "Visakhapatnam — City of Destiny",
+      name_te: "విశాఖపట్నం — సాగర తీర నగరం",
+      lat: 17.7142,
+      lng: 83.3235,
+      year: 2001,
+      story: "The beloved coastal city of Vizag, where Adhi and Satya spent their most cherished moments — strolling along RK Beach, enjoying sunsets at Tenneti Park & VUDA Park, and the panoramic views from Kailasagiri overlooking the Bay of Bengal.",
+      story_te: "ఆది, సత్యలకెంతో ఇష్టమైన సాగర నగరం వైజాగ్. తెన్నేటి పార్క్, కైలాసగిరి కొండలు, వుడా పార్క్ మరియు ఆర్కే బీచ్ ఒడ్డున కుటుంబంతో కలిసి పంచుకున్న తీపి సాయంత్రాలు, సముద్రపు అలల సాక్షిగా సాగిన అపురూప జ్ఞాపకాలు.",
+      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+      category: "home",
+      icon: "🌊",
+      order_index: 0,
+    },
+    {
       id: "first-meeting",
       name: "Where It All Began",
       name_te: "పరిచయ వేదిక — 1997",
@@ -436,7 +479,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=600&auto=format&fit=crop&q=80",
       category: "first-meeting",
       icon: "💕",
-      order_index: 0,
+      order_index: 1,
     },
     {
       id: "wedding-venue",
@@ -445,12 +488,12 @@ async function seedMapLocations(): Promise<void> {
       lat: 17.4399,
       lng: 78.4983,
       year: 2001,
-      story: "The grand wedding hall in Secunderabad where they exchanged vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
-      story_te: "సికింద్రాబాద్ కళ్యాణ మండపంలో బంధుమిత్రుల ఆశీస్సులు, వేద మంత్రోచ్ఛారణల నడుమ ఒక్కటైన పవిత్ర క్షణం. బంతిపూలు, మల్లెల సువాసనలతో నిండిన ఆ కల్యాణ వేదిక ఎప్పటికీ చిరస్మరణీయం.",
+      story: "The grand kalyana mandap where they exchanged sacred vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
+      story_te: "కళ్యాణ మండపంలో బంధుమిత్రుల ఆశీస్సులు, వేద మంత్రోచ్ఛారణల నడుమ ఒక్కటైన పవిత్ర క్షణం. బంతిపూలు, మల్లెల సువాసనలతో నిండిన ఆ కల్యాణ వేదిక ఎప్పటికీ చిరస్మరణీయం.",
       image: "/Golden South Indian Mandap Setting.png",
       category: "wedding",
       icon: "💒",
-      order_index: 1,
+      order_index: 2,
     },
     {
       id: "first-home",
@@ -464,7 +507,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80",
       category: "home",
       icon: "🏠",
-      order_index: 2,
+      order_index: 3,
     },
     {
       id: "dream-home",
@@ -478,7 +521,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
       category: "home",
       icon: "🏡",
-      order_index: 3,
+      order_index: 4,
     },
     {
       id: "goa-holiday",
@@ -492,7 +535,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop&q=80",
       category: "holiday",
       icon: "🏖️",
-      order_index: 4,
+      order_index: 5,
     },
     {
       id: "delhi-trip",
@@ -506,7 +549,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80",
       category: "holiday",
       icon: "🕌",
-      order_index: 5,
+      order_index: 6,
     },
     {
       id: "shimla-snow",
@@ -520,7 +563,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600&auto=format&fit=crop&q=80",
       category: "holiday",
       icon: "❄️",
-      order_index: 6,
+      order_index: 7,
     },
     {
       id: "kerala-backwaters",
@@ -534,7 +577,7 @@ async function seedMapLocations(): Promise<void> {
       image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&auto=format&fit=crop&q=80",
       category: "special",
       icon: "🚤",
-      order_index: 7,
+      order_index: 8,
     },
   ];
 

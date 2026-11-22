@@ -7,7 +7,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import { thenVsNowPairs } from "@/data/then-vs-now";
 import { Heart } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { translations, thenVsNowTelugu } from "@/data/translations";
+import { translations } from "@/data/translations";
 
 interface SideImageProps {
   src: string;
@@ -37,7 +37,7 @@ function SideImage({ src, alt, label, badgeBg }: SideImageProps) {
         </div>
       )}
       <div
-        className={`absolute bottom-2 left-2 rounded-md ${badgeBg} px-2 py-0.5 text-[10px] font-bold text-warm-white backdrop-blur-xs shadow-xs`}
+        className={`absolute bottom-2 left-2 rounded-md ${badgeBg} px-2.5 py-1 text-[11px] font-bold text-warm-white backdrop-blur-xs shadow-xs tracking-wide`}
       >
         {label}
       </div>
@@ -60,10 +60,6 @@ export default function ThenVsNowSection() {
         {/* 3 in a Row Grid */}
         <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {thenVsNowPairs.map((pair, index) => {
-            const pairTitle = (isTelugu && thenVsNowTelugu[pair.id]?.title)
-              ? thenVsNowTelugu[pair.id].title
-              : pair.title;
-
             return (
               <motion.div
                 key={pair.id}
@@ -78,25 +74,18 @@ export default function ThenVsNowSection() {
                   {/* Then Image (Left) */}
                   <SideImage
                     src={pair.thenImage}
-                    alt={`${isTelugu ? "అప్పుడు" : "Then"} (${pair.thenYear})`}
-                    label={`${t.thenBadge} ${pair.thenYear}`}
-                    badgeBg="bg-charcoal/75"
+                    alt={isTelugu ? "అప్పుడు" : "Then"}
+                    label={t.thenBadge}
+                    badgeBg="bg-charcoal/80"
                   />
 
                   {/* Now Image (Right) */}
                   <SideImage
                     src={pair.nowImage}
-                    alt={`${isTelugu ? "ఇప్పుడు" : "Now"} (${pair.nowYear})`}
-                    label={`${t.nowBadge} ${pair.nowYear}`}
+                    alt={isTelugu ? "ఇప్పుడు" : "Now"}
+                    label={t.nowBadge}
                     badgeBg="bg-burgundy/85"
                   />
-                </div>
-
-                {/* Title Below Images (No extra text clutter) */}
-                <div className="mt-2.5 sm:mt-3 text-center pb-0.5">
-                  <h3 className="font-heading text-base sm:text-lg font-bold text-charcoal">
-                    {pairTitle}
-                  </h3>
                 </div>
               </motion.div>
             );
