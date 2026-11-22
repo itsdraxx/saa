@@ -18,8 +18,8 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 2,
     question: "What colour was Satya's wedding saree?",
     options: [
-      { text: "Pink and Gold", isCorrect: true },
       { text: "Red and Gold", isCorrect: false },
+      { text: "Pink and Gold", isCorrect: true },
       { text: "Maroon and Green", isCorrect: false },
       { text: "White and Gold", isCorrect: false },
     ],
@@ -31,10 +31,10 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 3,
     question: "What was Adhi wearing on their special wedding celebration day?",
     options: [
-      { text: "Blue Shirt", isCorrect: true },
       { text: "White Kurta", isCorrect: false },
       { text: "Silk Dhoti", isCorrect: false },
       { text: "Yellow Kurta", isCorrect: false },
+      { text: "Blue Shirt", isCorrect: true },
     ],
     explanation:
       "Adhi looked handsome and classic in his signature blue shirt!",
@@ -44,9 +44,9 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 4,
     question: "What does Adhi always order at a restaurant, no matter what?",
     options: [
+      { text: "Chicken Biryani", isCorrect: true },
       { text: "Gongura Mutton", isCorrect: false },
       { text: "Natu Kodi Pulusu", isCorrect: false },
-      { text: "Chicken Biryani", isCorrect: true },
       { text: "Royyala Vepudu", isCorrect: false },
     ],
     explanation:
@@ -58,8 +58,8 @@ export const triviaQuestions: TriviaQuestion[] = [
     question: "What is Satya's signature dish that the whole family loves?",
     options: [
       { text: "Gutti Vankaya Koora", isCorrect: false },
-      { text: "Sunday Biryani", isCorrect: true },
       { text: "Gongura Pachadi & Mudda Pappu", isCorrect: false },
+      { text: "Sunday Biryani", isCorrect: true },
       { text: "Pulihora & Garelu", isCorrect: false },
     ],
     explanation:
@@ -83,8 +83,8 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 7,
     question: "What does Adhi always say to Satya when he is running late?",
     options: [
-      { text: "'Five more minutes, almost ready!'", isCorrect: true },
       { text: "'I'm already in the car!'", isCorrect: false },
+      { text: "'Five more minutes, almost ready!'", isCorrect: true },
       { text: "'Traffic is very heavy today!'", isCorrect: false },
       { text: "'You go ahead, I will catch up!'", isCorrect: false },
     ],
@@ -96,9 +96,9 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 8,
     question: "Who is always the first one to dance at any family party or celebration?",
     options: [
-      { text: "Adhi", isCorrect: true },
       { text: "Satya", isCorrect: false },
       { text: "Both", isCorrect: false },
+      { text: "Adhi", isCorrect: true },
       { text: "None", isCorrect: false },
     ],
     explanation:
@@ -109,9 +109,9 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 9,
     question: "What is Satya's absolute favourite snack or food?",
     options: [
+      { text: "Pani Puri", isCorrect: false },
       { text: "Pav Bhaji", isCorrect: true },
       { text: "Chaat", isCorrect: false },
-      { text: "Pani Puri", isCorrect: false },
       { text: "Samosa", isCorrect: false },
     ],
     explanation:
@@ -135,10 +135,10 @@ export const triviaQuestions: TriviaQuestion[] = [
     id: 11,
     question: "What is Adhi's favourite way to playfully annoy Satya?",
     options: [
-      { text: "Irritating her by keeping things in suspense", isCorrect: true },
       { text: "Hiding the TV remote control", isCorrect: false },
       { text: "Pretending to forget what she said", isCorrect: false },
       { text: "Putting extra chillies in cooking", isCorrect: false },
+      { text: "Irritating her by keeping things in suspense", isCorrect: true },
     ],
     explanation:
       "Adhi's favourite way of showing love is playfully irritating Satya by keeping everything in suspense!",
