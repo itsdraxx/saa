@@ -172,6 +172,7 @@ export async function initDb(): Promise<void> {
       hashtags      TEXT NOT NULL DEFAULT '[]',
       images        TEXT NOT NULL DEFAULT '[]',
       likes_count   INTEGER NOT NULL DEFAULT 0,
+      order_index   INTEGER NOT NULL DEFAULT 0,
       created_at    TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
@@ -188,6 +189,21 @@ export async function initDb(): Promise<void> {
     }
     if (!colNames.includes("location_te")) {
       db.run("ALTER TABLE instagram_posts ADD COLUMN location_te TEXT NOT NULL DEFAULT ''");
+    }
+    if (!colNames.includes("order_index")) {
+      db.run("ALTER TABLE instagram_posts ADD COLUMN order_index INTEGER NOT NULL DEFAULT 0");
+    }
+
+    // Initialize order_index sequentially if unassigned (e.g. all 0)
+    const existingPosts = dbAll<{ id: string; order_index: number }>(
+      "SELECT id, order_index FROM instagram_posts ORDER BY year ASC, created_at ASC"
+    );
+    const allZero = existingPosts.every((p) => p.order_index === 0);
+    if (allZero && existingPosts.length > 0) {
+      existingPosts.forEach((p, idx) => {
+        db.run("UPDATE instagram_posts SET order_index = ? WHERE id = ?", [idx, p.id]);
+      });
+      saveDb();
     }
   } catch (err) {
     console.warn("Migration notice for instagram_posts columns:", err);
@@ -364,14 +380,14 @@ async function seedInstagramPosts(): Promise<void> {
     },
   ];
 
-  for (const seed of seeds) {
+  seeds.forEach((seed, seedIdx) => {
     const te = teluguSeedMap[seed.id] || { title: "", caption: "", location: "" };
     dbRun(
-      `INSERT OR IGNORE INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [seed.id, seed.year, seed.date_str, seed.title, te.title, seed.location, te.location, seed.aspect_ratio, seed.category, seed.caption, te.caption, seed.hashtags, seed.images]
+      `INSERT OR IGNORE INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images, order_index)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [seed.id, seed.year, seed.date_str, seed.title, te.title, seed.location, te.location, seed.aspect_ratio, seed.category, seed.caption, te.caption, seed.hashtags, seed.images, seedIdx]
     );
-  }
+  });
 
   saveDb();
   console.log("  ✅ Seeded 12 curated Instagram posts");

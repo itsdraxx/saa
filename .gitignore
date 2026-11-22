@@ -40,7 +40,7 @@ yarn-error.log*
 next-env.d.ts
 
 # local data and uploads
-data/
+/data/
 backend/data/
 uploads/
 backend/uploads/

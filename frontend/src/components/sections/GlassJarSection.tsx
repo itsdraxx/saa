@@ -130,8 +130,8 @@ export default function GlassJarSection() {
                     {currentMessage.author && (
                       <p className="font-cursive mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl font-normal text-burgundy">
                         —{" "}
-                        {(isTelugu && glassJarNotesTelugu[currentMessage.id]?.author)
-                          ? glassJarNotesTelugu[currentMessage.id].author
+                        {isTelugu
+                          ? `ప్రేమతో, ${glassJarNotesTelugu[currentMessage.id]?.author || "ఆది & సత్య"}`
                           : `With love, ${currentMessage.author}`}
                       </p>
                     )}

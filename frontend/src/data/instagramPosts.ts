@@ -42,6 +42,7 @@ export interface InstagramPost {
   captionTe?: string;
   category: "wedding" | "family" | "milestone" | "travel" | "celebration";
   hashtags: string[];
+  orderIndex?: number;
   comments: InstagramComment[];
 }
 

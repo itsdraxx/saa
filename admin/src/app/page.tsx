@@ -31,6 +31,10 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  Star,
+  RotateCcw,
 } from "lucide-react";
 import {
   adminLogin,
@@ -47,6 +51,7 @@ import {
   adminUpdatePost,
   adminDeletePost,
   adminUploadImage,
+  adminReorderPosts,
 } from "@/lib/api";
 import type {
   AdminStats,
@@ -137,6 +142,11 @@ export default function AdminPage() {
   const [isSavingPost, setIsSavingPost] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [hashtagInput, setHashtagInput] = useState("");
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+  const [draggedPostIndex, setDraggedPostIndex] = useState<number | null>(null);
+  const [dragOverPostIndex, setDragOverPostIndex] = useState<number | null>(null);
+  const [isReorderingPosts, setIsReorderingPosts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
@@ -323,6 +333,53 @@ export default function AdminPage() {
     }
   };
 
+  const movePost = async (fromIndex: number, direction: "up" | "down") => {
+    const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= instagramPosts.length) return;
+    await reorderPostToIndex(fromIndex, toIndex);
+  };
+
+  const reorderPostToIndex = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= instagramPosts.length) return;
+    const reordered = [...instagramPosts];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+    setInstagramPosts(reordered);
+
+    // Persist to backend immediately
+    setIsReorderingPosts(true);
+    const orderIds = reordered.map((p) => p.id);
+    const res = await adminReorderPosts(orderIds, adminToken);
+    if (res.success) {
+      showToast(`Moved "${moved.title}" to position #${toIndex + 1}`);
+    } else {
+      showToast(res.error || "Failed to save post order");
+    }
+    setIsReorderingPosts(false);
+  };
+
+  const resetPostsToChronological = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to reset all posts to chronological order (sorted by year: 1999 → 2024)?"
+      )
+    )
+      return;
+
+    const sorted = [...instagramPosts].sort((a, b) => a.year - b.year);
+    setInstagramPosts(sorted);
+
+    setIsReorderingPosts(true);
+    const orderIds = sorted.map((p) => p.id);
+    const res = await adminReorderPosts(orderIds, adminToken);
+    if (res.success) {
+      showToast("Reset all posts to chronological order (1999 → 2024)!");
+    } else {
+      showToast(res.error || "Failed to reset order");
+    }
+    setIsReorderingPosts(false);
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || !editingPost) return;
@@ -356,6 +413,30 @@ export default function AdminPage() {
     const updated = [...(editingPost.images || [])];
     updated.splice(index, 1);
     setEditingPost({ ...editingPost, images: updated });
+  };
+
+  const moveImage = (index: number, direction: "up" | "down") => {
+    if (!editingPost || !editingPost.images) return;
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= editingPost.images.length) return;
+    const updated = [...editingPost.images];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, moved);
+    setEditingPost({ ...editingPost, images: updated });
+  };
+
+  const moveImageToIndex = (fromIndex: number, toIndex: number) => {
+    if (!editingPost || !editingPost.images) return;
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= editingPost.images.length) return;
+    const updated = [...editingPost.images];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setEditingPost({ ...editingPost, images: updated });
+  };
+
+  const setCoverImage = (index: number) => {
+    if (!editingPost || !editingPost.images || index === 0) return;
+    moveImageToIndex(index, 0);
   };
 
   const updateImageField = (index: number, field: keyof InstagramMedia, value: string) => {
@@ -892,19 +973,36 @@ export default function AdminPage() {
         {activeTab === "instagram" && (
           <div className="mt-6 space-y-6">
             {/* Create New Post Button */}
-            <div className="flex items-center justify-between">
-              <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
-                <Camera className="h-5 w-5 text-burgundy" />
-                Memory Posts
-              </h2>
-              <button
-                type="button"
-                onClick={openCreateModal}
-                className="flex items-center gap-2 rounded-xl bg-burgundy text-warm-white px-4 py-2 text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all cursor-pointer"
-              >
-                <Plus className="h-4 w-4" />
-                New Memory Post
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-warm-white p-4 rounded-2xl border border-warm-beige shadow-xs">
+              <div>
+                <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
+                  <Camera className="h-5 w-5 text-burgundy" />
+                  Memory Posts ({instagramPosts.length})
+                </h2>
+                <p className="text-xs text-soft-brown/70 mt-0.5">
+                  💡 Drag cards or use <span className="font-semibold text-burgundy">↑</span> / <span className="font-semibold text-burgundy">↓</span> buttons to rearrange timeline posts. Changes save immediately to the website!
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={resetPostsToChronological}
+                  disabled={isReorderingPosts}
+                  className="flex items-center gap-1.5 rounded-xl border border-warm-beige bg-champagne/40 text-charcoal hover:bg-champagne px-3 py-2 text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                  title="Reset all posts to chronological order (sorted by year: 1999 → 2024)"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 text-soft-brown" />
+                  Reset to Year Order
+                </button>
+                <button
+                  type="button"
+                  onClick={openCreateModal}
+                  className="flex items-center gap-2 rounded-xl bg-burgundy text-warm-white px-4 py-2 text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Memory Post
+                </button>
+              </div>
             </div>
 
             {/* Posts Grid */}
@@ -916,124 +1014,209 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredInstagramPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="rounded-2xl border border-warm-beige bg-warm-white shadow-xs overflow-hidden hover:border-gold/50 hover:shadow-md transition-all group"
-                  >
-                    {/* Post Image Preview */}
-                    <div className="relative h-40 bg-champagne/40 overflow-hidden">
-                      {post.images && post.images.length > 0 && post.images[0].src ? (
-                        <div className="relative w-full h-full">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={resolveMediaUrl(post.images[0].src)}
-                            alt={post.images[0].alt || post.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // If image fails locally, try frontend URL fallback
-                              const target = e.currentTarget as HTMLImageElement;
-                              if (!target.src.startsWith("http") && FRONTEND_URL) {
-                                target.src = `${FRONTEND_URL}${post.images[0].src}`;
-                              } else {
-                                target.style.display = "none";
-                              }
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-rose-50">
-                          <ImageIcon className="h-10 w-10 text-soft-brown/30" />
-                        </div>
-                      )}
-                      {/* Year Badge */}
-                      <div className="absolute top-2 left-2 rounded-lg bg-burgundy text-white px-2 py-0.5 text-xs font-bold shadow">
-                        {post.year}
-                      </div>
-                      {/* Category Badge */}
-                      <div className="absolute top-2 right-2 rounded-lg bg-warm-white/90 text-charcoal px-2 py-0.5 text-[10px] font-semibold shadow border border-warm-beige">
-                        {CATEGORIES.find((c) => c.value === post.category)?.emoji}{" "}
-                        {post.category}
-                      </div>
-                      {/* Aspect Ratio Badge */}
-                      <div className="absolute bottom-2 left-2 rounded-md bg-charcoal/70 text-white px-1.5 py-0.5 text-[10px] font-medium">
-                        {post.aspectRatio}
-                      </div>
-                    </div>
+                {filteredInstagramPosts.map((post) => {
+                  const realIndex = instagramPosts.findIndex((p) => p.id === post.id);
+                  const isFirst = realIndex === 0;
+                  const isLast = realIndex === instagramPosts.length - 1;
+                  const isDragOver = dragOverPostIndex === realIndex;
+                  const isDragging = draggedPostIndex === realIndex;
 
-                    {/* Post Details */}
-                    <div className="p-4">
-                      <h3 className="font-heading text-sm font-bold text-charcoal line-clamp-1">
-                        {post.title}
-                        {post.titleTe && (
-                          <span className="ml-1.5 text-xs font-normal text-burgundy font-serif">
-                            ({post.titleTe})
+                  return (
+                    <div
+                      key={post.id}
+                      draggable={!searchQuery}
+                      onDragStart={(e) => {
+                        setDraggedPostIndex(realIndex);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        if (!searchQuery) {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (dragOverPostIndex !== realIndex) {
+                            setDragOverPostIndex(realIndex);
+                          }
+                        }
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverPostIndex === realIndex) {
+                          setDragOverPostIndex(null);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggedPostIndex !== null && draggedPostIndex !== realIndex) {
+                          reorderPostToIndex(draggedPostIndex, realIndex);
+                        }
+                        setDraggedPostIndex(null);
+                        setDragOverPostIndex(null);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedPostIndex(null);
+                        setDragOverPostIndex(null);
+                      }}
+                      className={`rounded-2xl border transition-all overflow-hidden group bg-warm-white ${
+                        isDragOver
+                          ? "border-burgundy ring-2 ring-burgundy/40 shadow-xl scale-[1.02]"
+                          : isDragging
+                          ? "opacity-50 border-dashed border-soft-brown"
+                          : "border-warm-beige shadow-xs hover:border-gold/50 hover:shadow-md"
+                      }`}
+                    >
+                      {/* Top Reorder Control Banner */}
+                      <div className="bg-gradient-to-r from-champagne/80 to-peach-50 px-3.5 py-2 border-b border-warm-beige flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="cursor-grab active:cursor-grabbing text-soft-brown/40 hover:text-burgundy p-0.5"
+                            title="Drag to rearrange post order"
+                          >
+                            <GripVertical className="h-4 w-4" />
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-burgundy bg-warm-white border border-warm-beige px-2 py-0.5 rounded-md shadow-2xs font-mono">
+                            #{realIndex + 1}
                           </span>
-                        )}
-                      </h3>
-                      {post.location && (
-                        <p className="mt-0.5 text-[10px] text-soft-brown/70 flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {post.location}
-                          {post.locationTe && <span>• {post.locationTe}</span>}
-                        </p>
-                      )}
-                      <p className="mt-1.5 text-[11px] text-charcoal/70 line-clamp-2 leading-relaxed">
-                        {post.caption}
-                      </p>
-                      {post.captionTe && (
-                        <p className="mt-1 text-[11px] text-burgundy/90 line-clamp-1 italic">
-                          🇮🇳 {post.captionTe}
-                        </p>
-                      )}
+                          <span className="text-[10px] text-soft-brown/70 font-medium">
+                            {isFirst ? "⭐ First on Timeline" : `Position ${realIndex + 1}`}
+                          </span>
+                        </div>
 
-                      {/* Hashtags */}
-                      {post.hashtags && post.hashtags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {post.hashtags.slice(0, 3).map((tag, i) => (
-                            <span
-                              key={i}
-                              className="text-[9px] text-blue-600/70 font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {post.hashtags.length > 3 && (
-                            <span className="text-[9px] text-soft-brown/50">
-                              +{post.hashtags.length - 3} more
+                        {/* Move Up / Down Buttons */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => movePost(realIndex, "up")}
+                            disabled={isFirst || isReorderingPosts}
+                            title="Move earlier on timeline"
+                            className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/50 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => movePost(realIndex, "down")}
+                            disabled={isLast || isReorderingPosts}
+                            title="Move later on timeline"
+                            className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/50 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Post Image Preview */}
+                      <div className="relative h-40 bg-champagne/40 overflow-hidden">
+                        {post.images && post.images.length > 0 && post.images[0].src ? (
+                          <div className="relative w-full h-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={resolveMediaUrl(post.images[0].src)}
+                              alt={post.images[0].alt || post.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // If image fails locally, try frontend URL fallback
+                                const target = e.currentTarget as HTMLImageElement;
+                                if (!target.src.startsWith("http") && FRONTEND_URL) {
+                                  target.src = `${FRONTEND_URL}${post.images[0].src}`;
+                                } else {
+                                  target.style.display = "none";
+                                }
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-rose-50">
+                            <ImageIcon className="h-10 w-10 text-soft-brown/30" />
+                          </div>
+                        )}
+                        {/* Year Badge */}
+                        <div className="absolute top-2 left-2 rounded-lg bg-burgundy text-white px-2 py-0.5 text-xs font-bold shadow">
+                          {post.year}
+                        </div>
+                        {/* Category Badge */}
+                        <div className="absolute top-2 right-2 rounded-lg bg-warm-white/90 text-charcoal px-2 py-0.5 text-[10px] font-semibold shadow border border-warm-beige">
+                          {CATEGORIES.find((c) => c.value === post.category)?.emoji}{" "}
+                          {post.category}
+                        </div>
+                        {/* Aspect Ratio Badge */}
+                        <div className="absolute bottom-2 left-2 rounded-md bg-charcoal/70 text-white px-1.5 py-0.5 text-[10px] font-medium">
+                          {post.aspectRatio}
+                        </div>
+                      </div>
+
+                      {/* Post Details */}
+                      <div className="p-4">
+                        <h3 className="font-heading text-sm font-bold text-charcoal line-clamp-1">
+                          {post.title}
+                          {post.titleTe && (
+                            <span className="ml-1.5 text-xs font-normal text-burgundy font-serif">
+                              ({post.titleTe})
                             </span>
                           )}
-                        </div>
-                      )}
+                        </h3>
+                        {post.location && (
+                          <p className="mt-0.5 text-[10px] text-soft-brown/70 flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {post.location}
+                            {post.locationTe && <span>• {post.locationTe}</span>}
+                          </p>
+                        )}
+                        <p className="mt-1.5 text-[11px] text-charcoal/70 line-clamp-2 leading-relaxed">
+                          {post.caption}
+                        </p>
+                        {post.captionTe && (
+                          <p className="mt-1 text-[11px] text-burgundy/90 line-clamp-1 italic">
+                            🇮🇳 {post.captionTe}
+                          </p>
+                        )}
 
-                      {/* Action Buttons */}
-                      <div className="mt-3 pt-3 border-t border-warm-beige/50 flex items-center justify-between">
-                        <span className="text-[10px] text-soft-brown/50 font-medium">
-                          ID: {post.id}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openEditModal(post)}
-                            className="flex items-center gap-1 rounded-lg bg-champagne/60 text-charcoal border border-warm-beige px-2.5 py-1 text-[10px] font-semibold hover:bg-champagne transition-colors cursor-pointer"
-                          >
-                            <Edit3 className="h-3 w-3" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePost(post.id, post.title)}
-                            className="flex items-center gap-1 rounded-lg bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 text-[10px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete
-                          </button>
+                        {/* Hashtags */}
+                        {post.hashtags && post.hashtags.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {post.hashtags.slice(0, 3).map((tag, i) => (
+                              <span
+                                key={i}
+                                className="text-[9px] text-blue-600/70 font-medium"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                            {post.hashtags.length > 3 && (
+                              <span className="text-[9px] text-soft-brown/50">
+                                +{post.hashtags.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="mt-3 pt-3 border-t border-warm-beige/50 flex items-center justify-between">
+                          <span className="text-[10px] text-soft-brown/50 font-medium">
+                            ID: {post.id}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(post)}
+                              className="flex items-center gap-1 rounded-lg bg-champagne/60 text-charcoal border border-warm-beige px-2.5 py-1 text-[10px] font-semibold hover:bg-champagne transition-colors cursor-pointer"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePost(post.id, post.title)}
+                              className="flex items-center gap-1 rounded-lg bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 text-[10px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1289,9 +1472,14 @@ export default function AdminPage() {
 
               {/* Images Section */}
               <div>
-                <label className="block text-xs font-semibold text-soft-brown mb-2 flex items-center gap-1">
-                  <ImageIcon className="h-3 w-3" /> Images ({(editingPost.images || []).length})
-                </label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                  <label className="text-xs font-semibold text-soft-brown flex items-center gap-1.5">
+                    <ImageIcon className="h-3.5 w-3.5 text-burgundy" /> Photos ({(editingPost.images || []).length})
+                  </label>
+                  <span className="text-[10px] text-soft-brown/70 font-medium">
+                    ⭐ Photo #1 is the Cover Photo. Use <span className="font-bold text-burgundy">↑</span> <span className="font-bold text-burgundy">↓</span> or drag <GripVertical className="inline h-3 w-3" /> to rearrange.
+                  </span>
+                </div>
 
                 {/* Image Upload Area */}
                 <div
@@ -1316,82 +1504,184 @@ export default function AdminPage() {
                 {/* Image List */}
                 {(editingPost.images || []).length > 0 && (
                   <div className="space-y-3">
-                    {(editingPost.images || []).map((img, index) => (
-                      <div
-                        key={index}
-                        className="rounded-xl border border-warm-beige bg-champagne/20 p-3"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex items-center gap-2 shrink-0">
-                            <GripVertical className="h-4 w-4 text-soft-brown/30" />
-                            <div className="w-16 h-16 rounded-lg bg-warm-beige/50 flex items-center justify-center overflow-hidden border border-warm-beige">
-                              {img.src ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img
-                                  src={resolveMediaUrl(img.src)}
-                                  alt={img.alt || "preview"}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.currentTarget as HTMLImageElement;
-                                    if (!target.src.startsWith("http") && FRONTEND_URL) {
-                                      target.src = `${FRONTEND_URL}${img.src}`;
-                                    } else {
-                                      target.style.display = "none";
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <ImageIcon className="h-6 w-6 text-soft-brown/30" />
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-soft-brown/60">
-                                Image {index + 1}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="text-red-500 hover:text-red-700 cursor-pointer"
+                    {(editingPost.images || []).map((img, index) => {
+                      const isCover = index === 0;
+                      const isDragging = draggedImageIndex === index;
+                      const isDragOver = dragOverImageIndex === index;
+                      const totalImages = (editingPost.images || []).length;
+
+                      return (
+                        <div
+                          key={index}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedImageIndex(index);
+                            e.dataTransfer.effectAllowed = "move";
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dragOverImageIndex !== index) {
+                              setDragOverImageIndex(index);
+                            }
+                          }}
+                          onDragLeave={() => {
+                            if (dragOverImageIndex === index) {
+                              setDragOverImageIndex(null);
+                            }
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            if (draggedImageIndex !== null && draggedImageIndex !== index) {
+                              moveImageToIndex(draggedImageIndex, index);
+                            }
+                            setDraggedImageIndex(null);
+                            setDragOverImageIndex(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedImageIndex(null);
+                            setDragOverImageIndex(null);
+                          }}
+                          className={`rounded-xl border transition-all p-3 ${
+                            isDragOver
+                              ? "border-burgundy bg-burgundy/10 shadow-md ring-2 ring-burgundy/30"
+                              : isDragging
+                              ? "opacity-50 border-dashed border-soft-brown/50 bg-warm-white"
+                              : isCover
+                              ? "border-amber-300/80 bg-gradient-to-r from-amber-50/60 to-champagne/30 shadow-xs"
+                              : "border-warm-beige bg-champagne/20"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Drag Handle & Thumbnail */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div
+                                className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-soft-brown/40 hover:text-burgundy transition-colors"
+                                title="Click & drag to reorder photos"
                               >
-                                <X className="h-4 w-4" />
-                              </button>
+                                <GripVertical className="h-5 w-5" />
+                              </div>
+                              <div className="w-16 h-16 rounded-lg bg-warm-beige/50 flex items-center justify-center overflow-hidden border border-warm-beige relative">
+                                {img.src ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img
+                                    src={resolveMediaUrl(img.src)}
+                                    alt={img.alt || "preview"}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.currentTarget as HTMLImageElement;
+                                      if (!target.src.startsWith("http") && FRONTEND_URL) {
+                                        target.src = `${FRONTEND_URL}${img.src}`;
+                                      } else {
+                                        target.style.display = "none";
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <ImageIcon className="h-6 w-6 text-soft-brown/30" />
+                                )}
+                                {isCover && (
+                                  <span className="absolute bottom-0 inset-x-0 bg-amber-600/90 text-[8px] font-bold text-white text-center py-0.5">
+                                    COVER
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <input
-                              type="text"
-                              value={img.src}
-                              onChange={(e) => updateImageField(index, "src", e.target.value)}
-                              placeholder="Image URL or /path/to/image.png"
-                              className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
-                            />
-                            <div className="grid grid-cols-2 gap-2">
+
+                            {/* Image Controls & Form Fields */}
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                {/* Left: Badge & Quick Set as Cover */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {isCover ? (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md">
+                                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                                      ⭐ Cover Photo
+                                    </span>
+                                  ) : (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[10px] font-bold text-soft-brown/70 bg-warm-beige/50 px-2 py-0.5 rounded-md">
+                                        Photo {index + 1}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCoverImage(index)}
+                                        className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 hover:text-amber-950 bg-amber-100/70 hover:bg-amber-200 border border-amber-300/80 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                                        title="Move this image to #1 so it becomes the cover photo"
+                                      >
+                                        <Star className="h-2.5 w-2.5 text-amber-600" />
+                                        Set as Cover
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Right: Reorder Up/Down & Remove Buttons */}
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => moveImage(index, "up")}
+                                    disabled={index === 0}
+                                    title={index === 0 ? "Already first" : "Move photo up"}
+                                    className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/40 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                                  >
+                                    <ArrowUp className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => moveImage(index, "down")}
+                                    disabled={index === totalImages - 1}
+                                    title={index === totalImages - 1 ? "Already last" : "Move photo down"}
+                                    className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/40 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                                  >
+                                    <ArrowDown className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeImage(index)}
+                                    title="Remove photo"
+                                    className="p-1 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer transition-colors border border-red-200/60 ml-0.5"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
                               <input
                                 type="text"
-                                value={img.alt || ""}
-                                onChange={(e) => updateImageField(index, "alt", e.target.value)}
-                                placeholder="Alt text"
-                                className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                                value={img.src}
+                                onChange={(e) => updateImageField(index, "src", e.target.value)}
+                                placeholder="Image URL or /path/to/image.png"
+                                className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
                               />
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  value={img.alt || ""}
+                                  onChange={(e) => updateImageField(index, "alt", e.target.value)}
+                                  placeholder="Alt text"
+                                  className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                                />
+                                <input
+                                  type="text"
+                                  value={img.tag || ""}
+                                  onChange={(e) => updateImageField(index, "tag", e.target.value)}
+                                  placeholder="Tag label"
+                                  className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                                />
+                              </div>
                               <input
                                 type="text"
-                                value={img.tag || ""}
-                                onChange={(e) => updateImageField(index, "tag", e.target.value)}
-                                placeholder="Tag label"
-                                className="rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
+                                value={img.caption || ""}
+                                onChange={(e) => updateImageField(index, "caption", e.target.value)}
+                                placeholder="Image caption"
+                                className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
                               />
                             </div>
-                            <input
-                              type="text"
-                              value={img.caption || ""}
-                              onChange={(e) => updateImageField(index, "caption", e.target.value)}
-                              placeholder="Image caption"
-                              className="w-full rounded-lg border border-warm-beige bg-warm-white px-2 py-1 text-[11px] text-charcoal placeholder:text-soft-brown/30 focus:border-burgundy focus:outline-hidden"
-                            />
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 

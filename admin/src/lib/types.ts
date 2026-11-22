@@ -69,5 +69,6 @@ export interface AdminInstagramPost {
   hashtags: string[];
   images: InstagramMedia[];
   likesCount: number;
+  orderIndex?: number;
   createdAt?: string;
 }

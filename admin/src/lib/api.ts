@@ -362,6 +362,30 @@ export async function adminDeletePost(
   }
 }
 
+export async function adminReorderPosts(
+  order: string[],
+  token: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await apiFetch(`/posts/reorder`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify({ order }),
+    });
+    const data = await res.json();
+    return { success: !!data.success, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to reorder posts",
+    };
+  }
+}
+
 export async function adminUploadImage(
   file: File,
   token: string

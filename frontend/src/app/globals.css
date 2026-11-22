@@ -312,3 +312,41 @@ button, a, input, textarea {
   color: #71717a !important;
   padding: 1px 6px !important;
 }
+
+/* ============================================
+   Continuous Auto-Moving Collage Ribbons
+   ============================================ */
+@keyframes collageScrollLeft {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes collageScrollRight {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+.animate-collage-left {
+  animation: collageScrollLeft 38s linear infinite;
+  will-change: transform;
+}
+
+.animate-collage-right {
+  animation: collageScrollRight 44s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 640px) {
+  .animate-collage-left {
+    animation-duration: 28s;
+  }
+  .animate-collage-right {
+    animation-duration: 32s;
+  }
+}
+
+.pause-marquee:hover,
+.pause-marquee:active {
+  animation-play-state: paused;
+}
+

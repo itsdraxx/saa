@@ -73,6 +73,7 @@ interface PostRow {
   hashtags: string;
   images: string;
   likes_count: number;
+  order_index?: number;
   created_at: string;
 }
 
@@ -92,6 +93,7 @@ function parsePostRow(row: PostRow) {
     hashtags: JSON.parse(row.hashtags || "[]"),
     images: JSON.parse(row.images || "[]"),
     likesCount: row.likes_count || 0,
+    orderIndex: typeof row.order_index === "number" ? row.order_index : 0,
     createdAt: row.created_at,
     comments: [],
   };
@@ -101,11 +103,11 @@ function parsePostRow(row: PostRow) {
 // PUBLIC ROUTES (no auth required)
 // ═══════════════════════════════════════════════
 
-// GET /posts — fetch all posts ordered by year ASC
+// GET /posts — fetch all posts ordered by custom order_index ASC
 router.get("/", (_req, res) => {
   try {
     const rows = dbAll<PostRow>(
-      "SELECT * FROM instagram_posts ORDER BY year ASC, created_at ASC"
+      "SELECT * FROM instagram_posts ORDER BY order_index ASC, year ASC, created_at ASC"
     );
     const posts = rows.map(parsePostRow);
     res.json({ success: true, posts });
@@ -182,6 +184,30 @@ router.post("/upload", requireAdmin, upload.single("image"), async (req, res) =>
   res.json({ success: true, url, filename: req.file.filename });
 });
 
+// PUT /posts/reorder — batch update post arrangement sequence
+router.put("/reorder", requireAdmin, handleBatchReorder);
+router.post("/reorder", requireAdmin, handleBatchReorder);
+
+function handleBatchReorder(req: any, res: any) {
+  try {
+    const { order } = req.body;
+    if (!Array.isArray(order) || order.length === 0) {
+      res.status(400).json({ success: false, error: "Missing or invalid 'order' array of post IDs" });
+      return;
+    }
+
+    order.forEach((id: string, index: number) => {
+      dbRun("UPDATE instagram_posts SET order_index = ? WHERE id = ?", [index, id]);
+    });
+
+    saveDb();
+    res.json({ success: true, message: "Posts reordered successfully", total: order.length });
+  } catch (err) {
+    console.error("Error reordering posts:", err);
+    res.status(500).json({ success: false, error: "Failed to reorder posts" });
+  }
+}
+
 // POST /posts — create a new post
 router.post("/", requireAdmin, (req, res) => {
   try {
@@ -213,9 +239,13 @@ router.post("/", requireAdmin, (req, res) => {
       return;
     }
 
+    // Determine order_index
+    const maxRow = dbGet<{ maxOrder: number }>("SELECT MAX(order_index) as maxOrder FROM instagram_posts");
+    const nextOrder = typeof req.body.orderIndex === "number" ? req.body.orderIndex : ((maxRow?.maxOrder ?? -1) + 1);
+
     dbRun(
-      `INSERT INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images, likes_count)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      `INSERT INTO instagram_posts (id, year, date_str, title, title_te, location, location_te, aspect_ratio, category, caption, caption_te, hashtags, images, likes_count, order_index)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
         id,
         Number(year),
@@ -230,6 +260,7 @@ router.post("/", requireAdmin, (req, res) => {
         captionTe || "",
         JSON.stringify(hashtags || []),
         JSON.stringify(images || []),
+        nextOrder,
       ]
     );
     saveDb();
@@ -264,12 +295,13 @@ router.put("/:id", requireAdmin, (req, res) => {
       captionTe,
       hashtags,
       images,
+      orderIndex,
     } = req.body;
 
     dbRun(
       `UPDATE instagram_posts SET
         year = ?, date_str = ?, title = ?, title_te = ?, location = ?, location_te = ?, aspect_ratio = ?,
-        category = ?, caption = ?, caption_te = ?, hashtags = ?, images = ?
+        category = ?, caption = ?, caption_te = ?, hashtags = ?, images = ?, order_index = ?
        WHERE id = ?`,
       [
         year !== undefined ? Number(year) : existing.year,
@@ -284,6 +316,7 @@ router.put("/:id", requireAdmin, (req, res) => {
         captionTe !== undefined ? captionTe : (existing.caption_te || ""),
         hashtags !== undefined ? JSON.stringify(hashtags) : existing.hashtags,
         images !== undefined ? JSON.stringify(images) : existing.images,
+        orderIndex !== undefined ? Number(orderIndex) : (existing.order_index ?? 0),
         req.params.id,
       ]
     );
