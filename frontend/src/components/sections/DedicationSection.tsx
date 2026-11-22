@@ -45,11 +45,11 @@ export default function DedicationSection() {
       : "Adhi & Satya - 25th Silver Wedding Jubilee Celebration"
   )}&dates=20261227T183000/20261227T233000&details=${encodeURIComponent(
     isTelugu
-      ? "రండి అందరం కలిసి సందడి చేద్దాం... ఆది & సత్య 25 వసంతాల అద్భుత దాంపత్య వేడుకను ఘనంగా జరుపుకుందాం! Krathi Convention Hall\n\nGoogle Maps: " +
+      ? "రండి అందరం కలిసి సందడి చేద్దాం... ఆది & సత్య 25 వసంతాల అద్భుత దాంపత్య వేడుకను ఘనంగా జరుపుకుందాం! Kranthi Convention Hall, విశాఖపట్నం (వైజాగ్)\n\nGoogle Maps: " +
           googleMapsUrl
-      : "Let's all party and celebrate Adhi & Satya's 25 years of togetherness at Krathi Convention Hall! 🎉🥂\n\nGoogle Maps: " +
+      : "Let's all party and celebrate Adhi & Satya's 25 years of togetherness at Kranthi Convention Hall, Visakhapatnam (Vizag)! 🎉🥂\n\nGoogle Maps: " +
           googleMapsUrl
-  )}&location=${encodeURIComponent("Krathi Convention Hall, " + googleMapsUrl)}`;
+  )}&location=${encodeURIComponent("Kranthi Convention Hall, Visakhapatnam (Vizag), " + googleMapsUrl)}`;
 
   // Cinematic 1 to 25 count-up: slow at start, accelerating in the middle, dramatic finish on 25
   useEffect(() => {

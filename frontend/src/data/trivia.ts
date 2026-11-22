@@ -81,19 +81,6 @@ export const triviaQuestions: TriviaQuestion[] = [
   },
   {
     id: 7,
-    question: "What does Adhi always say to Satya when he is running late?",
-    options: [
-      { text: "'I'm already in the car!'", isCorrect: false },
-      { text: "'Five more minutes, almost ready!'", isCorrect: true },
-      { text: "'Traffic is very heavy today!'", isCorrect: false },
-      { text: "'You go ahead, I will catch up!'", isCorrect: false },
-    ],
-    explanation:
-      "Adhi's famous 'five minutes' is an eternal family joke — five minutes always turns into thirty!",
-    category: "funny",
-  },
-  {
-    id: 8,
     question: "Who is always the first one to dance at any family party or celebration?",
     options: [
       { text: "Satya", isCorrect: false },
@@ -106,7 +93,7 @@ export const triviaQuestions: TriviaQuestion[] = [
     category: "funny",
   },
   {
-    id: 9,
+    id: 8,
     question: "What is Satya's absolute favourite snack or food?",
     options: [
       { text: "Pani Puri", isCorrect: false },
@@ -119,7 +106,7 @@ export const triviaQuestions: TriviaQuestion[] = [
     category: "favourites",
   },
   {
-    id: 10,
+    id: 9,
     question: "What is Adhi's favourite habit every single morning?",
     options: [
       { text: "Seeing all the faces of family", isCorrect: true },
@@ -132,7 +119,7 @@ export const triviaQuestions: TriviaQuestion[] = [
     category: "habits",
   },
   {
-    id: 11,
+    id: 10,
     question: "What is Adhi's favourite way to playfully annoy Satya?",
     options: [
       { text: "Hiding the TV remote control", isCorrect: false },
