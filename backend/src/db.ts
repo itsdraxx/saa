@@ -177,6 +177,26 @@ export async function initDb(): Promise<void> {
     );
   `);
 
+  // Memory Map locations table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS map_locations (
+      id            TEXT PRIMARY KEY,
+      name          TEXT NOT NULL,
+      name_te       TEXT NOT NULL DEFAULT '',
+      lat           REAL NOT NULL,
+      lng           REAL NOT NULL,
+      year          INTEGER NOT NULL,
+      story         TEXT NOT NULL DEFAULT '',
+      story_te      TEXT NOT NULL DEFAULT '',
+      image         TEXT NOT NULL DEFAULT '',
+      category      TEXT NOT NULL DEFAULT 'holiday',
+      icon          TEXT NOT NULL DEFAULT '📍',
+      order_index   INTEGER NOT NULL DEFAULT 0,
+      created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  db.run("CREATE INDEX IF NOT EXISTS idx_map_locations_order ON map_locations(order_index ASC, year ASC);");
+
   // Migration: ensure title_te, caption_te, and location_te exist in instagram_posts
   try {
     const tableInfo = dbAll<{ name: string }>("PRAGMA table_info(instagram_posts)");
@@ -221,6 +241,9 @@ export async function initDb(): Promise<void> {
 
   // Auto-seed instagram posts from curated data if table is empty
   await seedInstagramPosts();
+
+  // Auto-seed memory map locations if table is empty
+  await seedMapLocations();
 
   // Auto-save to disk every 10 seconds (sql.js is in-memory, we persist periodically)
   saveTimer = setInterval(() => saveDb(), 10_000);
@@ -391,6 +414,140 @@ async function seedInstagramPosts(): Promise<void> {
 
   saveDb();
   console.log("  ✅ Seeded 12 curated Instagram posts");
+}
+
+// ─── Auto-seed the 8 curated Memory Map locations ─
+async function seedMapLocations(): Promise<void> {
+  const count = dbGet<{ count: number }>("SELECT COUNT(*) as count FROM map_locations");
+  if (count && count.count > 0) return; // Already seeded
+
+  console.log("  🌱 Seeding curated Memory Map locations...");
+
+  const locationSeeds = [
+    {
+      id: "first-meeting",
+      name: "Where It All Began",
+      name_te: "పరిచయ వేదిక — 1997",
+      lat: 17.385,
+      lng: 78.4867,
+      year: 1997,
+      story: "A friend's get-together in Hyderabad. Two strangers across a crowded room, one awkward introduction, and a conversation that lasted until the hosts politely asked everyone to leave. The rest, as they say, is history.",
+      story_te: "హైదరాబాద్‌లో స్నేహితుల విందులో మొదలైన పరిచయం. ఒకరినొకరు చూసుకున్న ఆ క్షణం, గంటల తరబడి సాగిన సంభాషణ మన 25 ఏళ్ల అందమైన ప్రయాణానికి నాంది పలికింది.",
+      image: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=600&auto=format&fit=crop&q=80",
+      category: "first-meeting",
+      icon: "💕",
+      order_index: 0,
+    },
+    {
+      id: "wedding-venue",
+      name: "The Wedding Venue",
+      name_te: "పరిణయ వేదిక — 2001",
+      lat: 17.4399,
+      lng: 78.4983,
+      year: 2001,
+      story: "The grand wedding hall in Secunderabad where they exchanged vows surrounded by 500 guests, mountains of food, and enough flowers to fill a garden. The mandap was draped in marigolds and jasmine, and love was absolutely everywhere.",
+      story_te: "సికింద్రాబాద్ కళ్యాణ మండపంలో బంధుమిత్రుల ఆశీస్సులు, వేద మంత్రోచ్ఛారణల నడుమ ఒక్కటైన పవిత్ర క్షణం. బంతిపూలు, మల్లెల సువాసనలతో నిండిన ఆ కల్యాణ వేదిక ఎప్పటికీ చిరస్మరణీయం.",
+      image: "/Golden South Indian Mandap Setting.png",
+      category: "wedding",
+      icon: "💒",
+      order_index: 1,
+    },
+    {
+      id: "first-home",
+      name: "Our First Home",
+      name_te: "తొలి కాపురం — 2000",
+      lat: 17.4485,
+      lng: 78.3908,
+      year: 2000,
+      story: "A modest two-bedroom flat in Kukatpally. The kitchen was barely big enough for two, the balcony overlooked a busy road, and it was absolutely perfect. This is where they learned to be a team, one burnt roti at a time.",
+      story_te: "కూకట్‌పల్లిలోని చిన్న రెండు గదుల ఇల్లు. చిన్న వంటగది, రద్దీ రోడ్డు కనిపించే బాల్కనీ... అయినా అది మాకెంతో ప్రత్యేకం. ఇద్దరం కలిసి ఒకరికొకరం తోడుగా జీవితాన్ని నిర్మించుకున్న తొలి గూడు.",
+      image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80",
+      category: "home",
+      icon: "🏠",
+      order_index: 2,
+    },
+    {
+      id: "dream-home",
+      name: "Our Forever Home",
+      name_te: "మన కలల సౌధం — 2008",
+      lat: 17.4401,
+      lng: 78.3489,
+      year: 2008,
+      story: "The home they'd been dreaming of for years. A garden where the kids could play, a kitchen big enough for Satya's legendary biryani operations, a balcony for evening chai, and walls that would eventually be covered in family photos and children's art.",
+      story_te: "ఎన్నో ఏళ్ల కల నెరవేరిన వేళ. పిల్లల ఆటపాటలు, సత్య ఘుమఘుమలాడే బిర్యానీలు, సాయంత్రపు టీ కబుర్లతో నిండిన మన శాశ్వత ఇల్లు.",
+      image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
+      category: "home",
+      icon: "🏡",
+      order_index: 3,
+    },
+    {
+      id: "goa-holiday",
+      name: "Goa — The Family Happy Place",
+      name_te: "గోవా సముద్రతీరం — 2010",
+      lat: 15.2993,
+      lng: 74.124,
+      year: 2010,
+      story: "Their first family beach holiday. The kids screamed when the waves touched their feet, Adhi got sunburned, Satya found the perfect seaside café, and they all agreed: this is what happiness feels like. They've been back three times since.",
+      story_te: "కుటుంబంతో మొదటి బీచ్ వెకేషన్. సముద్రపు కెరటాలు చూసి పిల్లల కేరింతలు, సత్య ఎంచుకున్న బీచ్ కేఫ్... కుటుంబమంతా కలిసి గడిపిన ఆనంద క్షణాలు.",
+      image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop&q=80",
+      category: "holiday",
+      icon: "🏖️",
+      order_index: 4,
+    },
+    {
+      id: "delhi-trip",
+      name: "Delhi — Taj Mahal Day Trip",
+      name_te: "తాజ్ మహల్ సందర్శన — 2013",
+      lat: 27.1751,
+      lng: 78.0421,
+      year: 2013,
+      story: "They drove from Delhi to Agra to see the Taj Mahal at sunrise. Adhi drove eight hours, the kids slept the whole way, and Satya navigated with a paper map (the GPS had given up). Worth every minute when they saw it glowing in the morning light.",
+      story_te: "సూర్యోదయ వేళ తాజ్ మహల్ అందాలను వీక్షించిన మధుర క్షణం. ఎనిమిది గంటల డ్రైవింగ్ తర్వాత తెల్లటి పాలరాతి సౌధం ఎదుట మన కుటుంబం నిలిచిన వేళ.",
+      image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600&auto=format&fit=crop&q=80",
+      category: "holiday",
+      icon: "🕌",
+      order_index: 5,
+    },
+    {
+      id: "shimla-snow",
+      name: "Shimla — First Snow",
+      name_te: "సిమ్లా మంచు కొండలు — 2017",
+      lat: 31.1048,
+      lng: 77.1734,
+      year: 2017,
+      story: "The family's mountain adventure. None of them had seen snow before, and the excitement was uncontainable. They built a lopsided snowman, had an epic snowball fight, and drank enough hot chocolate to last a lifetime. The photos are priceless.",
+      story_te: "కుటుంబమంతా కలిసి మొదటిసారి మంచును చూసిన క్షణం. మంచు ముద్దలతో ఆడుకుంటూ, చలిలో వేడి వేడి హాట్ చాక్లెట్ తాగుతూ గడిపిన తీపి జ్ఞాపకం.",
+      image: "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600&auto=format&fit=crop&q=80",
+      category: "holiday",
+      icon: "❄️",
+      order_index: 6,
+    },
+    {
+      id: "kerala-backwaters",
+      name: "Kerala — Backwater Bliss",
+      name_te: "కేరళ బ్యాక్‌వాటర్స్ — 2022",
+      lat: 9.4981,
+      lng: 76.3388,
+      year: 2022,
+      story: "A houseboat journey through the Kerala backwaters — just the two of them, after the kids left for college. Floating through palm-lined canals, eating fresh fish curry, and watching the sunset paint the water gold. A second honeymoon, twenty-three years later.",
+      story_te: "హౌస్‌బోట్‌లో ప్రయాణిస్తూ, కొబ్బరి తోటల నడుమ సూర్యాస్తమయాన్ని వీక్షించిన అపురూప క్షణాలు. ఇరవై మూడేళ్ల తర్వాత ఆది, సత్యల ప్రత్యేక ప్రశాంత యాత్ర.",
+      image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=600&auto=format&fit=crop&q=80",
+      category: "special",
+      icon: "🚤",
+      order_index: 7,
+    },
+  ];
+
+  locationSeeds.forEach((loc) => {
+    dbRun(
+      `INSERT OR IGNORE INTO map_locations (id, name, name_te, lat, lng, year, story, story_te, image, category, icon, order_index)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [loc.id, loc.name, loc.name_te, loc.lat, loc.lng, loc.year, loc.story, loc.story_te, loc.image, loc.category, loc.icon, loc.order_index]
+    );
+  });
+
+  saveDb();
+  console.log("  ✅ Seeded 8 curated Memory Map locations");
 }
 
 // ─── Persist in-memory DB to disk ─────────────────────

@@ -4,6 +4,7 @@ import type {
   GuestWish,
   TriviaLeaderboardEntry,
   AdminInstagramPost,
+  AdminMapLocation,
 } from "./types";
 
 const CONFIGURED_API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
@@ -407,6 +408,138 @@ export async function adminUploadImage(
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to upload image",
+    };
+  }
+}
+
+// ============================================
+// Memory Map Locations API
+// ============================================
+
+export async function adminGetLocations(
+  token: string
+): Promise<{ success: boolean; locations: AdminMapLocation[]; error?: string }> {
+  try {
+    const res = await apiFetch("/locations", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+    });
+    const data = await res.json();
+    return {
+      success: !!data.success,
+      locations: Array.isArray(data.locations) ? data.locations : [],
+      error: data.error,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      locations: [],
+      error: err instanceof Error ? err.message : "Failed to fetch locations",
+    };
+  }
+}
+
+export async function adminCreateLocation(
+  location: Partial<AdminMapLocation>,
+  token: string
+): Promise<{ success: boolean; location?: AdminMapLocation; error?: string }> {
+  try {
+    const res = await apiFetch("/locations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify(location),
+    });
+    const data = await res.json();
+    return {
+      success: !!data.success,
+      location: data.location,
+      error: data.error,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to create location",
+    };
+  }
+}
+
+export async function adminUpdateLocation(
+  id: string,
+  location: Partial<AdminMapLocation>,
+  token: string
+): Promise<{ success: boolean; location?: AdminMapLocation; error?: string }> {
+  try {
+    const res = await apiFetch(`/locations/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify(location),
+    });
+    const data = await res.json();
+    return {
+      success: !!data.success,
+      location: data.location,
+      error: data.error,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to update location",
+    };
+  }
+}
+
+export async function adminDeleteLocation(
+  id: string,
+  token: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await apiFetch(`/locations/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+    });
+    const data = await res.json();
+    return { success: !!data.success, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to delete location",
+    };
+  }
+}
+
+export async function adminReorderLocations(
+  order: string[],
+  token: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await apiFetch(`/locations/reorder`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-admin-token": token,
+      },
+      body: JSON.stringify({ order }),
+    });
+    const data = await res.json();
+    return { success: !!data.success, error: data.error };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to reorder locations",
     };
   }
 }

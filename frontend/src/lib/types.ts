@@ -82,13 +82,16 @@ export interface TriviaQuestion {
 export interface MapLocation {
   id: string;
   name: string;
+  nameTe?: string;
   lat: number;
   lng: number;
   year: number;
   story: string;
+  storyTe?: string;
   image?: string;
   category: "first-meeting" | "wedding" | "home" | "holiday" | "special";
   icon?: string;
+  orderIndex?: number;
 }
 
 // --- Section ---

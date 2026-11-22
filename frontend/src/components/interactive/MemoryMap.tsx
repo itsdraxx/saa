@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { mapLocations } from "@/data/map-locations";
+import { mapLocations as seedMapLocations } from "@/data/map-locations";
 import type { MapLocation } from "@/lib/types";
+import { fetchMapLocations } from "@/lib/api";
 import {
   MapPin,
   Calendar,
@@ -21,10 +22,12 @@ export default function MemoryMap() {
   const { language, isTelugu } = useLanguage();
   const t = translations[language].map;
 
-  const [selectedLocation, setSelectedLocation] = useState<MapLocation>(mapLocations[0]);
+  const [locations, setLocations] = useState<MapLocation[]>(seedMapLocations);
+  const [selectedLocation, setSelectedLocation] = useState<MapLocation>(seedMapLocations[0]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [is3D, setIs3D] = useState(true);
   const is3DRef = useRef(true);
+  const locationsRef = useRef<MapLocation[]>(seedMapLocations);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<maplibreglType.Map | null>(null);
@@ -35,14 +38,39 @@ export default function MemoryMap() {
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const handleSelectLocationRef = useRef<(loc: MapLocation) => void>(() => {});
 
+  // Bilingual text helpers
+  const getLocName = useCallback(
+    (loc: MapLocation) => {
+      if (isTelugu) return loc.nameTe || mapLocationsTelugu[loc.id]?.name || loc.name;
+      return loc.name;
+    },
+    [isTelugu]
+  );
+
+  const getLocCategory = useCallback(
+    (loc: MapLocation) => {
+      if (isTelugu) return mapLocationsTelugu[loc.id]?.category || loc.category;
+      return loc.category;
+    },
+    [isTelugu]
+  );
+
+  const getLocStory = useCallback(
+    (loc: MapLocation) => {
+      if (isTelugu) return loc.storyTe || mapLocationsTelugu[loc.id]?.story || loc.story;
+      return loc.story;
+    },
+    [isTelugu]
+  );
+
   // Helper to build Apple Maps POI Pin element
   const createMarkerElement = useCallback((loc: MapLocation, isSelected: boolean) => {
     const el = document.createElement("div");
     el.className = "custom-maplibre-marker";
     el.style.cursor = "pointer";
 
-    const locName = (isTelugu && mapLocationsTelugu[loc.id]?.name) ? mapLocationsTelugu[loc.id].name : loc.name;
-    const locCategory = (isTelugu && mapLocationsTelugu[loc.id]?.category) ? mapLocationsTelugu[loc.id].category : loc.category;
+    const locName = getLocName(loc);
+    const locCategory = getLocCategory(loc);
     const pinnedText = isTelugu ? "గుర్తించబడింది" : "Pinned";
 
     if (isSelected) {
@@ -191,8 +219,8 @@ export default function MemoryMap() {
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
 
-      // Create updated markers
-      mapLocations.forEach((loc) => {
+      // Create updated markers from latest locations
+      locationsRef.current.forEach((loc) => {
         const isSelected = loc.id === activeLoc.id;
         const el = createMarkerElement(loc, isSelected);
 
@@ -213,6 +241,28 @@ export default function MemoryMap() {
     [createMarkerElement]
   );
 
+  // Keep locationsRef in sync with state
+  useEffect(() => {
+    locationsRef.current = locations;
+  }, [locations]);
+
+  // Fetch dynamic map locations from API
+  useEffect(() => {
+    let mounted = true;
+    fetchMapLocations().then((res) => {
+      if (mounted && res.success && res.locations.length > 0) {
+        setLocations(res.locations);
+        locationsRef.current = res.locations;
+        if (mapInstanceRef.current && isMapLoaded) {
+          refreshMarkers(res.locations[0]);
+        }
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [isMapLoaded, refreshMarkers]);
+
   // Handle selecting a destination card or pin
   const handleSelectLocation = useCallback(
     (loc: MapLocation) => {
@@ -221,7 +271,6 @@ export default function MemoryMap() {
       const current3D = is3DRef.current;
 
       // Smoothly fly camera to pinned destination with close-up zoom (level 13)
-      // Uses pixel offset so marker pin sits exactly in the vertical middle of visible map
       if (mapInstanceRef.current) {
         const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
         mapInstanceRef.current.flyTo({
@@ -271,10 +320,11 @@ export default function MemoryMap() {
 
       // OpenFreeMap Bright vector style URL (100% free, no API keys)
       const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+      const initialLoc = locationsRef.current[0] || seedMapLocations[0];
       const map = new maplibregl.Map({
         container: mapContainerRef.current,
         style: "https://tiles.openfreemap.org/styles/bright",
-        center: [mapLocations[0].lng, mapLocations[0].lat],
+        center: [initialLoc.lng, initialLoc.lat],
         zoom: 13,
         pitch: isMobile ? 45 : 55,
         bearing: isMobile ? -10 : -20,
@@ -286,7 +336,7 @@ export default function MemoryMap() {
       map.on("load", () => {
         if (!isSubscribed) return;
         setIsMapLoaded(true);
-        refreshMarkers(mapLocations[0]);
+        refreshMarkers(initialLoc);
         if (sliderRef.current) {
           sliderRef.current.scrollLeft = 0;
         }
@@ -324,11 +374,12 @@ export default function MemoryMap() {
 
   // Handle previous/next navigation
   const handleNavigate = (direction: "prev" | "next") => {
-    const currentIndex = mapLocations.findIndex((l) => l.id === selectedLocation.id);
+    const currentLocs = locationsRef.current;
+    const currentIndex = currentLocs.findIndex((l) => l.id === selectedLocation.id);
     let newIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
-    if (newIndex >= mapLocations.length) newIndex = 0;
-    if (newIndex < 0) newIndex = mapLocations.length - 1;
-    handleSelectLocation(mapLocations[newIndex]);
+    if (newIndex >= currentLocs.length) newIndex = 0;
+    if (newIndex < 0) newIndex = currentLocs.length - 1;
+    handleSelectLocation(currentLocs[newIndex]);
   };
 
   // Apple Maps Controls Actions
@@ -351,7 +402,7 @@ export default function MemoryMap() {
     });
   };
 
-  const currentIndex = mapLocations.findIndex((l) => l.id === selectedLocation.id);
+  const currentIndex = locations.findIndex((l) => l.id === selectedLocation.id);
 
   return (
     <div className="relative w-full overflow-hidden rounded-3xl border border-black/10 bg-warm-white shadow-2xl">
@@ -380,12 +431,10 @@ export default function MemoryMap() {
               <MapPin className="h-2.5 w-2.5" />
             </div>
             <span className="text-[10px] font-bold text-burgundy">
-              {currentIndex + 1}/{mapLocations.length}
+              {currentIndex >= 0 ? currentIndex + 1 : 1}/{locations.length}
             </span>
             <span className="text-[10px] font-semibold text-charcoal truncate max-w-[110px]">
-              {(isTelugu && mapLocationsTelugu[selectedLocation.id]?.name)
-                ? mapLocationsTelugu[selectedLocation.id].name
-                : selectedLocation.name}
+              {getLocName(selectedLocation)}
             </span>
           </div>
 
@@ -398,8 +447,8 @@ export default function MemoryMap() {
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-burgundy">
                   {isTelugu
-                    ? `గమ్యస్థానం ${currentIndex + 1} / ${mapLocations.length}`
-                    : `Destination ${currentIndex + 1} of ${mapLocations.length}`}
+                    ? `గమ్యస్థానం ${currentIndex >= 0 ? currentIndex + 1 : 1} / ${locations.length}`
+                    : `Destination ${currentIndex >= 0 ? currentIndex + 1 : 1} of ${locations.length}`}
                 </span>
                 {is3D && (
                   <span className="rounded-full bg-burgundy/15 px-1.5 py-0.2 text-[8.5px] font-black text-burgundy tracking-wider uppercase">
@@ -408,9 +457,7 @@ export default function MemoryMap() {
                 )}
               </div>
               <span className="max-w-[130px] xs:max-w-[180px] sm:max-w-[240px] truncate text-xs sm:text-sm font-semibold text-charcoal">
-                {(isTelugu && mapLocationsTelugu[selectedLocation.id]?.name)
-                  ? mapLocationsTelugu[selectedLocation.id].name
-                  : selectedLocation.name}
+                {getLocName(selectedLocation)}
               </span>
             </div>
           </div>
@@ -515,7 +562,7 @@ export default function MemoryMap() {
               </button>
 
               <div className="flex items-center gap-1.5">
-                {mapLocations.map((loc, idx) => (
+                {locations.map((loc, idx) => (
                   <button
                     key={loc.id}
                     type="button"
@@ -567,11 +614,11 @@ export default function MemoryMap() {
               ref={sliderRef}
               className="pointer-events-auto flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory py-2 px-[calc(50%-135px)] sm:px-4 scroll-smooth"
             >
-              {mapLocations.map((loc) => {
+              {locations.map((loc) => {
                 const isSelected = loc.id === selectedLocation.id;
-                const cardLocName = (isTelugu && mapLocationsTelugu[loc.id]?.name) ? mapLocationsTelugu[loc.id].name : loc.name;
-                const cardLocCategory = (isTelugu && mapLocationsTelugu[loc.id]?.category) ? mapLocationsTelugu[loc.id].category : loc.category;
-                const cardLocStory = (isTelugu && mapLocationsTelugu[loc.id]?.story) ? mapLocationsTelugu[loc.id].story : loc.story;
+                const cardLocName = getLocName(loc);
+                const cardLocCategory = getLocCategory(loc);
+                const cardLocStory = getLocStory(loc);
 
                 return (
                   <div

@@ -37,6 +37,29 @@ export interface AdminStats {
   total_trivia_players: number;
   total_wishes: number;
   total_posts: number;
+  total_locations?: number;
+}
+
+// ============================================
+// Memory Map Location Types
+// ============================================
+
+export type MapLocationCategory = "first-meeting" | "wedding" | "home" | "holiday" | "special";
+
+export interface AdminMapLocation {
+  id: string;
+  name: string;
+  nameTe?: string;
+  lat: number;
+  lng: number;
+  year: number;
+  story: string;
+  storyTe?: string;
+  image?: string;
+  category: MapLocationCategory;
+  icon?: string;
+  orderIndex?: number;
+  createdAt?: string;
 }
 
 // ============================================

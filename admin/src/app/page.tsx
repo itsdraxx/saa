@@ -52,6 +52,11 @@ import {
   adminDeletePost,
   adminUploadImage,
   adminReorderPosts,
+  adminGetLocations,
+  adminCreateLocation,
+  adminUpdateLocation,
+  adminDeleteLocation,
+  adminReorderLocations,
 } from "@/lib/api";
 import type {
   AdminStats,
@@ -61,7 +66,10 @@ import type {
   AdminInstagramPost,
   InstagramMedia,
   InstagramAspectRatio,
+  AdminMapLocation,
+  MapLocationCategory,
 } from "@/lib/types";
+import AdminLocationPickerMap from "@/components/AdminLocationPickerMap";
 
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/$/, "") || "http://localhost:3000";
@@ -81,7 +89,7 @@ function resolveMediaUrl(src?: string): string {
   return src;
 }
 
-type TabId = "comments" | "wishes" | "trivia" | "instagram";
+type TabId = "comments" | "wishes" | "trivia" | "instagram" | "locations";
 
 const CATEGORIES = [
   { value: "wedding", label: "Wedding", emoji: "💍" },
@@ -89,6 +97,34 @@ const CATEGORIES = [
   { value: "milestone", label: "Milestone", emoji: "🏆" },
   { value: "travel", label: "Travel", emoji: "✈️" },
   { value: "celebration", label: "Celebration", emoji: "🎉" },
+];
+
+const LOCATION_CATEGORIES: { value: MapLocationCategory; label: string; emoji: string }[] = [
+  { value: "first-meeting", label: "First Meeting", emoji: "💕" },
+  { value: "wedding", label: "Wedding Venue", emoji: "💒" },
+  { value: "home", label: "Family Home", emoji: "🏠" },
+  { value: "holiday", label: "Holiday / Vacation", emoji: "🏖️" },
+  { value: "special", label: "Special Memory", emoji: "✨" },
+];
+
+const CITY_PRESETS = [
+  { name: "Hyderabad", nameTe: "హైదరాబాద్", lat: 17.385, lng: 78.4867, emoji: "🏛️" },
+  { name: "Secunderabad", nameTe: "సికింద్రాబాద్", lat: 17.4399, lng: 78.4983, emoji: "💒" },
+  { name: "Visakhapatnam (Vizag)", nameTe: "విశాఖపట్నం (వైజాగ్)", lat: 17.6868, lng: 83.2185, emoji: "🌊" },
+  { name: "Goa", nameTe: "గోవా", lat: 15.2993, lng: 74.124, emoji: "🏖️" },
+  { name: "Agra (Taj Mahal)", nameTe: "ఆగ్రా (తాజ్ మహల్)", lat: 27.1751, lng: 78.0421, emoji: "🕌" },
+  { name: "Delhi", nameTe: "ఢిల్లీ", lat: 28.6139, lng: 77.209, emoji: "🏛️" },
+  { name: "Shimla", nameTe: "సిమ్లా", lat: 31.1048, lng: 77.1734, emoji: "❄️" },
+  { name: "Alleppey (Kerala)", nameTe: "ఆలప్పుళ (కేరళ)", lat: 9.4981, lng: 76.3388, emoji: "🌴" },
+  { name: "Tirupati", nameTe: "తిరుపతి", lat: 13.6288, lng: 79.4192, emoji: "🛕" },
+  { name: "Bengaluru", nameTe: "బెంగళూరు", lat: 12.9716, lng: 77.5946, emoji: "🏙️" },
+  { name: "Mumbai", nameTe: "ముంబై", lat: 19.076, lng: 72.8777, emoji: "🌆" },
+  { name: "Kolkata", nameTe: "కోల్‌కతా", lat: 22.5726, lng: 88.3639, emoji: "🌉" },
+];
+
+const EMOJI_OPTIONS = [
+  "💕", "💒", "🏠", "🏡", "🏖️", "🕌", "❄️", "🚤",
+  "🏔️", "🌴", "🛕", "🚗", "✈️", "🍽️", "🎉", "👑", "❤️", "📍"
 ];
 
 const ASPECT_RATIOS: { value: InstagramAspectRatio; label: string; ratio: string }[] = [
@@ -115,6 +151,22 @@ function emptyPost(): Partial<AdminInstagramPost> {
   };
 }
 
+function emptyLocation(): Partial<AdminMapLocation> {
+  return {
+    id: "",
+    name: "",
+    nameTe: "",
+    lat: 17.385,
+    lng: 78.4867,
+    year: new Date().getFullYear(),
+    story: "",
+    storyTe: "",
+    image: "",
+    category: "holiday",
+    icon: "🏖️",
+  };
+}
+
 export default function AdminPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -134,6 +186,7 @@ export default function AdminPage() {
   const [wishes, setWishes] = useState<GuestWish[]>([]);
   const [triviaScores, setTriviaScores] = useState<TriviaLeaderboardEntry[]>([]);
   const [instagramPosts, setInstagramPosts] = useState<AdminInstagramPost[]>([]);
+  const [locations, setLocations] = useState<AdminMapLocation[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Instagram modal state
@@ -149,6 +202,15 @@ export default function AdminPage() {
   const [isReorderingPosts, setIsReorderingPosts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Memory Map modal & state
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Partial<AdminMapLocation>>(emptyLocation());
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+  const [isUploadingLocationImage, setIsUploadingLocationImage] = useState(false);
+  const [locationCategoryFilter, setLocationCategoryFilter] = useState<string>("all");
+  const [isReorderingLocations, setIsReorderingLocations] = useState(false);
+  const locationFileInputRef = useRef<HTMLInputElement>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -158,12 +220,13 @@ export default function AdminPage() {
     if (!token) return;
     setIsLoadingData(true);
     try {
-      const [statsRes, commentsRes, wishesRes, triviaRes, postsRes] = await Promise.all([
+      const [statsRes, commentsRes, wishesRes, triviaRes, postsRes, locationsRes] = await Promise.all([
         adminGetStats(token),
         adminGetComments(token, 200),
         adminGetWishes(token, 200),
         adminGetTrivia(token, 200),
         adminGetPosts(token),
+        adminGetLocations(token),
       ]);
 
       if (statsRes.success && statsRes.stats) setStats(statsRes.stats);
@@ -171,6 +234,7 @@ export default function AdminPage() {
       if (wishesRes.success) setWishes(wishesRes.wishes);
       if (triviaRes.success) setTriviaScores(triviaRes.scores);
       if (postsRes.success) setInstagramPosts(postsRes.posts);
+      if (locationsRes.success) setLocations(locationsRes.locations);
     } catch (err) {
       console.warn("Error refreshing admin data:", err);
     }
@@ -507,6 +571,154 @@ export default function AdminPage() {
       String(p.year).includes(searchQuery)
   );
 
+  // ─── Memory Map Handlers ───────────────────────
+  const openCreateLocationModal = () => {
+    setEditingLocation(emptyLocation());
+    setIsLocationModalOpen(true);
+  };
+
+  const openEditLocationModal = (loc: AdminMapLocation) => {
+    setEditingLocation({ ...loc });
+    setIsLocationModalOpen(true);
+  };
+
+  const closeLocationModal = () => {
+    setIsLocationModalOpen(false);
+    setEditingLocation(emptyLocation());
+  };
+
+  const handleSelectCityPreset = (preset: typeof CITY_PRESETS[0]) => {
+    setEditingLocation((prev) => ({
+      ...prev,
+      lat: preset.lat,
+      lng: preset.lng,
+      name: prev?.name?.trim() ? prev.name : preset.name,
+      nameTe: prev?.nameTe?.trim() ? prev.nameTe : preset.nameTe,
+    }));
+    showToast(`Set coordinates to ${preset.name}!`);
+  };
+
+  const handleUploadLocationImage = async (file: File) => {
+    if (!adminToken) return;
+    setIsUploadingLocationImage(true);
+    try {
+      const res = await adminUploadImage(file, adminToken);
+      if (res.success && res.url) {
+        setEditingLocation((prev) => ({ ...prev, image: res.url }));
+        showToast("Location photo uploaded successfully!");
+      } else {
+        alert(res.error || "Failed to upload image");
+      }
+    } catch {
+      alert("Error uploading image");
+    } finally {
+      setIsUploadingLocationImage(false);
+    }
+  };
+
+  const handleSaveLocation = async () => {
+    if (!adminToken || !editingLocation) return;
+    const name = editingLocation.name?.trim();
+    const lat = Number(editingLocation.lat);
+    const lng = Number(editingLocation.lng);
+    const year = Number(editingLocation.year);
+
+    if (!name || isNaN(lat) || isNaN(lng) || !year) {
+      alert("Place Name, Latitude, Longitude, and Year are required.");
+      return;
+    }
+
+    setIsSavingLocation(true);
+    try {
+      const isEdit = Boolean(editingLocation.id && locations.some((l) => l.id === editingLocation.id));
+      if (isEdit && editingLocation.id) {
+        const res = await adminUpdateLocation(editingLocation.id, editingLocation, adminToken);
+        if (res.success) {
+          showToast(`Updated "${name}" pin!`);
+          closeLocationModal();
+          refreshAllData(adminToken);
+        } else {
+          alert(res.error || "Failed to update location");
+        }
+      } else {
+        const newLoc = {
+          ...editingLocation,
+          id: editingLocation.id?.trim() || `loc-${Date.now()}`,
+          orderIndex: locations.length,
+        };
+        const res = await adminCreateLocation(newLoc, adminToken);
+        if (res.success) {
+          showToast(`Added "${name}" pin to Memory Map!`);
+          closeLocationModal();
+          refreshAllData(adminToken);
+        } else {
+          alert(res.error || "Failed to create location");
+        }
+      }
+    } catch {
+      alert("Error saving location pin");
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
+
+  const handleDeleteLocation = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}" from the Memory Map?`)) return;
+    try {
+      const res = await adminDeleteLocation(id, adminToken);
+      if (res.success) {
+        showToast(`Deleted "${name}"`);
+        refreshAllData(adminToken);
+      } else {
+        alert(res.error || "Failed to delete location");
+      }
+    } catch {
+      alert("Error deleting location");
+    }
+  };
+
+  const handleMoveLocation = async (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= locations.length || isReorderingLocations) return;
+
+    setIsReorderingLocations(true);
+    const updated = [...locations];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, moved);
+    setLocations(updated);
+
+    try {
+      const orderIds = updated.map((l) => l.id);
+      const res = await adminReorderLocations(orderIds, adminToken);
+      if (res.success) {
+        showToast("Memory Map journey reordered!");
+      } else {
+        refreshAllData(adminToken);
+        alert(res.error || "Failed to reorder locations");
+      }
+    } catch {
+      refreshAllData(adminToken);
+    } finally {
+      setIsReorderingLocations(false);
+    }
+  };
+
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (loc.nameTe && loc.nameTe.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        loc.story.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(loc.year).includes(searchQuery);
+
+      const matchesCat =
+        locationCategoryFilter === "all" || loc.category === locationCategoryFilter;
+
+      return matchesSearch && matchesCat;
+    });
+  }, [locations, searchQuery, locationCategoryFilter]);
+
   // ──────────────────────────────────────────────
   // 1. LOGIN SCREEN (Username & Password)
   // ──────────────────────────────────────────────
@@ -664,10 +876,10 @@ export default function AdminPage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Comments</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Comments</span>
               <MessageCircle className="h-4 w-4 text-gold" />
             </div>
             <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
@@ -675,9 +887,9 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Shared Likes</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Likes</span>
               <Heart className="h-4 w-4 text-rose-500" />
             </div>
             <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
@@ -685,9 +897,9 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Guest Wishes</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Wishes</span>
               <Sparkles className="h-4 w-4 text-amber-500" />
             </div>
             <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
@@ -695,9 +907,9 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Trivia Plays</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Trivia</span>
               <Trophy className="h-4 w-4 text-gold" />
             </div>
             <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
@@ -705,13 +917,23 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-warm-beige bg-warm-white p-4 shadow-xs">
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
             <div className="flex items-center justify-between text-burgundy mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">IG Posts</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider">IG Posts</span>
               <Camera className="h-4 w-4 text-purple-500" />
             </div>
             <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
               {stats?.total_posts ?? instagramPosts.length}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-warm-beige bg-warm-white p-3.5 sm:p-4 shadow-xs">
+            <div className="flex items-center justify-between text-burgundy mb-1">
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Map Pins</span>
+              <MapPin className="h-4 w-4 text-emerald-600" />
+            </div>
+            <p className="font-heading text-2xl sm:text-3xl font-bold text-charcoal">
+              {stats?.total_locations ?? locations.length}
             </p>
           </div>
         </div>
@@ -724,6 +946,7 @@ export default function AdminPage() {
               { id: "wishes" as TabId, label: `Wishes (${wishes.length})` },
               { id: "trivia" as TabId, label: `Trivia (${triviaScores.length})` },
               { id: "instagram" as TabId, label: `📸 IG Posts (${instagramPosts.length})` },
+              { id: "locations" as TabId, label: `🗺️ Memory Map (${locations.length})` },
             ]).map((tab) => (
               <button
                 key={tab.id}
@@ -1212,6 +1435,221 @@ export default function AdminPage() {
                               Delete
                             </button>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 5: MEMORY MAP LOCATIONS MANAGEMENT */}
+        {activeTab === "locations" && (
+          <div className="mt-6 space-y-6">
+            {/* Header / Add Button Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-warm-white p-4 sm:p-5 rounded-2xl border border-warm-beige shadow-xs">
+              <div>
+                <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-emerald-600" />
+                  <span>Memory Map Destinations ({locations.length})</span>
+                </h2>
+                <p className="text-xs text-soft-brown mt-0.5">
+                  Manage all travel destinations, family homes, and milestone pins plotted across the 3D map.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={openCreateLocationModal}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-burgundy px-4 py-2.5 text-xs sm:text-sm font-semibold text-warm-white shadow-md hover:bg-deep-burgundy transition-all active:scale-95 cursor-pointer shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Destination Pin</span>
+              </button>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              <button
+                type="button"
+                onClick={() => setLocationCategoryFilter("all")}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  locationCategoryFilter === "all"
+                    ? "bg-burgundy text-white shadow-2xs"
+                    : "bg-warm-white text-soft-brown border border-warm-beige hover:bg-champagne/40"
+                }`}
+              >
+                All Categories ({locations.length})
+              </button>
+              {LOCATION_CATEGORIES.map((cat) => {
+                const count = locations.filter((l) => l.category === cat.value).length;
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => setLocationCategoryFilter(cat.value)}
+                    className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1 ${
+                      locationCategoryFilter === cat.value
+                        ? "bg-burgundy text-white shadow-2xs"
+                        : "bg-warm-white text-soft-brown border border-warm-beige hover:bg-champagne/40"
+                    }`}
+                  >
+                    <span>{cat.emoji}</span>
+                    <span>{cat.label} ({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Locations Cards List */}
+            {filteredLocations.length === 0 ? (
+              <div className="rounded-2xl border-2 border-dashed border-warm-beige bg-warm-white/60 p-12 text-center">
+                <MapPin className="mx-auto h-12 w-12 text-soft-brown/40 mb-3" />
+                <h3 className="font-heading text-base font-bold text-charcoal">No Map Pins Found</h3>
+                <p className="text-xs text-soft-brown mt-1 max-w-sm mx-auto">
+                  {searchQuery || locationCategoryFilter !== "all"
+                    ? "No pins match your current filter. Try resetting your search or category."
+                    : "No travel milestones have been added yet. Click 'Add Destination Pin' above to add your first memory!"}
+                </p>
+                <button
+                  type="button"
+                  onClick={openCreateLocationModal}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-burgundy px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-deep-burgundy cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Destination Pin
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredLocations.map((loc) => {
+                  const realIndex = locations.findIndex((l) => l.id === loc.id);
+                  const isFirst = realIndex === 0;
+                  const isLast = realIndex === locations.length - 1;
+                  const catMeta = LOCATION_CATEGORIES.find((c) => c.value === loc.category);
+
+                  return (
+                    <div
+                      key={loc.id}
+                      className="rounded-2xl border border-warm-beige bg-warm-white shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                    >
+                      {/* Top Header Bar with Sequence & Move Buttons */}
+                      <div className="bg-gradient-to-r from-champagne/70 to-peach-50 px-3.5 py-2 border-b border-warm-beige flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{loc.icon || "📍"}</span>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-burgundy bg-warm-white border border-warm-beige px-2 py-0.5 rounded-md shadow-2xs font-mono">
+                            #{realIndex + 1}
+                          </span>
+                          <span className="text-[10px] text-soft-brown/80 font-medium">
+                            {isFirst ? "⭐ First Stop on Journey" : `Stop ${realIndex + 1}`}
+                          </span>
+                        </div>
+
+                        {/* Reorder Buttons */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveLocation(realIndex, "up")}
+                            disabled={isFirst || isReorderingLocations}
+                            title="Move earlier on map"
+                            className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/50 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveLocation(realIndex, "down")}
+                            disabled={isLast || isReorderingLocations}
+                            title="Move later on map"
+                            className="p-1 rounded-md text-soft-brown hover:text-burgundy hover:bg-warm-beige/50 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors border border-warm-beige/60"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Content with Image & Details */}
+                      <div className="p-4 flex-1">
+                        <div className="flex items-start gap-3.5">
+                          {/* Image Thumbnail */}
+                          <div className="w-24 h-24 rounded-xl border border-warm-beige/70 overflow-hidden bg-champagne/30 shrink-0 relative">
+                            {loc.image ? (
+                              <img
+                                src={resolveMediaUrl(loc.image)}
+                                alt={loc.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/Golden South Indian Mandap Setting.png";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-soft-brown/40">
+                                <MapPin className="h-6 w-6 text-emerald-600/40" />
+                                <span className="text-[9px] mt-1">No photo</span>
+                              </div>
+                            )}
+                            <div className="absolute top-1 left-1 bg-burgundy/90 text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-2xs">
+                              {loc.year}
+                            </div>
+                          </div>
+
+                          {/* Place Names & Category Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-heading text-sm font-bold text-charcoal truncate">
+                              {loc.name}
+                            </h3>
+                            {loc.nameTe && (
+                              <p className="text-xs font-serif text-burgundy font-medium truncate">
+                                {loc.nameTe}
+                              </p>
+                            )}
+
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 rounded-md bg-warm-white border border-warm-beige px-2 py-0.5 text-[10px] font-semibold text-soft-brown">
+                                <span>{catMeta?.emoji || "📍"}</span>
+                                <span>{catMeta?.label || loc.category}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-mono font-medium text-emerald-800">
+                                {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                              </span>
+                            </div>
+
+                            <p className="mt-2 text-[11px] text-charcoal/75 line-clamp-2 leading-relaxed">
+                              {loc.story}
+                            </p>
+                            {loc.storyTe && (
+                              <p className="mt-1 text-[11px] text-burgundy/90 line-clamp-1 italic">
+                                {loc.storyTe}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Bottom Actions */}
+                      <div className="bg-peach-50/50 px-4 py-2.5 border-t border-warm-beige/60 flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-soft-brown/60 truncate max-w-[140px]">
+                          id: {loc.id}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditLocationModal(loc)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-champagne/70 text-charcoal border border-warm-beige px-2.5 py-1 text-[10px] font-semibold hover:bg-champagne transition-colors cursor-pointer"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            Edit Pin
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLocation(loc.id, loc.name)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 text-[10px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1716,6 +2154,335 @@ export default function AdminPage() {
                 className="px-5 py-2 rounded-xl bg-burgundy text-warm-white text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isSavingPost ? "Saving..." : instagramPosts.some((p) => p.id === editingPost.id) ? "Update Post" : "Create Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════
+          CREATE / EDIT MEMORY MAP LOCATION MODAL
+          ═══════════════════════════════════════ */}
+      {isLocationModalOpen && editingLocation && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-charcoal/60 backdrop-blur-sm overflow-y-auto py-8 px-4">
+          <div className="w-full max-w-2xl bg-warm-white rounded-3xl border-2 border-warm-beige shadow-2xl">
+            {/* Modal Header */}
+            <div className="sticky top-0 z-10 bg-warm-white rounded-t-3xl border-b border-warm-beige px-6 py-4 flex items-center justify-between">
+              <h2 className="font-heading text-lg font-bold text-charcoal flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-emerald-600" />
+                <span>
+                  {editingLocation.id && locations.some((l) => l.id === editingLocation.id)
+                    ? "Edit Destination Pin"
+                    : "Add New Destination Pin"}
+                </span>
+              </h2>
+              <button
+                type="button"
+                onClick={closeLocationModal}
+                className="p-1.5 rounded-full hover:bg-champagne/60 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5 text-soft-brown" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {/* Row 1: Place Name (English & Telugu) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Place Name (English) *</span>
+                    <span className="text-[10px] text-soft-brown/60">🇬🇧 English</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingLocation.name || ""}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, name: e.target.value })}
+                    placeholder="e.g. Goa — The Family Happy Place"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Place Name (Telugu / ప్రదేశం పేరు)</span>
+                    <span className="text-[10px] text-burgundy font-medium">🇮🇳 తెలుగు</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingLocation.nameTe || ""}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, nameTe: e.target.value })}
+                    placeholder="ఉదాహరణ: గోవా సముద్రతీరం — 2010"
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Year, Category & Custom Emoji Icon */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> Year *
+                  </label>
+                  <input
+                    type="number"
+                    value={editingLocation.year || ""}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, year: Number(e.target.value) })}
+                    placeholder="e.g. 2010"
+                    min={1950}
+                    max={2035}
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center gap-1">
+                    <Tag className="h-3 w-3" /> Category
+                  </label>
+                  <select
+                    value={editingLocation.category || "holiday"}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, category: e.target.value as MapLocationCategory })}
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal focus:border-burgundy focus:outline-hidden"
+                  >
+                    {LOCATION_CATEGORIES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.emoji} {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1">
+                    Emoji Pin Icon
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl p-1 bg-champagne/40 rounded-lg border border-warm-beige">
+                      {editingLocation.icon || "📍"}
+                    </span>
+                    <input
+                      type="text"
+                      value={editingLocation.icon || ""}
+                      onChange={(e) => setEditingLocation({ ...editingLocation, icon: e.target.value })}
+                      placeholder="e.g. 🏖️"
+                      maxLength={4}
+                      className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-sm text-charcoal focus:border-burgundy focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Emoji Quick Picker Row */}
+              <div>
+                <span className="block text-[11px] font-semibold text-soft-brown mb-1">Quick Emoji Picker:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {EMOJI_OPTIONS.map((em) => (
+                    <button
+                      key={em}
+                      type="button"
+                      onClick={() => setEditingLocation({ ...editingLocation, icon: em })}
+                      className={`text-lg p-1.5 rounded-lg border transition-all cursor-pointer ${
+                        editingLocation.icon === em
+                          ? "bg-burgundy/10 border-burgundy scale-110 shadow-xs"
+                          : "bg-warm-white border-warm-beige hover:bg-champagne/40"
+                      }`}
+                    >
+                      {em}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Row 3: Interactive Map Location Picker (Search + Click Pin + Drag) */}
+              <div className="space-y-2.5 rounded-2xl border border-warm-beige bg-champagne/15 p-3.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-burgundy flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4 text-gold" />
+                    <span>Select & Pin Location on Map *</span>
+                  </label>
+                  <span className="text-[10px] text-soft-brown font-medium">
+                    Search city/place or click on map to set pin
+                  </span>
+                </div>
+
+                <AdminLocationPickerMap
+                  lat={typeof editingLocation.lat === "number" && !isNaN(editingLocation.lat) ? editingLocation.lat : null}
+                  lng={typeof editingLocation.lng === "number" && !isNaN(editingLocation.lng) ? editingLocation.lng : null}
+                  icon={editingLocation.icon || "📍"}
+                  onChange={(newLat, newLng, suggestedName) => {
+                    setEditingLocation((prev) => ({
+                      ...prev,
+                      lat: newLat,
+                      lng: newLng,
+                      name: (!prev?.name || prev.name.trim() === "") && suggestedName ? suggestedName : prev?.name,
+                    }));
+                  }}
+                />
+
+                {/* Synchronized Exact Coordinate Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                      <span>Latitude (GPS North/South) *</span>
+                      <span className="text-[10px] text-emerald-700 font-mono">lat</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={editingLocation.lat ?? ""}
+                      onChange={(e) => setEditingLocation({ ...editingLocation, lat: parseFloat(e.target.value) })}
+                      placeholder="17.3850"
+                      className="w-full rounded-xl border border-warm-beige bg-white px-3 py-1.5 text-xs sm:text-sm font-mono text-charcoal focus:border-burgundy focus:outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                      <span>Longitude (GPS East/West) *</span>
+                      <span className="text-[10px] text-emerald-700 font-mono">lng</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={editingLocation.lng ?? ""}
+                      onChange={(e) => setEditingLocation({ ...editingLocation, lng: parseFloat(e.target.value) })}
+                      placeholder="78.4867"
+                      className="w-full rounded-xl border border-warm-beige bg-white px-3 py-1.5 text-xs sm:text-sm font-mono text-charcoal focus:border-burgundy focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: Stories (English & Telugu) */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Memory Story (English)</span>
+                    <span className="text-[10px] text-soft-brown/60">🇬🇧 English</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editingLocation.story || ""}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, story: e.target.value })}
+                    placeholder="Tell the unforgettable memory of what happened here..."
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-soft-brown mb-1 flex items-center justify-between">
+                    <span>Memory Story (Telugu / కథనం)</span>
+                    <span className="text-[10px] text-burgundy font-medium">🇮🇳 తెలుగు</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editingLocation.storyTe || ""}
+                    onChange={(e) => setEditingLocation({ ...editingLocation, storyTe: e.target.value })}
+                    placeholder="ఈ ప్రదేశానికి సంబంధించిన మధుర జ్ఞాపకాన్ని తెలుగులో రాయండి..."
+                    className="w-full rounded-xl border border-warm-beige bg-champagne/20 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Row 5: Photo Upload & URL */}
+              <div className="rounded-2xl border border-warm-beige bg-champagne/10 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-xs font-semibold text-charcoal flex items-center gap-1.5">
+                    <ImageIcon className="h-4 w-4 text-burgundy" />
+                    <span>Destination Photo (Cloudinary Integrated)</span>
+                  </label>
+                  {isUploadingLocationImage && (
+                    <span className="text-xs font-semibold text-burgundy flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3 animate-spin" /> Uploading to Cloudinary...
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {/* Photo Preview */}
+                  <div className="w-24 h-24 rounded-xl border border-warm-beige bg-warm-white overflow-hidden shrink-0 relative flex items-center justify-center">
+                    {editingLocation.image ? (
+                      <img
+                        src={resolveMediaUrl(editingLocation.image)}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/Golden South Indian Mandap Setting.png";
+                        }}
+                      />
+                    ) : (
+                      <div className="text-center p-2 text-soft-brown/40">
+                        <Camera className="mx-auto h-6 w-6 text-soft-brown/30" />
+                        <span className="text-[9px]">No photo</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div className="flex-1 space-y-2 w-full">
+                    <input
+                      ref={locationFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadLocationImage(file);
+                      }}
+                    />
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => locationFileInputRef.current?.click()}
+                        disabled={isUploadingLocationImage}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-burgundy text-white text-xs font-semibold hover:bg-deep-burgundy transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        <span>Upload Photo from Device</span>
+                      </button>
+
+                      {editingLocation.image && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingLocation({ ...editingLocation, image: "" })}
+                          className="px-2.5 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-colors cursor-pointer"
+                        >
+                          Remove Photo
+                        </button>
+                      )}
+                    </div>
+
+                    <input
+                      type="text"
+                      value={editingLocation.image || ""}
+                      onChange={(e) => setEditingLocation({ ...editingLocation, image: e.target.value })}
+                      placeholder="Or paste an image URL directly..."
+                      className="w-full rounded-xl border border-warm-beige bg-warm-white px-3 py-1.5 text-xs text-charcoal placeholder:text-soft-brown/40 focus:border-burgundy focus:outline-hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-warm-white rounded-b-3xl border-t border-warm-beige px-6 py-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeLocationModal}
+                className="px-5 py-2 rounded-xl border border-warm-beige text-xs font-semibold text-soft-brown hover:bg-champagne/60 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveLocation}
+                disabled={isSavingLocation || !editingLocation.name?.trim() || !editingLocation.year}
+                className="px-5 py-2 rounded-xl bg-burgundy text-warm-white text-xs font-semibold hover:bg-deep-burgundy shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isSavingLocation
+                  ? "Saving Pin..."
+                  : editingLocation.id && locations.some((l) => l.id === editingLocation.id)
+                  ? "Update Destination Pin"
+                  : "Save Destination Pin"}
               </button>
             </div>
           </div>

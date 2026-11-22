@@ -3,8 +3,10 @@ import type {
   GuestWish,
   TriviaLeaderboardEntry,
   AdminStats,
+  MapLocation,
 } from "./types";
 import { instagramPosts, type InstagramPost } from "@/data/instagramPosts";
+import { mapLocations } from "@/data/map-locations";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/saa";
@@ -495,4 +497,58 @@ export async function fetchInstagramPosts(): Promise<{
 
   // Guaranteed fallback to static curated posts
   return { success: false, posts: instagramPosts };
+}
+
+// ──────────────────────────────────────────────
+// 7. MEMORY MAP LOCATIONS API
+// ──────────────────────────────────────────────
+
+export async function fetchMapLocations(): Promise<{
+  success: boolean;
+  locations: MapLocation[];
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/locations`, {
+      headers: { Accept: "application/json" },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.locations) && data.locations.length > 0) {
+        return { success: true, locations: data.locations };
+      }
+    }
+  } catch (err) {
+    console.warn("[API] Primary fetch failed for map locations:", err);
+  }
+
+  // Secondary dev fallback to localhost:8080 if running backend on default port
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname === "localhost" &&
+    !API_BASE.includes("8080")
+  ) {
+    try {
+      const res = await fetch("http://localhost:8080/api/saa/locations");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.locations) && data.locations.length > 0) {
+          return { success: true, locations: data.locations };
+        }
+      }
+    } catch {}
+  }
+
+  // Next.js internal API route fallback
+  try {
+    const internalRes = await fetch("/api/locations");
+    if (internalRes.ok) {
+      const data = await internalRes.json();
+      if (data.success && Array.isArray(data.locations) && data.locations.length > 0) {
+        return { success: true, locations: data.locations };
+      }
+    }
+  } catch {}
+
+  // Guaranteed fallback to static curated seed locations
+  return { success: false, locations: mapLocations };
 }

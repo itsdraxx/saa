@@ -22,6 +22,7 @@ import wishesRouter from "./routes/wishes.js";
 import adminRouter from "./routes/admin.js";
 import healthRouter from "./routes/health.js";
 import postsRouter from "./routes/posts.js";
+import locationsRouter from "./routes/locations.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
@@ -82,6 +83,9 @@ app.use("/admin", adminRouter);
 
 app.use("/api/saa/posts", postsRouter);
 app.use("/posts", postsRouter);
+
+app.use("/api/saa/locations", locationsRouter);
+app.use("/locations", locationsRouter);
 
 app.use("/api/saa/health", healthRouter);
 app.use("/health", healthRouter);
