@@ -69,7 +69,19 @@ import type {
   AdminMapLocation,
   MapLocationCategory,
 } from "@/lib/types";
-import AdminLocationPickerMap from "@/components/AdminLocationPickerMap";
+import dynamic from "next/dynamic";
+
+const AdminLocationPickerMap = dynamic(
+  () => import("@/components/AdminLocationPickerMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[280px] w-full rounded-2xl border-2 border-[#C68A2C]/40 bg-champagne/30 flex items-center justify-center text-xs text-soft-brown font-medium animate-pulse">
+        🗺️ Loading interactive map...
+      </div>
+    ),
+  }
+);
 
 const FRONTEND_URL =
   process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/\/$/, "") || "http://localhost:3000";

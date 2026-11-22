@@ -159,6 +159,11 @@ export default function AdminLocationPickerMap({
           }
         });
 
+        // Trigger resizes to accommodate modal open animation
+        const t1 = setTimeout(() => !isCancelled && map.resize(), 100);
+        const t2 = setTimeout(() => !isCancelled && map.resize(), 300);
+        const t3 = setTimeout(() => !isCancelled && map.resize(), 600);
+
         mapInstanceRef.current = map;
       })
       .catch((err) => {
@@ -168,11 +173,11 @@ export default function AdminLocationPickerMap({
     return () => {
       isCancelled = true;
       if (markerRef.current) {
-        markerRef.current.remove();
+        try { markerRef.current.remove(); } catch {}
         markerRef.current = null;
       }
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
+        try { mapInstanceRef.current.remove(); } catch {}
         mapInstanceRef.current = null;
       }
     };
