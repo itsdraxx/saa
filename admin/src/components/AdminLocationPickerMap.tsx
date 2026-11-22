@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import type * as maplibreglType from "maplibre-gl";
 import { Search, MapPin, Loader2, Compass, Plus, Minus, X, Check } from "lucide-react";
 
 interface SearchResult {
@@ -31,6 +30,43 @@ const CITY_PRESETS = [
   { name: "Chennai", lat: 13.0827, lng: 80.2707 },
 ];
 
+/**
+ * Robust loader for MapLibre:
+ * Checks window.maplibregl (loaded via CDN script) first.
+ * If not present, injects the unpkg CDN script at runtime.
+ * Never causes webpack "Module not found: Can't resolve 'maplibre-gl'" at build time.
+ */
+async function getMaplibreLib(): Promise<any> {
+  if (typeof window === "undefined") throw new Error("SSR not supported for maps");
+  if ((window as any).maplibregl) return (window as any).maplibregl;
+
+  const existingScript = document.getElementById("maplibre-cdn-script");
+  if (existingScript) {
+    if ((window as any).maplibregl) return (window as any).maplibregl;
+    return new Promise((resolve) => {
+      existingScript.addEventListener("load", () => resolve((window as any).maplibregl));
+      setTimeout(() => resolve((window as any).maplibregl), 600);
+    });
+  }
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.id = "maplibre-cdn-script";
+    script.src = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
+    script.async = true;
+    script.onload = () => resolve((window as any).maplibregl);
+    script.onerror = () => {
+      try {
+        const loadNpm = new Function('return import("maplibre-gl")');
+        loadNpm().then((m: any) => resolve(m.default || m)).catch(() => resolve(null));
+      } catch {
+        resolve(null);
+      }
+    };
+    document.head.appendChild(script);
+  });
+}
+
 export default function AdminLocationPickerMap({
   lat,
   lng,
@@ -38,9 +74,8 @@ export default function AdminLocationPickerMap({
   onChange,
 }: AdminLocationPickerMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<maplibreglType.Map | null>(null);
-  const markerRef = useRef<maplibreglType.Marker | null>(null);
-  const maplibreModuleRef = useRef<typeof maplibreglType | null>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -100,14 +135,9 @@ export default function AdminLocationPickerMap({
 
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    import("maplibre-gl")
+    getMaplibreLib()
       .then((maplibregl) => {
-        if (isCancelled || !mapContainerRef.current) return;
-
-        maplibreModuleRef.current = maplibregl;
-        if (typeof maplibregl.setWorkerUrl === "function") {
-          maplibregl.setWorkerUrl("/maplibre-gl-worker.mjs");
-        }
+        if (isCancelled || !mapContainerRef.current || !maplibregl) return;
 
         const map = new maplibregl.Map({
           container: mapContainerRef.current,
@@ -141,7 +171,7 @@ export default function AdminLocationPickerMap({
         });
 
         // When user clicks anywhere on the map
-        map.on("click", (e) => {
+        map.on("click", (e: any) => {
           const { lng: clickLng, lat: clickLat } = e.lngLat;
           const roundedLat = parseFloat(clickLat.toFixed(6));
           const roundedLng = parseFloat(clickLng.toFixed(6));

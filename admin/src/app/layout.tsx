@@ -33,6 +33,10 @@ export default function AdminLayout({
           rel="stylesheet"
           href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
         />
+        <script
+          src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"
+          async
+        />
       </head>
       <body className="min-h-screen bg-peach-50/50 text-charcoal font-body">
         {children}
