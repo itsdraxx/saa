@@ -626,7 +626,7 @@ export default function AdminPage() {
               Admin Moderation Portal
             </h1>
             <span className="text-[10px] text-soft-brown font-medium">
-              Bujji &amp; Satya — 25 Years of Us
+              Adhi &amp; Satya — 25 Years of Us
             </span>
           </div>
         </div>

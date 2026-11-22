@@ -84,12 +84,22 @@ function playCelebrationFanfare() {
   playTone(1318.5, "sine", 0.55, 0.45, 0.2);
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function TriviaGame({ autoStart = true, embedded = false }: TriviaGameProps) {
   const { language, isTelugu } = useLanguage();
   const t = translations[language].trivia;
   const [gameState, setGameState] = useState<"intro" | "playing" | "results">(
     autoStart ? "playing" : "intro"
   );
+  const [questions, setQuestions] = useState(triviaQuestions);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -125,6 +135,37 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         const savedName = localStorage.getItem("saa_user_name");
         if (savedName) setPlayerName(savedName);
         setStartTime((prev) => (prev > 0 ? prev : Date.now()));
+
+        // Restore or initialize randomized question order
+        const savedOrder = localStorage.getItem("saa_trivia_order");
+        if (savedOrder) {
+          try {
+            const idOrder: number[] = JSON.parse(savedOrder);
+            if (Array.isArray(idOrder) && idOrder.length === triviaQuestions.length) {
+              const qMap = new Map(triviaQuestions.map((q) => [q.id, q]));
+              const restored = idOrder.map((id) => qMap.get(id)).filter(Boolean) as typeof triviaQuestions;
+              if (restored.length === triviaQuestions.length) {
+                setQuestions(restored);
+              } else {
+                const shuffled = shuffleArray(triviaQuestions);
+                setQuestions(shuffled);
+                localStorage.setItem("saa_trivia_order", JSON.stringify(shuffled.map((q) => q.id)));
+              }
+            } else {
+              const shuffled = shuffleArray(triviaQuestions);
+              setQuestions(shuffled);
+              localStorage.setItem("saa_trivia_order", JSON.stringify(shuffled.map((q) => q.id)));
+            }
+          } catch {
+            const shuffled = shuffleArray(triviaQuestions);
+            setQuestions(shuffled);
+            localStorage.setItem("saa_trivia_order", JSON.stringify(shuffled.map((q) => q.id)));
+          }
+        } else {
+          const shuffled = shuffleArray(triviaQuestions);
+          setQuestions(shuffled);
+          localStorage.setItem("saa_trivia_order", JSON.stringify(shuffled.map((q) => q.id)));
+        }
 
         // 1. Check if already completed locally
         const completed = localStorage.getItem("saa_trivia_completed") === "true";
@@ -228,13 +269,13 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
 
     const effectiveScore = typeof customScore === "number" ? customScore : score;
     const timeTaken = startTime > 0 ? Math.round((Date.now() - startTime) / 1000) : 45;
-    const percentage = Math.round((effectiveScore / triviaQuestions.length) * 100);
+    const percentage = Math.round((effectiveScore / questions.length) * 100);
 
     try {
       const res = await submitTriviaScore({
         player_name: cleanName,
         score: effectiveScore,
-        total: triviaQuestions.length,
+        total: questions.length,
         percentage,
         time_taken: timeTaken,
         visitor_id: getVisitorId(),
@@ -289,13 +330,19 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
     } catch {}
   };
 
-  const currentQ = triviaQuestions[currentIndex] || triviaQuestions[0];
+  const currentQ = questions[currentIndex] || questions[0];
 
   const handleStart = () => {
     if (localStorage.getItem("saa_trivia_completed") === "true") {
       setGameState("results");
       return;
     }
+
+    const shuffled = shuffleArray(triviaQuestions);
+    setQuestions(shuffled);
+    try {
+      localStorage.setItem("saa_trivia_order", JSON.stringify(shuffled.map((q) => q.id)));
+    } catch {}
 
     setGameState("playing");
     setCurrentIndex(0);
@@ -368,7 +415,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
   };
 
   const handleNext = () => {
-    if (currentIndex + 1 < triviaQuestions.length) {
+    if (currentIndex + 1 < questions.length) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
 
@@ -423,22 +470,22 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
   };
 
   const getResultsFeedback = () => {
-    const percentage = Math.round((score / triviaQuestions.length) * 100);
+    const percentage = Math.round((score / questions.length) * 100);
     if (percentage === 100) {
       return {
         badge: isTelugu ? "👑 రాయల్ ఫ్యామిలీ హిస్టోరియన్!" : "👑 Royal Family Historian!",
         title: isTelugu ? "నూటికి నూరు శాతం పర్ఫెక్ట్!" : "100% Perfect Memory!",
         desc: isTelugu
-          ? "మీరు బుజ్జి & సత్య గురించి ప్రతి చిన్న జ్ఞాపకాన్ని గుర్తుపెట్టుకున్నారు! మీరు నిజంగా మా కుటుంబానికి గుండెకాయ!"
-          : "You know Bujji & Satya inside out! Every wedding tradition, funny quirk, and joyful memory is alive in your heart.",
+          ? "మీరు ఆది & సత్య గురించి ప్రతి చిన్న జ్ఞాపకాన్ని గుర్తుపెట్టుకున్నారు! మీరు నిజంగా మా కుటుంబానికి గుండెకాయ!"
+          : "You know Adhi & Satya inside out! Every wedding tradition, funny quirk, and joyful memory is alive in your heart.",
       };
     } else if (percentage >= 65) {
       return {
         badge: isTelugu ? "💎 ఫ్యామిలీ ఇన్‌సైడర్!" : "💎 Family Insider!",
         title: isTelugu ? "అద్భుతమైన స్కోరు!" : "Outstanding Score!",
         desc: isTelugu
-          ? "మీకు బుజ్జి & సత్యతో ఎంతో అందమైన జ్ఞాపకాలు ఉన్నాయి! దాదాపు అన్ని ప్రశ్నలకు సరైన సమాధానం చెప్పారు!"
-          : "You clearly share a very special bond with Bujji & Satya. Almost every memory hit the bullseye!",
+          ? "మీకు ఆది & సత్యతో ఎంతో అందమైన జ్ఞాపకాలు ఉన్నాయి! దాదాపు అన్ని ప్రశ్నలకు సరైన సమాధానం చెప్పారు!"
+          : "You clearly share a very special bond with Adhi & Satya. Almost every memory hit the bullseye!",
       };
     } else {
       return {
@@ -480,7 +527,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
           </p>
 
           <div className="my-6 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 rounded-full border border-warm-beige bg-champagne/40 px-5 py-2 text-xs text-soft-brown font-medium">
-            <span>📝 {isTelugu ? `${triviaQuestions.length} జ్ఞాపకాలు` : `${triviaQuestions.length} Memories`}</span>
+            <span>📝 {isTelugu ? `${questions.length} జ్ఞాపకాలు` : `${questions.length} Memories`}</span>
             <span>•</span>
             <span>🔒 {t.oneTimeNotice || "One-time Attempt"}</span>
           </div>
@@ -514,7 +561,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
           <div className="flex items-center justify-between border-b border-warm-beige/50 pb-2.5 flex-wrap gap-2">
             {/* Milestone Diamond Pearls (Compact) */}
             <div className="flex items-center gap-1 sm:gap-1.5">
-              {triviaQuestions.map((q, idx) => {
+              {questions.map((q, idx) => {
                 const isPast = idx < currentIndex;
                 const isCurrent = idx === currentIndex;
                 const userChoice = userAnswers[idx];
@@ -578,8 +625,8 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
 
             <span className="text-[11px] font-semibold text-soft-brown/80">
               {isTelugu
-                ? `${t.questionLabel} ${currentIndex + 1} / ${triviaQuestions.length}`
-                : `Question ${currentIndex + 1} of ${triviaQuestions.length}`}
+                ? `${t.questionLabel} ${currentIndex + 1} / ${questions.length}`
+                : `Question ${currentIndex + 1} of ${questions.length}`}
             </span>
           </div>
 
@@ -691,7 +738,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                     className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-5 py-2 text-xs sm:text-sm font-bold text-warm-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer ring-1 ring-gold/40 shrink-0"
                   >
                     <span>
-                      {currentIndex + 1 === triviaQuestions.length
+                      {currentIndex + 1 === questions.length
                         ? t.seeFinalScore
                         : isTelugu
                         ? "తర్వాతి జ్ఞాపకం →"
@@ -718,13 +765,13 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
         >
           {(() => {
             const feedback = getResultsFeedback();
-            const percentage = Math.round((score / triviaQuestions.length) * 100);
+            const percentage = Math.round((score / questions.length) * 100);
 
             return (
               <>
                 {/* Royal Crown / Emblem */}
                 <div className="mx-auto flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-gradient-to-tr from-peach-100 via-champagne to-peach-100 text-3xl sm:text-4xl shadow-md ring-4 ring-gold/30">
-                  {score === triviaQuestions.length ? "👑" : score >= 4 ? "💎" : "❤️"}
+                  {score === questions.length ? "👑" : score >= Math.ceil(questions.length * 0.6) ? "💎" : "❤️"}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
@@ -747,7 +794,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                     {score}
                   </span>
                   <span className="font-heading text-xl sm:text-2xl text-soft-brown font-semibold">
-                    / {triviaQuestions.length}
+                    / {questions.length}
                   </span>
                   <span className="ml-2 rounded-full bg-champagne/80 px-2.5 py-0.5 text-xs font-bold text-burgundy">
                     {percentage}%
@@ -930,7 +977,9 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                       <span>
                         {showReview
                           ? t.hideReviewButton || "Hide Your Locked Answers"
-                          : t.reviewAnswersButton || "Review All 6 Family Memories"}
+                          : isTelugu
+                          ? `మొత్తం ${questions.length} జ్ఞాపకాలను చూడండి`
+                          : `Review All ${questions.length} Family Memories`}
                       </span>
                     </div>
                     {showReview ? (
@@ -948,7 +997,7 @@ export default function TriviaGame({ autoStart = true, embedded = false }: Trivi
                         exit={{ opacity: 0, height: 0 }}
                         className="mt-4 space-y-4 overflow-hidden"
                       >
-                        {triviaQuestions.map((q, qIdx) => {
+                        {questions.map((q, qIdx) => {
                           const chosenIdx = userAnswers[qIdx];
                           const hasChosen = chosenIdx !== undefined;
                           const wasCorrect = hasChosen && q.options[chosenIdx]?.isCorrect;

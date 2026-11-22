@@ -7,9 +7,10 @@ import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bujji Weds Satya — 25 Years of Love ❤️ | Married 23 Nov 2001",
+  metadataBase: new URL("https://adhiwedssatya.vercel.app"),
+  title: "Adhi Weds Satya — 25 Years of Love ❤️ | Married 23 Nov 2001",
   description:
-    "Celebrating twenty-five extraordinary years of love, family, and togetherness for Bujji & Satya since 23 November 2001.",
+    "Celebrating twenty-five extraordinary years of love, family, and togetherness for Adhi & Satya since 23 November 2001.",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -17,6 +18,14 @@ export const metadata: Metadata = {
     ],
     shortcut: "/icon.svg",
     apple: "/logo.svg",
+  },
+  openGraph: {
+    title: "Adhi Weds Satya — 25 Years of Love ❤️",
+    description: "Celebrating 25 extraordinary years of togetherness since 23 November 2001.",
+    url: "https://adhiwedssatya.vercel.app",
+    siteName: "Adhi & Satya Silver Jubilee",
+    locale: "en_IN",
+    type: "website",
   },
 };
 

@@ -16,8 +16,8 @@ export default function TriviaPreview() {
           title={t.previewHeading}
           subtitle={
             isTelugu
-              ? "బుజ్జి & సత్య గురించి మీకు ఎంత తెలుసు? జ్ఞాపకాలను ఇక్కడే ఒక్కొక్కటిగా ఊహించండి!"
-              : "How well do you know Bujji & Satya? Guess the memories right here, one after another!"
+              ? "ఆది & సత్య గురించి మీకు ఎంత తెలుసు? జ్ఞాపకాలను ఇక్కడే ఒక్కొక్కటిగా ఊహించండి!"
+              : "How well do you know Adhi & Satya? Guess the memories right here, one after another!"
           }
         />
 

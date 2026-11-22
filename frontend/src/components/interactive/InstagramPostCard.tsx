@@ -277,13 +277,13 @@ export default function InstagramPostCard({
 
   // Share action
   const handleShare = async () => {
-    const shareText = `Check out this 25-Year memory of Bujji & Satya: "${post.title}" (${post.year}) ❤️`;
+    const shareText = `Check out this 25-Year memory of Adhi & Satya: "${post.title}" (${post.year}) ❤️`;
     const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/#${post.id}` : "";
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Bujji Weds Satya — ${post.title}`,
+          title: `Adhi Weds Satya — ${post.title}`,
           text: shareText,
           url: shareUrl,
         });
@@ -476,7 +476,7 @@ export default function InstagramPostCard({
               <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-peach-50 border-2 border-warm-white overflow-hidden">
                 <Image
                   src="/images/art/couple_sittinga_and_welcoming.png"
-                  alt="Bujji & Satya"
+                  alt="Adhi & Satya"
                   width={40}
                   height={40}
                   className="h-full w-full object-cover object-top"
@@ -488,7 +488,7 @@ export default function InstagramPostCard({
             <div className="flex flex-col text-left">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-sans text-xs sm:text-sm font-bold text-charcoal tracking-tight hover:text-burgundy transition-colors cursor-pointer">
-                  bujji_weds_satya
+                  adhi_weds_satya
                 </span>
                 <CheckCircle2 className="h-3.5 w-3.5 fill-[#0095F6] text-white inline-block shrink-0" />
                 <span className="text-[10px] text-soft-brown/60">•</span>
@@ -745,7 +745,7 @@ export default function InstagramPostCard({
             {/* Caption Description */}
             <div className="mt-1 text-xs sm:text-sm text-charcoal font-sans leading-relaxed">
               <span className="font-bold text-charcoal mr-1.5 cursor-pointer hover:underline">
-                bujji_weds_satya
+                adhi_weds_satya
               </span>
               <span className="font-semibold text-burgundy mr-1">
                 {displayTitle} —
@@ -834,7 +834,7 @@ export default function InstagramPostCard({
               <span className="truncate">
                 {userName
                   ? (isTelugu ? `${userName} గా మీ కామెంట్ రాయండి...` : `Add a comment as ${userName}...`)
-                  : (isTelugu ? "బుజ్జి & సత్య దంపతులకు మీ శుభాకాంక్షలు తెలపండి..." : "Add a comment for Bujji & Satya...")}
+                  : (isTelugu ? "ఆది & సత్య దంపతులకు మీ శుభాకాంక్షలు తెలపండి..." : "Add a comment for Adhi & Satya...")}
               </span>
               <span className="text-sm">❤️</span>
             </div>

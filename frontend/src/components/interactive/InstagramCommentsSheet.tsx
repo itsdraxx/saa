@@ -185,12 +185,12 @@ export default function InstagramCommentsSheet({
             >
               {/* Pinned Original Post Caption at the top */}
               <div className="flex items-start gap-3 pb-3">
-                {/* Bujji & Satya Story Avatar */}
+                {/* Adhi & Satya Story Avatar */}
                 <div className="relative p-[1.5px] rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] shrink-0">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-peach-50 border border-warm-white overflow-hidden">
                     <Image
                       src="/images/art/couple_sittinga_and_welcoming.png"
-                      alt="Bujji & Satya"
+                      alt="Adhi & Satya"
                       width={36}
                       height={36}
                       className="h-full w-full object-cover object-top"
@@ -201,7 +201,7 @@ export default function InstagramCommentsSheet({
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-sans text-xs sm:text-sm font-bold text-charcoal">
-                      bujji_weds_satya
+                      adhi_weds_satya
                     </span>
                     <CheckCircle2 className="h-3.5 w-3.5 fill-[#0095F6] text-white shrink-0" />
                     <span className="text-[10px] text-soft-brown/60">•</span>
@@ -232,7 +232,7 @@ export default function InstagramCommentsSheet({
                     No comments yet
                   </p>
                   <p className="text-xs max-w-xs mt-1">
-                    Be the very first family member to leave loving blessings for Bujji & Satya!
+                    Be the very first family member to leave loving blessings for Adhi & Satya!
                   </p>
                 </div>
               ) : (

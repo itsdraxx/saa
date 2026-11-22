@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Admin Moderation Portal — Bujji & Satya (25 Years of Us)",
-  description: "Private moderation dashboard for Bujji & Satya's 25th Wedding Anniversary website.",
+  title: "Admin Moderation Portal — Adhi & Satya (25 Years of Us)",
+  description: "Private moderation dashboard for Adhi & Satya's 25th Wedding Anniversary website.",
   robots: {
     index: false,
     follow: false,

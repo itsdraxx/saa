@@ -90,7 +90,7 @@ export default function InstagramNameModal({
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-peach-50 border-2 border-warm-white overflow-hidden">
                   <Image
                     src="/images/art/couple_sittinga_and_welcoming.png"
-                    alt="Bujji & Satya"
+                    alt="Adhi & Satya"
                     width={64}
                     height={64}
                     className="h-full w-full object-cover object-top"
@@ -105,8 +105,8 @@ export default function InstagramNameModal({
             </h3>
             <p className="mt-1 text-xs text-soft-brown leading-relaxed px-2">
               {isTelugu
-                ? "బుజ్జి & సత్య దంపతులకు మీ ఆశీస్సులు ఎవరు అందజేశారో తెలిసేలా దయచేసి మీ పేరు లేదా బంధుత్వాన్ని నమోదు చేయండి ❤️"
-                : "Please enter your name or family relation so Bujji & Satya know who left these loving blessings ❤️"}
+                ? "ఆది & సత్య దంపతులకు మీ ఆశీస్సులు ఎవరు అందజేశారో తెలిసేలా దయచేసి మీ పేరు లేదా బంధుత్వాన్ని నమోదు చేయండి ❤️"
+                : "Please enter your name or family relation so Adhi & Satya know who left these loving blessings ❤️"}
             </p>
 
             {/* Form */}

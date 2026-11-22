@@ -58,7 +58,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/instagram/first_sight.png",
-        alt: "The fateful day Bujji and Satya first crossed paths",
+        alt: "The fateful day Adhi and Satya first crossed paths",
         caption: "A chance meeting that changed our destinies forever",
         tag: "First Glance",
         themeGradient: "from-amber-200 via-rose-100 to-amber-100",
@@ -77,7 +77,7 @@ export const instagramPosts: InstagramPost[] = [
     caption:
       "A chance encounter at a friend's gathering in Hyderabad changed everything. Two strangers, nervous smiles, one endless conversation, and a spark that set 25 years into motion.",
     category: "milestone",
-    hashtags: ["#FirstMeeting", "#Fate", "#WhereItAllBegan", "#BujjiAndSatya"],
+    hashtags: ["#FirstMeeting", "#Fate", "#WhereItAllBegan", "#AdhiAndSatya"],
     comments: [],
   },
 
@@ -100,9 +100,9 @@ export const instagramPosts: InstagramPost[] = [
       },
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya seated in traditional wedding attire welcoming guests",
-        caption: "Bujji & Satya welcoming loved ones with sacred folded hands 🙏",
-        tag: "Bujji Weds Satya",
+        alt: "Adhi and Satya seated in traditional wedding attire welcoming guests",
+        caption: "Adhi & Satya welcoming loved ones with sacred folded hands 🙏",
+        tag: "Adhi Weds Satya",
         themeGradient: "from-rose-200 via-amber-100 to-rose-300",
         iconName: "heart",
       },
@@ -125,10 +125,10 @@ export const instagramPosts: InstagramPost[] = [
     ],
     likesCount: 0,
     caption:
-      "On 23 November 2001, surrounded by family, sacred Vedic mantras, and the divine fragrance of jasmine, Bujji and Satya became one. 25 years later, every promise made under this mandap stands stronger than ever.",
+      "On 23 November 2001, surrounded by family, sacred Vedic mantras, and the divine fragrance of jasmine, Adhi and Satya became one. 25 years later, every promise made under this mandap stands stronger than ever.",
     category: "wedding",
     hashtags: [
-      "#BujjiWedsSatya",
+      "#AdhiWedsSatya",
       "#23Nov2001",
       "#SilverJubilee",
       "#SouthIndianWedding",
@@ -148,7 +148,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/instagram/portrait/couple_welcoming_portrait.png",
-        alt: "Bujji and Satya smiling in their first apartment",
+        alt: "Adhi and Satya smiling in their first apartment",
         caption: "Balcony evenings sipping cardamom chai and dreaming of the future",
         tag: "Sweet Chai Moments",
         themeGradient: "from-rose-100 via-amber-100 to-orange-100",
@@ -182,7 +182,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya stepping into parenthood with immense love",
+        alt: "Adhi and Satya stepping into parenthood with immense love",
         caption: "The day our hearts learned to beat outside our bodies",
         tag: "Bundle of Joy",
         themeGradient: "from-rose-100 via-pink-100 to-peach-100",
@@ -216,7 +216,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/instagram/portrait/couple_welcoming_portrait.png",
-        alt: "Bujji and Satya rejoicing as parents of two",
+        alt: "Adhi and Satya rejoicing as parents of two",
         caption: "Tiny footsteps echoing through the hallway and happy bedtime tales",
         tag: "Double Blessing",
         themeGradient: "from-amber-100 via-rose-100 to-pink-100",
@@ -284,7 +284,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya laughing together enjoying the cool sea breeze",
+        alt: "Adhi and Satya laughing together enjoying the cool sea breeze",
         caption: "Seaside breeze, tender smiles, and 100% unplugged joy",
         tag: "Pure Joy",
         themeGradient: "from-cyan-100 via-blue-100 to-amber-100",
@@ -334,7 +334,7 @@ export const instagramPosts: InstagramPost[] = [
       },
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya cutting the anniversary cake",
+        alt: "Adhi and Satya cutting the anniversary cake",
         caption: "Fifteen years hand in hand — each year sweeter than the last",
         tag: "Crystal Milestone",
         themeGradient: "from-amber-200 via-rose-100 to-peach-100",
@@ -360,7 +360,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/instagram/portrait/couple_welcoming_portrait.png",
-        alt: "Bujji and Satya bundled up in woolen mufflers and winter coats",
+        alt: "Adhi and Satya bundled up in woolen mufflers and winter coats",
         caption: "Warm hearts in cold weather — sharing one hot cocoa",
         tag: "Mountain Warmth",
         themeGradient: "from-blue-100 via-indigo-100 to-rose-100",
@@ -410,7 +410,7 @@ export const instagramPosts: InstagramPost[] = [
       },
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya smiling warmly renewing eternal vows",
+        alt: "Adhi and Satya smiling warmly renewing eternal vows",
         caption: "Surrounded by our children, reaffirming our lifelong devotion",
         tag: "Vows Renewed",
         themeGradient: "from-rose-200 via-amber-100 to-peach-100",
@@ -436,7 +436,7 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/instagram/portrait/couple_welcoming_portrait.png",
-        alt: "Bujji and Satya enjoying sunset dates and peaceful morning walks",
+        alt: "Adhi and Satya enjoying sunset dates and peaceful morning walks",
         caption: "Rediscovering each other all over again in our quiet home",
         tag: "Second Honeymoon",
         themeGradient: "from-rose-100 via-amber-100 to-rose-200",
@@ -470,8 +470,8 @@ export const instagramPosts: InstagramPost[] = [
     images: [
       {
         src: "/images/art/couple_sittinga_and_welcoming.png",
-        alt: "Bujji and Satya in radiant wedding attire welcoming all with folded hands",
-        caption: "Bujji Weds Satya — Celebrating 25 Years of Divine Love ❤️",
+        alt: "Adhi and Satya in radiant wedding attire welcoming all with folded hands",
+        caption: "Adhi Weds Satya — Celebrating 25 Years of Divine Love ❤️",
         tag: "Silver Jubilee",
         themeGradient: "from-amber-300 via-rose-300 to-amber-200",
         iconName: "sparkles",
@@ -503,10 +503,10 @@ export const instagramPosts: InstagramPost[] = [
     ],
     likesCount: 0,
     caption:
-      "A quarter-century of unwavering love, deep laughter, and beautiful sacrifices. From that very first glance in 1999 to this Silver Jubilee, every single heartbeat has been a blessing. Here is to Bujji & Satya — 25 Years of Love, and forever more to come! 🥂👑❤️",
+      "A quarter-century of unwavering love, deep laughter, and beautiful sacrifices. From that very first glance in 1999 to this Silver Jubilee, every single heartbeat has been a blessing. Here is to Adhi & Satya — 25 Years of Love, and forever more to come! 🥂👑❤️",
     category: "celebration",
     hashtags: [
-      "#BujjiWedsSatya",
+      "#AdhiWedsSatya",
       "#SilverJubilee",
       "#25YearsOfLove",
       "#QuarterCentury",

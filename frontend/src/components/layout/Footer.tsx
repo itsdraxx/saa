@@ -26,7 +26,7 @@ export default function Footer() {
         </div>
 
         <h3 className="font-heading text-3xl font-semibold text-charcoal sm:text-4xl">
-          {t.title || "Bujji Weds Satya"}
+          {t.title || "Adhi Weds Satya"}
         </h3>
 
         <p className="mt-2 font-heading text-xl italic tracking-wide text-burgundy flex items-center justify-center gap-1.5">

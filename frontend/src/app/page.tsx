@@ -12,7 +12,7 @@ import DedicationSection from "@/components/sections/DedicationSection";
 export default function HomePage() {
   return (
     <div className="flex flex-col w-full overflow-hidden">
-      {/* 1. Welcoming Hero Section (Bujji Weds Satya - 25 Years of Love ❤️) */}
+      {/* 1. Welcoming Hero Section (Adhi Weds Satya - 25 Years of Love ❤️) */}
       <HeroSection />
 
       {/* 2. Live Journey Love Clock (Every Second of 25 Years since 23-11-2001) */}

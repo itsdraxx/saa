@@ -92,7 +92,7 @@ export default function Navigation() {
             <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-peach-100 to-champagne/80 p-0.5 shadow-xs ring-1 ring-gold/40 transition-all duration-300 group-hover:scale-110 group-hover:ring-gold group-hover:shadow-[0_4px_16px_rgba(218,165,32,0.35)]">
               <Image
                 src="/logo.svg"
-                alt="Bujji & Satya 25th Anniversary Crest"
+                alt="Adhi & Satya 25th Anniversary Crest"
                 width={36}
                 height={36}
                 className="h-full w-full object-contain transition-transform duration-300 group-hover:rotate-6"
@@ -101,7 +101,7 @@ export default function Navigation() {
             </div>
             <div className="flex flex-col">
               <span className="font-heading text-base sm:text-lg font-bold tracking-tight text-burgundy transition-colors duration-300 group-hover:text-deep-burgundy leading-tight">
-                {isTelugu ? "బుజ్జి & సత్య" : "Bujji & Satya"}
+                {isTelugu ? "ఆది & సత్య" : "Adhi & Satya"}
               </span>
               <span className="text-[9px] font-bold tracking-wider text-soft-brown/80 uppercase font-body -mt-0.5 hidden sm:inline-block">
                 {isTelugu ? "25 వ వార్షికోత్సవం" : "25 Years • Silver Jubilee"}
@@ -155,7 +155,7 @@ export default function Navigation() {
               }}
               className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-burgundy to-deep-burgundy px-4 py-1.5 text-xs font-semibold tracking-wide text-warm-white shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-[0_4px_16px_rgba(153,31,43,0.35)] active:scale-95 cursor-pointer group"
             >
-              <span>{isTelugu ? "బుజ్జి & సత్య కోసం" : "For Bujji & Satya"}</span>
+              <span>{isTelugu ? "ఆది & సత్య కోసం" : "For Adhi & Satya"}</span>
               <Heart className="h-3 w-3 fill-warm-white transition-transform duration-300 group-hover:scale-125" />
             </button>
           </div>
@@ -214,7 +214,7 @@ export default function Navigation() {
                     <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-peach-100 to-champagne/80 p-0.5 shadow-2xs ring-1 ring-gold/40">
                       <Image
                         src="/logo.svg"
-                        alt="Bujji & Satya"
+                        alt="Adhi & Satya"
                         width={32}
                         height={32}
                         className="h-full w-full object-contain"
@@ -222,7 +222,7 @@ export default function Navigation() {
                     </div>
                     <div className="flex flex-col">
                       <span className="font-heading text-base font-bold text-burgundy leading-tight">
-                        {isTelugu ? "బుజ్జి & సత్య" : "Bujji & Satya"}
+                        {isTelugu ? "ఆది & సత్య" : "Adhi & Satya"}
                       </span>
                       <span className="text-[9px] font-bold tracking-wider text-soft-brown/80 uppercase">
                         25 Years of Love
@@ -268,11 +268,11 @@ export default function Navigation() {
                     onClick={() => handleNavClick("#dedication")}
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-burgundy py-3 text-xs font-semibold tracking-wider text-warm-white uppercase shadow-sm active:scale-95 cursor-pointer"
                   >
-                    <span>{isTelugu ? "బుజ్జి & సత్య కోసం" : "For Bujji & Satya"}</span>
+                    <span>{isTelugu ? "ఆది & సత్య కోసం" : "For Adhi & Satya"}</span>
                     <Heart className="h-3.5 w-3.5 fill-warm-white" />
                   </button>
                   <p className="text-center text-[11px] font-medium text-soft-brown/70">
-                    Bujji Weds Satya • 25 Years of Love
+                    Adhi Weds Satya • 25 Years of Love
                   </p>
                 </div>
               </div>

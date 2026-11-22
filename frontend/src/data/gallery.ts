@@ -67,7 +67,7 @@ export const galleryItems: GalleryItem[] = [
   {
     id: "early-02",
     src: "/instagram/first_sight.png",
-    alt: "The fateful day Bujji and Satya first crossed paths",
+    alt: "The fateful day Adhi and Satya first crossed paths",
     caption: "A chance meeting that changed our destinies forever",
     date: "February 1999",
     year: 1999,

@@ -68,7 +68,7 @@
 
   <!-- Interlocking Wedding Bands (The Marriage Rings) -->
   <g filter="url(#softGlow)">
-    <!-- Left Ring (Bujji) -->
+    <!-- Left Ring (Adhi) -->
     <ellipse cx="50" cy="67" rx="17" ry="16" fill="none" stroke="url(#goldShine)" stroke-width="3.6" />
     
     <!-- Right Ring (Satya) -->
@@ -105,5 +105,5 @@
         letter-spacing="2" 
         fill="url(#goldLuxury)" 
         opacity="0.9"
-        text-anchor="middle">BUJJI &amp; SATYA</text>
+        text-anchor="middle">ADHI &amp; SATYA</text>
 </svg>

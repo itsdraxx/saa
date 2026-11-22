@@ -13,7 +13,7 @@ export const timelineEntries: TimelineEntry[] = [
     year: 2001,
     title: "Our Wedding Day",
     description:
-      "On 23 November 2001, surrounded by family and blessings, Bujji and Satya exchanged sacred vows under the mandap. The air was filled with love, laughter, and the fragrance of jasmine.",
+      "On 23 November 2001, surrounded by family and blessings, Adhi and Satya exchanged sacred vows under the mandap. The air was filled with love, laughter, and the fragrance of jasmine.",
     image: "/images/timeline/wedding-day.jpg",
     category: "wedding",
   },

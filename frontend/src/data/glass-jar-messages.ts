@@ -34,7 +34,7 @@ export const glassJarMessages: GlassJarMessage[] = [
   {
     id: 6,
     message:
-      "Taking Satya all the way to Mumbai just to treat her to authentic pav bhaji — that's Bujji's kind of love!",
+      "Taking Satya all the way to Mumbai just to treat her to authentic pav bhaji — that's Adhi's kind of love!",
     author: "Adhi & Satya",
   },
   {
